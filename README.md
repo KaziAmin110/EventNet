@@ -64,7 +64,8 @@ Ensure you have **Node.js** and **npm** installed. Install the latest npm versio
 ```sh
 npm install npm@latest -g
 ```
-##🎨 Frontend Setup  
+
+## 🎨 Frontend Setup  
 
 💻 Follow these steps to set up the frontend of the project:
 
