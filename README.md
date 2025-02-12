@@ -1,77 +1,118 @@
-# CollegeEventsWebsite
+# 🎓 College Events Website  
 
-Project Description:
+## 📌 Project Description  
 
-Overview:
-Many universities host a variety of events, including social gatherings, fundraisers, and tech talks, which are often organized by student-led groups such as Registered Student Organizations (RSOs). However, existing university event websites have limitations:
+### **Overview**  
+Many universities host a variety of events, including **social gatherings, fundraisers, and tech talks**, often organized by **Registered Student Organizations (RSOs)**. However, existing university event websites have limitations:  
 
-They only list official university events, leaving out many student-organized activities.
-Students must manually check university websites to track upcoming events.
-There is no centralized way to explore and manage both public and private events.
+- ❌ Often only list **official university events**, leaving out many student-organized activities.  
+- ❌ Students must **manually check** university websites to track upcoming events.  
+- ❌ No **centralized way** to explore and manage both **public and private** events.  
 
-Solution
-This project aims to develop a web-based application that provides a comprehensive event management platform for college students, organizations, and administrators. The platform allows users to discover, create, and manage campus events more efficiently.
+### **💡 Solution**  
+This project aims to develop a **web-based application** that provides a **comprehensive event management platform** for students, organizations, and administrators. The platform enables users to:  
 
-Key Features
-User Roles & Authentication
-Super Admin: Manages university profiles and approves public events.
-Admin (RSO Leaders): Creates and manages events for their student organizations.
-Students: Browse and interact with events (comment, rate, and join RSOs).
-Event Management
-Create events with name, category, description, time, location (map integration), and contact details.
-Different event visibility levels:
-Public Events: Visible to everyone.
-Private Events: Only accessible to students from the university.
-RSO Events: Exclusive to members of a specific student organization.
-Super Admin approval required for non-RSO public events.
-Social Engagement
-Users can comment, edit, and rate events (1-5 stars).
-Social media integration for sharing events.
-User & Organization Management
-Students can create or join RSOs, requiring a minimum of five members from the same university email domain.
+✅ **Discover, create, and manage** campus events efficiently.  
+✅ Improve **event visibility and accessibility** for students.  
+✅ Support **multiple event types** with role-based access control.  
 
-Technical Details
-Frontend: Built with Vite, JavaScript, HTML, and CSS for a fast and modern web experience.
-Backend: Developed using Express.js and PostgreSQL for efficient data handling.
-Database: At least five relational tables, enforcing constraints using SQL triggers.
-Scalability: Supports multiple concurrent users with efficient data indexing.
-Additional Features: Integration with university event feeds (e.g., events.ucf.edu), security measures, and potential social media APIs.
+---
 
+## 🚀 Key Features  
 
-Getting Started:
+### **👤 User Roles & Authentication**  
+- **Super Admin**: Manages university profiles & approves public events.  
+- **Admin (RSO Leaders)**: Creates & manages events for their student organizations.  
+- **Students**: Browse and interact with events (**comment, rate, and join RSOs**).  
 
-Prerequisites
-npm
-    npm install npm@latest -g
-*Frontend Setup:
+### **📅 Event Management**  
+- Create events with:  
+  - **Name**, **Category**, **Description**, **Time**, **Date**, **Location (Map Integration)**, **Contact Details**  
+- **Event Visibility Levels**:  
+  - 🟢 **Public Events** → Visible to everyone.  
+  - 🔵 **Private Events** → Accessible only to students of the host university.  
+  - 🟠 **RSO Events** → Exclusive to members of a specific RSO.  
+- ✅ **Super Admin approval required** for non-RSO public events.  
 
-1. Navigate to the Frontend Folder from the root project directory
-    cd frontend/ 
+### **💬 Social Engagement**  
+- Users can **comment, edit, and rate** events (**1-5 stars**).  
+- **Social media integration** for event sharing.  
 
-2. Install all Project Dependencies From package.json file
-    npm install 
+### **🏫 User & Organization Management**  
+- Students can **create or join RSOs**.  
+- New RSOs require **at least five members** from the same university email domain.  
 
-3. Run and Starts the Frontend Vite Configured Server
-    npm run dev 
+---
 
+## 🛠️ Technical Details  
 
-*Backend Setup:
+- **Frontend**: Built with **Vite, JavaScript, HTML, and CSS** for a modern, fast UI.  
+- **Backend**: Developed using **Express.js and PostgreSQL** for robust data handling.  
+- **Database**: Includes at least **five relational tables** with **SQL triggers**.  
+- **Scalability**: Supports **multiple concurrent users** with efficient indexing.  
+- **Additional Features**:  
+  - Integration with **university event feeds** (e.g., [events.ucf.edu](https://events.ucf.edu)).  
+  - Security measures and **potential social media APIs**.  
 
-1. Navigate to the Backend Folder from the root directory
-    cd backend/
+---
 
-2. Creates a .env file (Stores Sensitive Project Credentials) from .env.example template
-** Make Sure to Fill in the Specific Database Credentials in the .env file
-    cp .env.example .env
+## 🏁 Getting Started  
 
-3. Runs and Starts the Backend Server
-    npm start
+### **🔧 Prerequisites**  
+Ensure you have **Node.js** and **npm** installed. Install the latest npm version with:  
 
+```sh
+npm install npm@latest -g
+```
+##🎨 Frontend Setup  
 
-Common Setup Errors:
+💻 Follow these steps to set up the frontend of the project:
 
-1. Port Conflicts
+1️⃣ Navigate to the **frontend folder** from the root directory:  
+   ```sh
+   cd frontend/
+```
+2️⃣ Install all Project Dependencies From the package.json:  
+   ```sh
+   npm install
+```
+3️⃣ Starts the Frontend Vite Configured Server:  
+   ```sh
+   npm run dev
+```
 
-Error Code: "EADDRINUSE"
+## 🖥️ Backend Setup  
 
-Change Port Code in .env file and index.js in backend/src/index.js file to an unoccupied port
+🛠️ Follow these steps to set up the backend of the project:
+
+1️⃣ Navigate to the **backend folder** from the root directory:  
+   ```sh
+   cd backend/
+```
+2️⃣ Install all Project Dependencies From the package.json:  
+   ```sh
+   npm install
+```
+3️⃣ Creates a .environment file (Stores Sensitive Projec Credentials) from .env.example template:  
+    - **Make Sure to incldue the Correct Database Information in the .env file**
+   ```sh
+   cp .env.example .env
+```
+4️⃣ Starts the Backend Server:  
+   ```sh
+   npm start
+```
+## ⚠️ Common Setup Errors  
+
+🚨 Here are some common setup issues and how to resolve them:  
+
+### **1️⃣ Port Conflicts**  
+💡 **Error:** `EADDRINUSE` (Address already in use)  
+🔹 **Solution:** Change the port in:  
+- `.env` file  
+- `backend/src/index.js`  
+
+To an **unoccupied port**, then restart the backend server:  
+```sh
+npm start
+```
