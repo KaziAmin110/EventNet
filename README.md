@@ -1,4 +1,4 @@
-# 🎓 College Events Website  
+# 🎓 College Events Website.
 
 ## 📌 Project Description  
 
