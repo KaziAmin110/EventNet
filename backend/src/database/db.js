@@ -1,5 +1,8 @@
-import { Pool } from "pg";
+import pkg from 'pg';
 import { DB_URI, NODE_ENV } from "../../config/env.js";
+
+
+const {Pool} = pkg;
 
 
 if (!DB_URI) {
