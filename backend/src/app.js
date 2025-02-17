@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { PORT } from "../config/env.js";
+import connectToDatabase from "./database/db.js";
 
 const app = express();
 
@@ -23,4 +24,6 @@ app.listen(PORT, async () => {
     console.log(
         `Events Tracker API is running on http://localhost:${PORT}`
     );
+
+    await connectToDatabase();
 });

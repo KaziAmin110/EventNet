@@ -1,6 +1,11 @@
 import { Pool } from "pg";
 import { DB_URI, NODE_ENV } from "../../config/env.js";
 
+
+if (!DB_URI) {
+  throw new Error("Please define the DB_URI environment variable inside .env.<development/production>.local");
+}
+
 const db = new Pool({
   connectionString: DB_URI,
 });
