@@ -1,14 +1,18 @@
-import pkg from "pg";
-import dotenv from "dotenv";
+import { Pool } from "pg";
+import { DB_URI, NODE_ENV } from "../../config/env.js";
 
-dotenv.config();
-
-const { Pool } = pkg;
-
-export const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: process.env.DB_PORT,
+const db = new Pool({
+  connectionString: DB_URI,
 });
+
+const connectToDatabase = async () => {
+  try {
+    await db.connect();
+    console.log(`Connected to database in ${NODE_ENV} mode`);
+  } catch (error) {
+    console.error("Error Connecting to Database: ", error);
+    process.exit(1);
+  }
+};
+
+export default connectToDatabase;
