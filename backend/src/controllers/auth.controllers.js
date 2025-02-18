@@ -31,7 +31,9 @@ export const signUp = async (req, res, next) => {
 
     await createUser(name, email, hashedPassword);
 
-    const token = jwt.sign({ email: email }, JWT_SECRET, {
+    const newUser = await getByEmail(email); // Fetch user again to get its ID
+
+    const token = jwt.sign({ userId: newUser.id }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
 
@@ -43,7 +45,6 @@ export const signUp = async (req, res, next) => {
         user: {
           name,
           email,
-          password,
         },
       },
     });
@@ -55,7 +56,42 @@ export const signUp = async (req, res, next) => {
 };
 
 // Implement Sign In Logic
-export const signIn = async (req, res, next) => {};
+export const signIn = async (req, res, next) => {
+  try {
+    const { email, password } = req.body;
+
+    const user = await getByEmail(email);
+
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordValid) {
+      const error = new Error("Invalid Password");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const token = jwt.sign({ email: email }, JWT_SECRET, {
+      expiresIn: JWT_EXPIRES_IN,
+    });
+    res.status(200).json({
+      success: true,
+      message: "User Signed In Successfully",
+      data: {
+        token,
+        email,
+      },
+    });
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ success: false, message: error.message || "Server Error" });
+  }
+};
 
 // Implement Sign Out Logic
 export const signOut = async (req, res, next) => {};
