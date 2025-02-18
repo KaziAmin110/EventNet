@@ -1,7 +1,7 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { JWT_SECRET, JWT_EXPIRES_IN } from "../../config/env.js";
-import { getByEmail, createUser } from "../services/user.js";
+import { getByEmail, createUser } from "../services/user.services.js";
 
 // Implement Sign Up Logic
 export const signUp = async (req, res, next) => {
@@ -75,7 +75,7 @@ export const signIn = async (req, res, next) => {
       throw error;
     }
 
-    const token = jwt.sign({ email: email }, JWT_SECRET, {
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
       expiresIn: JWT_EXPIRES_IN,
     });
     res.status(200).json({
