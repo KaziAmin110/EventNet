@@ -2,6 +2,8 @@ import express from "express";
 import cors from "cors";
 import { PORT } from "../config/env.js";
 import {connectToDatabase} from "./database/db.js";
+import authRouter from "./routes/auth.routes.js";
+import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
 
@@ -9,10 +11,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
+app.use(errorMiddleware);
 
 
 // Routes
-
+app.use("/api/auth", authRouter);
 
 // Test Route
 app.get("/", (req, res) => res.send("Backend is running"));
