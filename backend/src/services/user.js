@@ -5,7 +5,6 @@ export const getByEmail = async (email) => {
     const res = await db.query(`SELECT * FROM "User" WHERE email = $1`, [
       email,
     ]);
-    console.log(res.rows[0]);
     return res.rows[0];
   } catch (error) {
     return {

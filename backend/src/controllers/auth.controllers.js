@@ -20,7 +20,7 @@ export const signUp = async (req, res, next) => {
     const existingUser = await getByEmail(email);
 
     if (existingUser) {
-      const error = new Error("User Already Exists");
+      const error = new Error("Email Already Exists");
       error.statusCode = 409;
       throw error;
     }
@@ -36,20 +36,21 @@ export const signUp = async (req, res, next) => {
     });
 
     res.status(201).json({
-        sucess: true,
-        message: "User Created Successfully",
-        data: {
-            token,
-            user: {
-                name,
-                email,
-                password
-            },
+      sucess: true,
+      message: "User Created Successfully",
+      data: {
+        token,
+        user: {
+          name,
+          email,
+          password,
         },
+      },
     });
-
   } catch (error) {
-    next(error);
+    res
+      .status(error.statusCode || 500)
+      .json({ success: false, message: error.message || "Server Error" });
   }
 };
 
