@@ -23,4 +23,4 @@ const connectToDatabase = async () => {
   }
 };
 
-export default connectToDatabase;
+export {connectToDatabase, db};
