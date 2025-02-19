@@ -1,4 +1,4 @@
-import { db } from "../database/db.js";
+// import { db } from "../database/db.js";
 import User from "../entities/user.js";
 
 export const getByEmail = async (email) => {

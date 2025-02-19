@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { PORT } from "../config/env.js";
-import {connectToDatabase} from "./database/db.js";
+import { connectToDatabase } from "./database/db.js";
 import authRouter from "./routes/auth.routes.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
 

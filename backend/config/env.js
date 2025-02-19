@@ -8,4 +8,6 @@ export const {
     DB_URI,
     JWT_SECRET,
     JWT_EXPIRES_IN,
+    SUPABASE_URL,
+    SUPABASE_KEY
 } = process.env
