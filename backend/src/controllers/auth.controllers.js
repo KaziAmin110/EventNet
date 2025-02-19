@@ -1,20 +1,18 @@
 import { getByEmail, createUser } from "../services/user.services.js";
-import User from "../entities/user.js";
+import User from "../entities/user.entities.js";
 
 // Implement Sign Up Logic
 export const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-
     // Querying the database to see if the given email exists
     const existingUser = await getByEmail(email);
+
     if (existingUser) {
       return res.status(409).json({ message: "Email already exists" });
     }
-
     // Hashing our password via the User entity
     const hashedPassword = await User.hashPassword(password);
-
     // Create new user within the database
     await createUser(name, email, hashedPassword);
 
@@ -43,7 +41,6 @@ export const signUp = async (req, res) => {
   }
 };
 
-
 // Implement Sign In Logic
 export const signIn = async (req, res, next) => {
   try {
@@ -58,7 +55,7 @@ export const signIn = async (req, res, next) => {
     }
 
     // Checking if the given password matches the hashed password
-    const isPasswordValid = await user.comparePassword(password)
+    const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
       const error = new Error("Invalid Password");

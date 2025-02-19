@@ -17,6 +17,7 @@ class User {
 
   // Handles given user password hashing
   static async hashPassword(password) {
+    console.log(password);
     const salt = await bcrypt.genSalt(10);
     return bcrypt.hash(password, salt);
   }
