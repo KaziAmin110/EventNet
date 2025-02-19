@@ -1,4 +1,5 @@
 import { db } from "../database/db.js";
+import User from "../entities/user.js";
 
 export const getByEmail = async (email) => {
   try {
@@ -7,12 +8,8 @@ export const getByEmail = async (email) => {
     ]);
 
     if (res.rows[0]) {
-      const user = {
-        id: res.rows[0].id,
-        name: res.rows[0].name,
-        password: res.rows[0].password,
-      };
-      return user;
+      const{id, name, password} = res.rows[0];
+      return new User(id, name, email, password);
     }
 
     // No Such User associated with Email

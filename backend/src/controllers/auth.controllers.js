@@ -1,59 +1,48 @@
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { JWT_SECRET, JWT_EXPIRES_IN } from "../../config/env.js";
 import { getByEmail, createUser } from "../services/user.services.js";
+import User from "../entities/user.js";
 
 // Implement Sign Up Logic
-export const signUp = async (req, res, next) => {
+export const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
 
-    // Check Valid Email Format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      const error = new Error("Invalid Email Format");
-      error.statusCode = 408;
-      throw error;
-    }
-
-    // Check If Email already exists within the database
+    // Querying the database to see if the given email exists
     const existingUser = await getByEmail(email);
-
     if (existingUser) {
-      const error = new Error("Email Already Exists");
-      error.statusCode = 409;
-      throw error;
+      return res.status(409).json({ message: "Email already exists" });
     }
 
-    // Hash Password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    // Hashing our password via the User entity
+    const hashedPassword = await User.hashPassword(password);
 
+    // Create new user within the database
     await createUser(name, email, hashedPassword);
 
-    const newUser = await getByEmail(email); // Fetch user again to get its ID
+    // Retreiving the newly added user by their email
+    const newUser = await getByEmail(email);
 
-    const token = jwt.sign({ userId: newUser.id }, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
-    });
+    // Getting the JWT token via the user entity
+    const token = newUser.generateAuthToken();
 
     res.status(201).json({
-      sucess: true,
+      success: true,
       message: "User Created Successfully",
       data: {
         token,
         user: {
-          name,
-          email,
+          name: newUser.name,
+          email: newUser.email,
         },
       },
     });
   } catch (error) {
-    res
-      .status(error.statusCode || 500)
-      .json({ success: false, message: error.message || "Server Error" });
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
   }
 };
+
 
 // Implement Sign In Logic
 export const signIn = async (req, res, next) => {
@@ -67,7 +56,9 @@ export const signIn = async (req, res, next) => {
       error.statusCode = 404;
       throw error;
     }
-    const isPasswordValid = await bcrypt.compare(password, user.password);
+
+    // Checking if the given password matches the hashed password
+    const isPasswordValid = await user.comparePassword(password)
 
     if (!isPasswordValid) {
       const error = new Error("Invalid Password");
@@ -75,15 +66,15 @@ export const signIn = async (req, res, next) => {
       throw error;
     }
 
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
-      expiresIn: JWT_EXPIRES_IN,
-    });
+    // Generating the token via the user entity method
+    const token = user.generateAuthToken();
+
     res.status(200).json({
       success: true,
       message: "User Signed In Successfully",
       data: {
         token,
-        email,
+        email: user.email,
       },
     });
   } catch (error) {
