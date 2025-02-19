@@ -28,8 +28,6 @@ app.listen(PORT, async () => {
     console.log(
         `Events Tracker API is running on http://localhost:${PORT}`
     );
-
-    // await connectToDatabase();
 });
 
 
