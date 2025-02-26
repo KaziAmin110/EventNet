@@ -1,11 +1,16 @@
 import User from "../entities/user.entities.js";
-import { EVENTS_EMAIL, EVENTS_PASSWORD, ACCESS_SECRET } from "../../config/env.js";
+import {
+  EVENTS_EMAIL,
+  EVENTS_PASSWORD,
+  ACCESS_SECRET,
+} from "../../config/env.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import {
   getUserByEmail,
   createUser,
   updateUserPassword,
+  updateRefreshToken,
 } from "../services/user.services.js";
 
 // Allows for the Creation of a New User in the Supabase DB
@@ -83,14 +88,23 @@ export const signIn = async (req, res, next) => {
     }
 
     // Generating the token via the user entity method
-    const token = user.generateAuthToken();
+    const accessToken = user.generateAccessToken();
+    const refreshToken = user.generateRefreshToken();
+    const refreshTokenAge = 24 * 60 * 60 * 1000;
+
+    await updateRefreshToken(user.id, refreshToken);
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      maxAge: refreshTokenAge,
+    });
 
     res.status(200).json({
       success: true,
       message: "User Signed In Successfully",
       data: {
-        token,
-        email: user.email,
+        accessToken,
+        refreshToken,
+        refreshTokenAge: 24 * 60 * 60 * 1000,
       },
     });
   } catch (error) {

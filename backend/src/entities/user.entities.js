@@ -1,9 +1,13 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { ACCESS_SECRET, ACCESS_EXPIRES_IN } from "../../config/env.js";
+import {
+  ACCESS_SECRET,
+  ACCESS_EXPIRES_IN,
+  REFRESH_SECRET,
+  REFRESH_EXPIRES_IN,
+} from "../../config/env.js";
 
-
- /*
+/*
   A high level abstraction of a user that encapsulates its core business logic while remaining independent 
   of lower-level components of the application such as the database.  
 */
@@ -25,10 +29,18 @@ class User {
   async comparePassword(plainPassword) {
     return bcrypt.compare(plainPassword, this.password);
   }
-  
+
   // Provides a token so a user can be authenticated
-  generateAuthToken() {
-    return jwt.sign({ userId: this.id }, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
+  generateAccessToken() {
+    return jwt.sign({ userId: this.id }, ACCESS_SECRET, {
+      expiresIn: ACCESS_EXPIRES_IN,
+    });
+  }
+
+  generateRefreshToken() {
+    return jwt.sign({ userId: this.id }, REFRESH_SECRET, {
+      expiresIn: REFRESH_EXPIRES_IN,
+    });
   }
 }
 

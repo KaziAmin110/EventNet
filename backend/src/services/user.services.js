@@ -53,7 +53,28 @@ export const updateUserPassword = async (id, newPassword) => {
       return { error: error.message, status: 500 };
     }
 
-    return { message: "Password Updated Successfully", status: 201};
+    return { message: "Password Updated Successfully", status: 201 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
+// Updates Refresh Token in DB upon Sign In
+export const updateRefreshToken = async (id, refresh_token) => {
+  try {
+    const { error } = await supabase
+      .from("User")
+      .update({ refresh_token})
+      .eq("id", id);
+
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    return { message: "User created successfully", data, status: 201 };
   } catch (error) {
     return {
       error: error.message,
