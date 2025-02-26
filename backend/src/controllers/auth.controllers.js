@@ -1,5 +1,5 @@
 import User from "../entities/user.entities.js";
-import { EVENTS_EMAIL, EVENTS_PASSWORD, JWT_SECRET } from "../../config/env.js";
+import { EVENTS_EMAIL, EVENTS_PASSWORD, ACCESS_SECRET } from "../../config/env.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import {
@@ -162,7 +162,21 @@ export const resetPassword = async (req, res, next) => {
     const { id, token } = req.params;
     const { password } = req.body;
 
-    jwt.verify(token, JWT_SECRET);
+    if (!id || !token) {
+      const error = new Error(
+        "One or more required parameters are not present"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!password) {
+      const error = new Error("Password Field Not Present in API request");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    jwt.verify(token, ACCESS_SECRET);
 
     if (!password) {
       throw new Error("Password is required");

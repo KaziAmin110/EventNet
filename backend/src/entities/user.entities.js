@@ -1,6 +1,6 @@
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { JWT_SECRET, JWT_EXPIRES_IN } from "../../config/env.js";
+import { ACCESS_SECRET, ACCESS_EXPIRES_IN } from "../../config/env.js";
 
 
  /*
@@ -28,7 +28,7 @@ class User {
   
   // Provides a token so a user can be authenticated
   generateAuthToken() {
-    return jwt.sign({ userId: this.id }, JWT_SECRET, { expiresIn: JWT_EXPIRES_IN });
+    return jwt.sign({ userId: this.id }, ACCESS_SECRET, { expiresIn: ACCESS_EXPIRES_IN });
   }
 }
 
