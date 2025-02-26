@@ -1,9 +1,14 @@
-import { getUserByEmail, createUser } from "../services/user.services.js";
 import User from "../entities/user.entities.js";
-import { EVENTS_EMAIL, EVENTS_PASSWORD } from "../../config/env.js";
+import { EVENTS_EMAIL, EVENTS_PASSWORD, JWT_SECRET } from "../../config/env.js";
 import nodemailer from "nodemailer";
+import jwt from "jsonwebtoken";
+import {
+  getUserByEmail,
+  createUser,
+  updateUserPassword,
+} from "../services/user.services.js";
 
-// Implement Sign Up Logic
+// Allows for the Creation of a New User in the Supabase DB
 export const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -43,7 +48,7 @@ export const signUp = async (req, res) => {
   }
 };
 
-// Implement Sign In Logic
+// Allows User to Sign In -- Returns a JWT Token Upon Success
 export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
@@ -83,17 +88,17 @@ export const signIn = async (req, res, next) => {
   }
 };
 
-// Implement Sign Out Logic
+// Allows User to Sign Out -- Clears JWT Token from Cookies
 export const signOut = async (req, res, next) => {};
 
-// Implement Forgot Password Logic
+// Sends Email to User with a Reset Password Link
 export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await getUserByEmail(email);
 
     if (!user) {
-      const error = new Error("User not found");
+      const error = new Error("Email not found");
       error.statusCode = 404;
       throw error;
     }
@@ -125,6 +130,32 @@ export const forgotPassword = async (req, res, next) => {
           message: "Reset Email Sent Succesfully",
         });
       }
+    });
+  } catch (err) {
+    res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Allows User to Reset Their Password
+export const resetPassword = async (req, res, next) => {
+  try {
+    const { id, token } = req.params;
+    const { password } = req.body;
+
+    jwt.verify(token, JWT_SECRET);
+
+    if (!password) {
+      throw new Error("Password is required");
+    }
+
+    const hashedPassword = await User.hashPassword(password);
+    await updateUserPassword(id, hashedPassword);
+
+    res.status(200).json({
+      success: true,
+      message: "Password Updated Successfully",
     });
   } catch (err) {
     res
