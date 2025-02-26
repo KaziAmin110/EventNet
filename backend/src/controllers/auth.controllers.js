@@ -12,6 +12,12 @@ import {
 export const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
+
+    if (!name || !email || !password) {
+      const error = new Error("One or more required fields are not present");
+      error.statusCode = 400;
+      throw error;
+    }
     // Querying the database to see if the given email exists
     const existingUser = await getUserByEmail(email);
 
@@ -52,6 +58,12 @@ export const signUp = async (req, res) => {
 export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
+
+    if (!email || !password) {
+      const error = new Error("One or more required fields are not present");
+      error.statusCode = 400;
+      throw error;
+    }
 
     const user = await getUserByEmail(email);
 
@@ -96,6 +108,12 @@ export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
     const user = await getUserByEmail(email);
+
+    if (!email) {
+      const error = new Error("Email field is not present in API Request");
+      error.statusCode = 400;
+      throw error;
+    }
 
     if (!user) {
       const error = new Error("Email not found");
