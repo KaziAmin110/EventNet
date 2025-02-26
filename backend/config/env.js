@@ -9,5 +9,7 @@ export const {
     JWT_SECRET,
     JWT_EXPIRES_IN,
     SUPABASE_URL,
-    SUPABASE_KEY
+    SUPABASE_KEY,
+    EVENTS_EMAIL,
+    EVENTS_PASSWORD
 } = process.env

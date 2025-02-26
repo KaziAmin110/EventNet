@@ -1,12 +1,14 @@
-import { getByEmail, createUser } from "../services/user.services.js";
+import { getUserByEmail, createUser } from "../services/user.services.js";
 import User from "../entities/user.entities.js";
+import { EVENTS_EMAIL, EVENTS_PASSWORD } from "../../config/env.js";
+import nodemailer from "nodemailer";
 
 // Implement Sign Up Logic
 export const signUp = async (req, res) => {
   try {
     const { name, email, password } = req.body;
     // Querying the database to see if the given email exists
-    const existingUser = await getByEmail(email);
+    const existingUser = await getUserByEmail(email);
 
     if (existingUser) {
       return res.status(409).json({ message: "Email already exists" });
@@ -17,7 +19,7 @@ export const signUp = async (req, res) => {
     await createUser(name, email, hashedPassword);
 
     // Retreiving the newly added user by their email
-    const newUser = await getByEmail(email);
+    const newUser = await getUserByEmail(email);
 
     // Getting the JWT token via the user entity
     const token = newUser.generateAuthToken();
@@ -46,7 +48,7 @@ export const signIn = async (req, res, next) => {
   try {
     const { email, password } = req.body;
 
-    const user = await getByEmail(email);
+    const user = await getUserByEmail(email);
 
     if (!user) {
       const error = new Error("User not found");
@@ -83,3 +85,54 @@ export const signIn = async (req, res, next) => {
 
 // Implement Sign Out Logic
 export const signOut = async (req, res, next) => {};
+
+// Implement Forgot Password Logic
+export const forgotPassword = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await getUserByEmail(email);
+
+    if (!user) {
+      const error = new Error("User not found");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    const token = user.generateAuthToken();
+
+    // Nodemailer Setup
+    var transporter = nodemailer.createTransport({
+      service: "gmail",
+      auth: {
+        user: EVENTS_EMAIL,
+        pass: EVENTS_PASSWORD,
+      },
+    });
+    var mailOptions = {
+      from: EVENTS_EMAIL,
+      to: email,
+      subject: "Reset Your Password",
+      text: `http://localhost:5500/reset-password/${user.id}/${token}`,
+    };
+
+    transporter.sendMail(mailOptions, function (error, info) {
+      if (error) {
+        console.log(error);
+        throw error;
+      } else {
+        res.status(200).json({
+          success: true,
+          message: "Reset Email Sent Succesfully",
+          data: {
+            token,
+            email: user.email,
+          },
+        });
+      }
+    });
+  } catch (err) {
+    res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};

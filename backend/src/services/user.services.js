@@ -1,7 +1,7 @@
 import { supabase } from "../database/db.js";
 import User from "../entities/user.entities.js";
 
-export const getByEmail = async (email) => {
+export const getUserByEmail = async (email) => {
   try {
   
     const { data, error } = await supabase
