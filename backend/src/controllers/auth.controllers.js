@@ -123,10 +123,6 @@ export const forgotPassword = async (req, res, next) => {
         res.status(200).json({
           success: true,
           message: "Reset Email Sent Succesfully",
-          data: {
-            token,
-            email: user.email,
-          },
         });
       }
     });
