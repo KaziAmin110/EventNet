@@ -38,17 +38,13 @@ export const signUp = async (req, res) => {
     const newUser = await getUserByEmail(email);
 
     // Getting the JWT token via the user entity
-    const token = newUser.generateAuthToken();
+    const accessToken = newUser.generateAccessToken();
 
     res.status(201).json({
       success: true,
       message: "User Created Successfully",
       data: {
-        token,
-        user: {
-          name: newUser.name,
-          email: newUser.email,
-        },
+        accessToken,
       },
     });
   } catch (error) {
