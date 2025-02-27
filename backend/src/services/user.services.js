@@ -21,13 +21,36 @@ export const getUserByAttribute = async (attribute, value) => {
   }
 };
 
+// Retrieves User Entity Based on Attribute
+export const getResetTokenByAttribute = async (attribute, value) => {
+  try {
+    const { data, error } = await supabase
+      .from("password_reset")
+      .select("email, reset_token, reset_token_expiry")
+      .eq(attribute, value)
+      .single();
+
+    if (data) {
+      return {
+        email: data.email,
+        reset_token: data.reset_token,
+        reset_token_expiry: data.reset_token_expiry,
+      };
+    }
+
+    // No Such User associated with Email
+    return null;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 // Creates a New User in the Database
 export const createUser = async (name, email, password) => {
   try {
     const { data, error } = await supabase
       .from("User") // Table name
       .insert([{ name, email, password }]);
-
     if (error) {
       return { error: error.message, status: 500 };
     }
@@ -67,7 +90,7 @@ export const updateRefreshToken = async (id, refresh_token) => {
   try {
     const { error } = await supabase
       .from("User")
-      .update({ refresh_token})
+      .update({ refresh_token })
       .eq("id", id);
 
     if (error) {
@@ -81,4 +104,58 @@ export const updateRefreshToken = async (id, refresh_token) => {
       status: 500,
     };
   }
+};
+
+export const updatePasswordResetDB = async (
+  email,
+  reset_token,
+  reset_token_expiry
+) => {
+  try {
+    const { error } = await supabase
+      .from("password_reset")
+      .update({ reset_token, reset_token_expiry })
+      .eq("email", email);
+
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    return { message: "User created successfully", data, status: 201 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
+export const createPasswordResetDB = async (
+  email,
+  reset_token,
+  reset_token_expiry
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("password_reset") // Table name
+      .insert([{ email, reset_token, reset_token_expiry }]);
+
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    return { message: "User created successfully", data, status: 201 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
+export const verifyPasswordResetToken = async (data) => {
+  if (!data) return false;
+  // Check that the token hasn't expired
+  if (new Date(data.reset_token_expiry) < Date.now()) return false;
+  return true;
 };

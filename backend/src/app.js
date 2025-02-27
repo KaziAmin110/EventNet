@@ -18,6 +18,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(errorMiddleware);
 app.use(cookieParser());
+
+
 // Routes
 app.use("/api/auth", authRouter);
 

@@ -6,6 +6,7 @@ import {
   REFRESH_SECRET,
   REFRESH_EXPIRES_IN,
 } from "../../config/env.js";
+import crypto from "crypto";
 
 /*
   A high level abstraction of a user that encapsulates its core business logic while remaining independent 
@@ -42,6 +43,19 @@ class User {
       expiresIn: REFRESH_EXPIRES_IN,
     });
   }
+
+  generateCode(){
+    const arr = []
+    for (let i = 0; i < 3; i++){
+        for (let i = 0; i < 4; i++){
+            const charCode = Math.floor(Math.random() * 26) + 'A'.charCodeAt(0);
+            const randomChar = String.fromCharCode(charCode);
+            arr.push(randomChar);
+        }
+        arr.push('-');
+    }
+    return arr.slice(0, -1).join('');
+}
 }
 
 export default User;

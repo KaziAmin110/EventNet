@@ -2,17 +2,19 @@ import User from "../entities/user.entities.js";
 import {
   EVENTS_EMAIL,
   EVENTS_PASSWORD,
-  ACCESS_SECRET,
   REFRESH_SECRET,
-  ACCESS_EXPIRES_IN,
 } from "../../config/env.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import {
   getUserByAttribute,
+  getResetTokenByAttribute,
   createUser,
   updateUserPassword,
   updateRefreshToken,
+  createPasswordResetDB,
+  verifyPasswordResetToken,
+  updatePasswordResetDB,
 } from "../services/user.services.js";
 
 // Allows for the Creation of a New User in the Supabase DB
@@ -131,8 +133,18 @@ export const forgotPassword = async (req, res, next) => {
       throw error;
     }
 
-    const token = user.generateAuthToken();
+    const reset_token = user.generateCode();
+    const resetTokenExpires = new Date(
+      Date.now() + 60 * 60 * 1000
+    ).toISOString(); // 1 hour
 
+    const resetData = await getResetTokenByAttribute("email", email);
+
+    if (!resetData) {
+      await createPasswordResetDB(email, reset_token, resetTokenExpires);
+    } else {
+      await updatePasswordResetDB(email, reset_token, resetTokenExpires);
+    }
     // Nodemailer Setup
     var transporter = nodemailer.createTransport({
       service: "gmail",
@@ -145,7 +157,7 @@ export const forgotPassword = async (req, res, next) => {
       from: EVENTS_EMAIL,
       to: email,
       subject: "Reset Your Password",
-      text: `http://localhost:5500/reset-password/${user.id}/${token}`,
+      text: `Your Password Reset Token Is: ${reset_token}`,
     };
 
     transporter.sendMail(mailOptions, function (error, info) {
@@ -169,13 +181,10 @@ export const forgotPassword = async (req, res, next) => {
 // Allows User to Reset Their Password
 export const resetPassword = async (req, res, next) => {
   try {
-    const { id, token } = req.params;
-    const { password } = req.body;
+    const { token, new_password } = req.body;
 
-    if (!id || !token) {
-      const error = new Error(
-        "One or more required parameters are not present"
-      );
+    if (!token) {
+      const error = new Error("Token Field is Not Present in API Request");
       error.statusCode = 400;
       throw error;
     }
@@ -186,15 +195,23 @@ export const resetPassword = async (req, res, next) => {
       throw error;
     }
 
-    jwt.verify(token, ACCESS_SECRET);
+    const data = await getResetTokenByAttribute("reset_token", token);
 
-    const hashedPassword = await User.hashPassword(password);
-    await updateUserPassword(id, hashedPassword);
+    const isValidToken = verifyPasswordResetToken(data);
 
-    res.status(200).json({
-      success: true,
-      message: "Password Updated Successfully",
-    });
+    if (isValidToken) {
+      const hashedPassword = await User.hashPassword(new_password);
+      await updateUserPassword(id, hashedPassword);
+
+      res.status(200).json({
+        success: true,
+        message: "Password Updated Successfully",
+      });
+    } else {
+      const error = new Error("Invalid Password Reset Token");
+      error.statusCode = 400;
+      throw error;
+    }
   } catch (err) {
     res
       .status(err.statusCode || 500)
