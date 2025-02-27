@@ -7,7 +7,7 @@ import {
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 import {
-  getUserByEmail,
+  getUserByAttribute,
   createUser,
   updateUserPassword,
   updateRefreshToken,
@@ -24,7 +24,7 @@ export const signUp = async (req, res) => {
       throw error;
     }
     // Querying the database to see if the given email exists
-    const existingUser = await getUserByEmail(email);
+    const existingUser = await getUserByAttribute("email", email);
 
     if (existingUser) {
       return res.status(409).json({ message: "Email already exists" });
@@ -35,7 +35,7 @@ export const signUp = async (req, res) => {
     await createUser(name, email, hashedPassword);
 
     // Retreiving the newly added user by their email
-    const newUser = await getUserByEmail(email);
+    const newUser = await getUserByAttribute("email", email);
 
     // Getting the JWT token via the user entity
     const accessToken = newUser.generateAccessToken();
@@ -66,7 +66,7 @@ export const signIn = async (req, res, next) => {
       throw error;
     }
 
-    const user = await getUserByEmail(email);
+    const user = await getUserByAttribute("email", email);
 
     if (!user) {
       const error = new Error("User not found");
@@ -99,8 +99,6 @@ export const signIn = async (req, res, next) => {
       message: "User Signed In Successfully",
       data: {
         accessToken,
-        refreshToken,
-        refreshTokenAge: 24 * 60 * 60 * 1000,
       },
     });
   } catch (error) {
@@ -117,7 +115,7 @@ export const signOut = async (req, res, next) => {};
 export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
-    const user = await getUserByEmail(email);
+    const user = await getUserByAttribute("email", email);
 
     if (!email) {
       const error = new Error("Email field is not present in API Request");

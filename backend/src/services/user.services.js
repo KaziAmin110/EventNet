@@ -1,13 +1,13 @@
 import { supabase } from "../database/db.js";
 import User from "../entities/user.entities.js";
 
-// Retrieves User Entity Based on Email
-export const getUserByEmail = async (email) => {
+// Retrieves User Entity Based on Attribute
+export const getUserByAttribute = async (attribute, value) => {
   try {
     const { data, error } = await supabase
       .from("User")
       .select("id, name, email, password")
-      .eq("email", email)
+      .eq(attribute, value)
       .single();
 
     if (data) {
