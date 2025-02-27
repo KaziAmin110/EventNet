@@ -93,8 +93,6 @@ export const signIn = async (req, res, next) => {
     await updateRefreshToken(user.id, refreshToken);
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
-      secure: false,
-      sameSite: "None",
       maxAge: refreshTokenAge,
     });
 
@@ -227,10 +225,16 @@ export const refreshAccess = async (req, res, next) => {
       throw error;
     }
 
-    jwt.verify(refreshToken, REFRESH_SECRET);
-    const accessToken = jwt.sign(user, ACCESS_SECRET, {
-      expiresIn: ACCESS_EXPIRES_IN,
+    jwt.verify(refreshToken, REFRESH_SECRET, (err, payload) => {
+      if (err || !user.id === payload.id) {
+        const error = new Error(
+          "JWT refresh failed - Unable to Authenticate User."
+        );
+        error.statusCode = 403;
+        throw error;
+      }
     });
+    const accessToken = user.generateAccessToken();
 
     res.status(200).json({
       success: true,

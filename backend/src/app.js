@@ -4,16 +4,20 @@ import { PORT } from "../config/env.js";
 // import { connectToDatabase } from "./database/db.js";
 import authRouter from "./routes/auth.routes.js";
 import errorMiddleware from "./middlewares/error.middleware.js";
+import cookieParser from "cookie-parser";
 
 const app = express();
-
-// Middlewares
-app.use(cors({
+// // Middlewares
+app.use(
+  cors({
+    origin: 'http://localhost:5500',
     credentials: true,
-}));
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(errorMiddleware);
+app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRouter);
 
