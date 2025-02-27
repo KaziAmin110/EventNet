@@ -3,6 +3,8 @@ import {
   EVENTS_EMAIL,
   EVENTS_PASSWORD,
   ACCESS_SECRET,
+  REFRESH_SECRET,
+  ACCESS_EXPIRES_IN,
 } from "../../config/env.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
@@ -91,6 +93,8 @@ export const signIn = async (req, res, next) => {
     await updateRefreshToken(user.id, refreshToken);
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
+      secure: false,
+      sameSite: "None",
       maxAge: refreshTokenAge,
     });
 
@@ -186,16 +190,54 @@ export const resetPassword = async (req, res, next) => {
 
     jwt.verify(token, ACCESS_SECRET);
 
-    if (!password) {
-      throw new Error("Password is required");
-    }
-
     const hashedPassword = await User.hashPassword(password);
     await updateUserPassword(id, hashedPassword);
 
     res.status(200).json({
       success: true,
       message: "Password Updated Successfully",
+    });
+  } catch (err) {
+    res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+export const refreshAccess = async (req, res, next) => {
+  try {
+    // Get Refresh Token from Cookies
+    const cookies = req.cookies;
+
+    // Given JWT Cookie Doesnt Exist
+    if (!cookies?.jwt) {
+      const error = new Error("JWT refresh failed - No JWT Cookie Found");
+      error.statusCode = 401;
+      throw error;
+    }
+
+    const refreshToken = cookies.jwt;
+    const user = await getUserByAttribute("refresh_token", refreshToken);
+
+    if (!user) {
+      const error = new Error(
+        "JWT refresh failed - Unable to Authenticate User"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    jwt.verify(refreshToken, REFRESH_SECRET);
+    const accessToken = jwt.sign(user, ACCESS_SECRET, {
+      expiresIn: ACCESS_EXPIRES_IN,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "JWT Refresh Successful",
+      data: {
+        accessToken,
+      },
     });
   } catch (err) {
     res
