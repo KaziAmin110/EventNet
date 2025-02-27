@@ -39,7 +39,7 @@ export const getResetTokenByAttribute = async (attribute, value) => {
     }
 
     // No Such User associated with Email
-    return null;
+    return false;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -153,9 +153,15 @@ export const createPasswordResetDB = async (
   }
 };
 
-export const verifyPasswordResetToken = async (data) => {
+export const verifyPasswordResetToken = (data) => {
   if (!data) return false;
   // Check that the token hasn't expired
-  if (new Date(data.reset_token_expiry) < Date.now()) return false;
-  return true;
+  const now = new Date();
+  const expiryDate = new Date(data.reset_token_expiry);
+
+  if (expiryDate > now) {
+    return true;
+  } else {
+    return false;
+  }
 };

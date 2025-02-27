@@ -181,9 +181,9 @@ export const forgotPassword = async (req, res, next) => {
 // Allows User to Reset Their Password
 export const resetPassword = async (req, res, next) => {
   try {
-    const { token, password } = req.body;
+    const { reset_token, password } = req.body;
 
-    if (!token) {
+    if (!reset_token) {
       const error = new Error("Token Field is Not Present in API Request");
       error.statusCode = 400;
       throw error;
@@ -195,8 +195,7 @@ export const resetPassword = async (req, res, next) => {
       throw error;
     }
 
-    const data = await getResetTokenByAttribute("reset_token", token);
-
+    const data = await getResetTokenByAttribute("reset_token", reset_token);
     const isValidToken = verifyPasswordResetToken(data);
 
     if (isValidToken) {
