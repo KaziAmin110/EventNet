@@ -65,12 +65,12 @@ export const createUser = async (name, email, password) => {
 };
 
 // Updates Password of Existing User in the Database Based on User Id
-export const updateUserPassword = async (id, newPassword) => {
+export const updateUserPassword = async (attribute, value, newPassword) => {
   try {
     const { error } = await supabase
       .from("User")
       .update({ password: newPassword })
-      .eq("id", id);
+      .eq(attribute, value);
 
     if (error) {
       return { error: error.message, status: 500 };
