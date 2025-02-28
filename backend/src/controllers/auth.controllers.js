@@ -6,17 +6,16 @@ import {
 } from "../../config/env.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
+import { getUserByAttribute, createUser } from "../services/user.services.js";
 import {
-  getUserByAttribute,
-  getResetTokenByAttribute,
-  createUser,
   updateUserPassword,
   updateRefreshToken,
   createPasswordResetDB,
   verifyPasswordResetToken,
   updatePasswordResetDB,
   removePasswordResetTokenDB,
-} from "../services/user.services.js";
+  getResetTokenByAttribute,
+} from "../services/auth.services.js";
 
 // Allows for the Creation of a New User in the Supabase DB
 export const signUp = async (req, res) => {
