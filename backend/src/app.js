@@ -7,6 +7,7 @@ import errorMiddleware from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 
 const app = express();
+
 // // Middlewares
 app.use(
   cors({

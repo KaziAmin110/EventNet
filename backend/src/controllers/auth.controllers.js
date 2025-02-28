@@ -115,7 +115,7 @@ export const signIn = async (req, res, next) => {
 // Allows User to Sign Out -- Clears JWT Token from Cookies
 export const signOut = async (req, res, next) => {};
 
-// Sends Email to User with a Reset Password Link
+// Sends Email to User with a Password Reset Token
 export const forgotPassword = async (req, res, next) => {
   try {
     const { email } = req.body;
@@ -178,7 +178,7 @@ export const forgotPassword = async (req, res, next) => {
   }
 };
 
-// Allows User to Reset Their Password
+// Allows User to Reset Their Password using the Password Reset Token
 export const resetPassword = async (req, res, next) => {
   try {
     const { reset_token, password } = req.body;
@@ -218,6 +218,7 @@ export const resetPassword = async (req, res, next) => {
   }
 };
 
+// Uses Refresh Token Stored in Cookies to give a new access token to a User
 export const refreshAccess = async (req, res, next) => {
   try {
     // Get Refresh Token from Cookies

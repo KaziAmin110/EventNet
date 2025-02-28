@@ -106,6 +106,7 @@ export const updateRefreshToken = async (id, refresh_token) => {
   }
 };
 
+// Updates Password Reset Row with New Password Reset Token and Expiration Date
 export const updatePasswordResetDB = async (
   email,
   reset_token,
@@ -130,6 +131,7 @@ export const updatePasswordResetDB = async (
   }
 };
 
+// Inserts Email, Password Reset Token and Reset Expiration Date in Password_Reset Table
 export const createPasswordResetDB = async (
   email,
   reset_token,
@@ -153,6 +155,7 @@ export const createPasswordResetDB = async (
   }
 };
 
+// Checks the Validation of Password Reset Token including whether it exists and whether it has expired
 export const verifyPasswordResetToken = (data) => {
   if (!data) return false;
   // Check that the token hasn't expired
