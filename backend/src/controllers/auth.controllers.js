@@ -15,6 +15,7 @@ import {
   createPasswordResetDB,
   verifyPasswordResetToken,
   updatePasswordResetDB,
+  removePasswordResetTokenDB,
 } from "../services/user.services.js";
 
 // Allows for the Creation of a New User in the Supabase DB
@@ -201,7 +202,7 @@ export const resetPassword = async (req, res, next) => {
     if (isValidToken) {
       const hashedPassword = await User.hashPassword(password);
       await updateUserPassword("email", data.email, hashedPassword);
-
+      await removePasswordResetTokenDB("email", data.email);
       res.status(200).json({
         success: true,
         message: "Password Updated Successfully",
