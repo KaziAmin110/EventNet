@@ -11,15 +11,13 @@ const app = express();
 // // Middlewares
 app.use(
   cors({
-    origin: 'http://localhost:5500',
+    origin: "http://localhost:5500",
     credentials: true,
   })
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
-app.use(errorMiddleware);
 app.use(cookieParser());
-
 
 // Routes
 app.use("/api/auth", authRouter);

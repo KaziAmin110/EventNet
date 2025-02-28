@@ -106,6 +106,30 @@ export const updateRefreshToken = async (id, refresh_token) => {
   }
 };
 
+// Inserts Email, Password Reset Token and Reset Expiration Date in Password_Reset Table
+export const createPasswordResetDB = async (
+  email,
+  reset_token,
+  reset_token_expiry
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("password_reset") // Table name
+      .insert([{ email, reset_token, reset_token_expiry }]);
+
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    return { message: "User created successfully", data, status: 201 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
 // Updates Password Reset Row with New Password Reset Token and Expiration Date
 export const updatePasswordResetDB = async (
   email,
@@ -131,22 +155,13 @@ export const updatePasswordResetDB = async (
   }
 };
 
-// Inserts Email, Password Reset Token and Reset Expiration Date in Password_Reset Table
-export const createPasswordResetDB = async (
-  email,
-  reset_token,
-  reset_token_expiry
-) => {
+// Removes Password Reset Table Entry Based on a Given Attribute and Value
+export const removePasswordResetTokenDB = async (attribute, value) => {
   try {
-    const { data, error } = await supabase
-      .from("password_reset") // Table name
-      .insert([{ email, reset_token, reset_token_expiry }]);
-
-    if (error) {
-      return { error: error.message, status: 500 };
-    }
-
-    return { message: "User created successfully", data, status: 201 };
+    const { error } = await supabase
+      .from("password_reset")
+      .delete()
+      .eq(attribute, value);
   } catch (error) {
     return {
       error: error.message,
