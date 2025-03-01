@@ -1,11 +1,19 @@
-CREATE TYPE user_role AS ENUM ('super_admin', 'admin', 'student');
 CREATE TYPE event_category AS ENUM('social', 'fundraising', 'gbm');
 
-CREATE TABLE SuperAdmin (
-    user_id SERIAL PRIMARY KEY,
+CREATE TABLE User {
+    id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role user_role NOT NULL DEFAULT 'super_admin'
+    name VARCHAR(255) NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    refresh_token VARCHAR(255)
+};
+
+CREATE TABLE SuperAdmin (
+    super_id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    name VARCHAR(255) NOT NULL,
+    user_id INT NOT NULL,
+    FOREIGN KEY(user_id) REFERENCES User(id)
 );
 
 CREATE TABLE University (
@@ -19,24 +27,24 @@ CREATE TABLE University (
 );
 
 CREATE TABLE Admin (
-    user_id SERIAL PRIMARY KEY,
+    admin_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role user_role NOT NULL DEFAULT 'admin',
+    name VARCHAR(255) NOT NULL,
     uni_id INT NOT NULL,  
-    FOREIGN KEY(uni_id) REFERENCES University(uni_id)
+    user_id INT NOT NULL,
+    FOREIGN KEY(uni_id) REFERENCES University(uni_id),
+    FOREIGN KEY(user_id) REFERENCES User(id)
 );
 
 CREATE TABLE Student (
-    user_id SERIAL PRIMARY KEY,
+    stu_id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
-    password TEXT NOT NULL,
-    role user_role NOT NULL DEFAULT 'student',
-    uni_id INT NOT NULL,  
-    FOREIGN KEY(uni_id) REFERENCES University(uni_id)
+    name VARCHAR(255) NOT NULL,
+    uni_id INT NOT NULL,
+    user_id INT NOT NULL,  
+    FOREIGN KEY(uni_id) REFERENCES University(uni_id),
+    FOREIGN KEY(user_id) REFERENCES User(id)
 );
-
-
 
 CREATE TABLE RSO (
     rso_id SERIAL PRIMARY KEY,
