@@ -8,7 +8,7 @@ import {
 // Grants a User SuperAdmin Role
 export const createRole = async (req, res, next) => {
   try {
-    const { user_id } = req.params;
+    const user_id = req.user;
     const { role, uni_id } = req.body;
 
     // Checks Whether User Exists in the Database
@@ -22,11 +22,12 @@ export const createRole = async (req, res, next) => {
     // Checks whether user already has the desired role
     const isRoleAssigned = await isUserRole(role, user_id);
     if (isRoleAssigned) {
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: `User is already a ${role}`,
       });
     }
+
     // Assignment of role to User
     if (role === "super_admin") {
       await createSuperAdmin(user_id, user.name, user.email);
@@ -40,18 +41,18 @@ export const createRole = async (req, res, next) => {
       throw error;
     } else {
       const error = new Error(
-        "Invalid Role: (Roles: super_admin | admin | student)"
+        "Invalid Role: (role: super_admin | admin | student)"
       );
       error.statusCode = 400;
       throw error;
     }
     // Role Assigned to User Successfully
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: `User granted ${role} successfully`,
     });
   } catch (err) {
-    res
+    return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
   }
@@ -72,7 +73,7 @@ export const getUserInfo = async (req, res, next) => {
 
     res.status(200).json({
       success: true,
-      message: "User info gathered Sucessfully",
+      message: "User Info gathered Successfully",
       data: {
         user_id: user.id,
         name: user.name,
@@ -80,7 +81,7 @@ export const getUserInfo = async (req, res, next) => {
       },
     });
   } catch (err) {
-    res
+    return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
   }
