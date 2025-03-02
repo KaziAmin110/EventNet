@@ -6,7 +6,7 @@ import {
 } from "../../config/env.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-import { getUserByAttribute, createUser } from "../services/user.services.js";
+import { getUserByAttribute, createUser } from "../services/users.services.js";
 import {
   updateUserPassword,
   updateRefreshToken,
@@ -31,7 +31,9 @@ export const signUp = async (req, res) => {
     const existingUser = await getUserByAttribute("email", email);
 
     if (existingUser) {
-      return res.status(409).json({ message: "Email already exists" });
+      const error = new Error("Email Already Exists");
+      error.statusCode = 409;
+      throw error;
     }
     // Hashing our password via the User entity
     const hashedPassword = await User.hashPassword(password);

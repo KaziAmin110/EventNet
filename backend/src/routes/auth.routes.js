@@ -15,7 +15,6 @@ authRouter.post("/sign-in", signIn);
 authRouter.post("/sign-out", signOut);
 authRouter.post("/forgot-password", forgotPassword);
 authRouter.post("/reset-password/", resetPassword);
-
 authRouter.get("/refresh", refreshAccess);
 
 export default authRouter;

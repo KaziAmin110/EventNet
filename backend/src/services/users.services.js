@@ -14,7 +14,27 @@ export const getUserByAttribute = async (attribute, value) => {
       return new User(data.id, data.name, data.email, data.password);
     }
 
-    // No Such User associated with Email
+    // No User Associated with Given Attribute
+    return false;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Retrieves User Entity Based on Attribute
+export const isUserRole = async (role, user_id) => {
+  try {
+    const { data, error } = await supabase
+      .from(role)
+      .select("name, email")
+      .eq("user_id", user_id)
+      .single();
+
+    if (data) {
+      return true;
+    }
+
+    // No User Associated with Given Attribute
     return false;
   } catch (error) {
     throw new Error(error.message);
@@ -60,7 +80,7 @@ export const createSuperAdmin = async (user_id, name, email) => {
 };
 
 // Inserts a New Admin in the Admin Table
-export const createAdmin = async (name, email, uni_id, user_id) => {
+export const createAdmin = async (user_id, name, email, uni_id) => {
   try {
     const { data, error } = await supabase
       .from("admin") // Table name
