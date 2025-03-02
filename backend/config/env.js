@@ -14,4 +14,5 @@ export const {
   REFRESH_EXPIRES_IN,
   EVENTS_EMAIL,
   EVENTS_PASSWORD,
+  SUPERADMIN_SECRET
 } = process.env;

@@ -21,7 +21,7 @@ export const getUserByAttribute = async (attribute, value) => {
   }
 };
 
-// Retrieves User Entity Based on Attribute
+// Checks If user_id exists in a role table
 export const isUserRole = async (role, user_id) => {
   try {
     const { data, error } = await supabase
@@ -98,21 +98,4 @@ export const createAdmin = async (user_id, name, email, uni_id) => {
   }
 };
 
-// Inserts a New Student in the Student Database
-export const createStudent = async (name, email, uni_id, user_id) => {
-  try {
-    const { data, error } = await supabase
-      .from("User") // Table name
-      .insert([{ name, email, uni_id, user_id }]);
-    if (error) {
-      return { error: error.message, status: 500 };
-    }
 
-    return { message: "Student created successfully", data, status: 201 };
-  } catch (error) {
-    return {
-      error: error.message,
-      status: 500,
-    };
-  }
-};

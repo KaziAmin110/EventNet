@@ -3,6 +3,7 @@ import cors from "cors";
 import { PORT } from "../config/env.js";
 import authRouter from "./routes/auth.routes.js";
 import usersRouter from "./routes/users.routes.js";
+import uniRouter from "./routes/uni.routes.js";
 // import errorMiddleware from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 // Routes
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/universities", uniRouter);
 
 // Test Route
 app.get("/", (req, res) => res.send("Backend is running"));
