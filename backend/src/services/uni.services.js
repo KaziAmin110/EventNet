@@ -79,7 +79,6 @@ export const isUniversityStudent = async (user_id, uni_id) => {
   }
 };
 
-
 // Get University by Attribute
 export const getUniByAttribute = async (attribute, value) => {
   try {
@@ -91,13 +90,14 @@ export const getUniByAttribute = async (attribute, value) => {
 
     if (data) {
       return new University(
-        data.id,
-        data.name,
+        data.uni_id,
+        data.uni_name,
         data.longitude,
         data.latitude,
         data.description,
+        data.num_students,
         data.pictures,
-        data.num_students
+        data.domain
       );
     }
 

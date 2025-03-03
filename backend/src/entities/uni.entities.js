@@ -10,7 +10,8 @@ class University {
     latitude,
     description,
     num_students,
-    pictures
+    pictures,
+    domain
   ) {
     this.id = id;
     this.name = name;
@@ -19,6 +20,7 @@ class University {
     this.description = description;
     this.num_students = num_students;
     this.pictures = pictures;
+    this.domain = domain;
   }
 }
 

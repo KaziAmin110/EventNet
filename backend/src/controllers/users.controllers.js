@@ -21,7 +21,7 @@ export const createSuperAdminRole = async (req, res, next) => {
     const user = await getUserByAttribute("id", user_id);
     if (!user) {
       const error = new Error("User Doesnt Exist");
-      error.statusCode = 409;
+      error.statusCode = 404;
       throw error;
     }
 
@@ -62,7 +62,7 @@ export const getUserInfo = async (req, res, next) => {
       throw error;
     }
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User Info gathered Successfully",
       data: {

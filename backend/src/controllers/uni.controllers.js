@@ -158,6 +158,29 @@ export const getAllUniversities = async (req, res, next) => {
 
 export const getUniversityInfo = async (req, res, next) => {
   try {
+    const uni_id = req.params.uni_id;
+    const university = await getUniByAttribute("uni_id", uni_id);
+
+    if (!university) {
+      const error = new Error("University with Given ID Doesnt Exist");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "University Info Gathered Successfully",
+      data: {
+        uni_id: university.id,
+        uni_name: university.name,
+        latitude: university.latitude,
+        longitude: university.longitude,
+        description: university.description,
+        num_students: university.num_students,
+        pictures: university.pictures,
+        domain: university.domain,
+      },
+    });
   } catch (err) {
     return res
       .status(err.statusCode || 500)
