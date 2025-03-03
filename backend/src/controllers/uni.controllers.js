@@ -4,10 +4,11 @@ import {
   joinUniversityDB,
   getUniPhotoUrl,
   getUniversityDetails,
+  isUniversityStudent,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
-// Endpoint which Allows SuperAdmin to Create a new University Profile
+// Allows SuperAdmin to Create a new University Profile using the uni_name
 export const createUniversityProfile = async (req, res, next) => {
   try {
     // Get User-Id through refresh Token from Bearer
@@ -52,7 +53,7 @@ export const createUniversityProfile = async (req, res, next) => {
         photoUrls.push(url);
       }
     }
-    // Create University
+    // Insert University into DB
     await createUniversityDB(
       uni_name.toLowerCase(),
       uniData.latitude,
@@ -73,6 +74,7 @@ export const createUniversityProfile = async (req, res, next) => {
   }
 };
 
+// Allows User to join a University
 export const joinUniversity = async (req, res, next) => {
   try {
     // Get user_id from refresh token
@@ -82,17 +84,28 @@ export const joinUniversity = async (req, res, next) => {
     const user = await getUserByAttribute("id", user_id);
 
     if (!user) {
-      const error = new Error("Join Invalid - User not in Database");
+      const error = new Error("Join Unsuccessful - User not in Database");
       error.statusCode = 403;
+      throw error;
+    }
+
+    // Checks to see if User is already a student at that University
+    const isStudent = await isUniversityStudent(user_id, uni_id);
+
+    if (isStudent) {
+      const error = new Error(
+        "Join Unsuccesful - User is already a student at the university"
+      );
+      error.statusCode = 400;
       throw error;
     }
 
     // Join Uni by adding entry in student table
     await joinUniversityDB(user_id, uni_id, user.name, user.email);
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
-      message: "User joined successfully",
+      message: "Joined University Successfully",
       data: {
         user_id: user.id,
         uni_id: uni_id,
@@ -105,7 +118,7 @@ export const joinUniversity = async (req, res, next) => {
   }
 };
 
-export const getAllUniversities = async () => {
+export const getAllUniversities = async (req, res, next) => {
   try {
   } catch (err) {
     return res
@@ -114,7 +127,7 @@ export const getAllUniversities = async () => {
   }
 };
 
-export const getUniversityInfo = async () => {
+export const getUniversityInfo = async (req, res, next) => {
   try {
   } catch (err) {
     return res

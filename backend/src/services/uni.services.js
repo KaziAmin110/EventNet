@@ -60,6 +60,25 @@ export const joinUniversityDB = async (user_id, uni_id, name, email) => {
   }
 };
 
+export const isUniversityStudent = async (user_id, uni_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("student")
+      .select("user_id, uni_id")
+      .eq("user_id", user_id)
+      .eq("uni_id", uni_id)
+      .single();
+
+    if (data) {
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    throw new Error(error.message);
+  }
+};
+
 // Get University by Attribute
 export const getUniByAttribute = async (attribute, value) => {
   try {
