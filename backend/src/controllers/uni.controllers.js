@@ -1,3 +1,4 @@
+import { supabase } from "../database/db.js";
 import {
   createUniversityDB,
   getUniByAttribute,
@@ -118,8 +119,36 @@ export const joinUniversity = async (req, res, next) => {
   }
 };
 
+// Returns a list of all universities. has optional page parameter
 export const getAllUniversities = async (req, res, next) => {
   try {
+    // Extract Page Number from request or default to 1
+    const page = parseInt(req.body.page) || 1;
+    const pageSize = 10;
+
+    // Calculation of Start and End Range for Pagination
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    // Fetch Data with pagination
+    const { data, error, count } = await supabase
+      .from("university")
+      .select("*", { count: "exact" })
+      .range(start, end);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return res.status(200).json({
+      success: true,
+      data,
+      pagination: {
+        totalRecords: count,
+        totalPages: Math.ceil(count / pageSize),
+        currentPage: page,
+        pageSize,
+      },
+    });
   } catch (err) {
     return res
       .status(err.statusCode || 500)

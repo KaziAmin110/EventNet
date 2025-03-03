@@ -79,14 +79,13 @@ export const isUniversityStudent = async (user_id, uni_id) => {
   }
 };
 
+
 // Get University by Attribute
 export const getUniByAttribute = async (attribute, value) => {
   try {
     const { data, error } = await supabase
       .from("university")
-      .select(
-        "uni_id, uni_name, longitude, latitude, description, num_students, pictures"
-      )
+      .select("*")
       .eq(attribute, value)
       .single();
 
