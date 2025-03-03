@@ -1,6 +1,9 @@
 import {
   createUniversityDB,
+  getUniByAttribute,
   joinUniversityDB,
+  getUniPhotoUrl,
+  getUniversityDetails,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
@@ -9,14 +12,8 @@ export const createUniversityProfile = async (req, res, next) => {
   try {
     // Get User-Id through refresh Token from Bearer
     const user_id = req.user;
-    const {
-      uni_name,
-      latitude,
-      longitude,
-      description,
-      num_students,
-      pictures,
-    } = req.body;
+    const { uni_name, description } = req.body;
+
     // Verify SuperAdmin Status
     const isSuperAdmin = await isUserRole("super_admin", user_id);
 
@@ -26,24 +23,45 @@ export const createUniversityProfile = async (req, res, next) => {
       throw error;
     }
 
+    // Check to See if University Already Exists in Database
+    const existingEntry = await getUniByAttribute(
+      "uni_name",
+      uni_name.toLowerCase()
+    );
+
+    if (existingEntry) {
+      const error = new Error("University Already Exists in DB");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const uniData = await getUniversityDetails(uni_name);
+
+    if (!uniData) {
+      const error = new Error("Unable to get University Data Through Places API");
+      error.statusCode = 403;
+      throw error;
+    }
+    const photoUrls = [];
+
+    for (const reference of uniData.photos) {
+      const url = await getUniPhotoUrl(reference);
+      if (url) {
+        photoUrls.push(url);
+      }
+    }
     // Create University
     await createUniversityDB(
-      uni_name,
-      latitude,
-      longitude,
+      uni_name.toLowerCase(),
+      uniData.latitude,
+      uniData.longitude,
       description,
-      num_students,
-      pictures
+      photoUrls
     );
 
     return res.status(201).json({
       success: true,
       message: "University created successfully",
-      data: {
-        user_id: user.id,
-        name: user.name,
-        email: user.email,
-      },
     });
   } catch (err) {
     return res
@@ -66,7 +84,6 @@ export const joinUniversity = async (req, res, next) => {
       throw error;
     }
 
-
     // Join Uni by adding entry in student table
     await joinUniversityDB(user_id, uni_id, user.name, user.email);
 
@@ -86,6 +103,15 @@ export const joinUniversity = async (req, res, next) => {
 };
 
 export const getAllUniversities = async () => {
+  try {
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+export const getUniversityInfo = async () => {
   try {
   } catch (err) {
     return res

@@ -1,5 +1,7 @@
 import { supabase } from "../database/db.js";
 import University from "../entities/uni.entities.js";
+import axios from "axios";
+import { GOOGLE_PLACES_API_KEY } from "../../config/env.js";
 
 // Inserts a new university in the University Table
 export const createUniversityDB = async (
@@ -7,16 +9,17 @@ export const createUniversityDB = async (
   latitude,
   longitude,
   description,
-  num_students,
   pictures
 ) => {
   try {
+    const num_students = 0;
     const { data, error } = await supabase
       .from("university") // Table name
       .insert([
         { uni_name, latitude, longitude, description, num_students, pictures },
       ]);
     if (error) {
+      console.log(error.message);
       return { error: error.message, status: 500 };
     }
 
@@ -77,3 +80,74 @@ export const getUniByAttribute = async (attribute, value) => {
     throw new Error(error.message);
   }
 };
+
+// Gathers University Info such as Latitude, Longitude, and Photos using Google Place API
+export async function getUniversityDetails(universityName) {
+  try {
+    const findPlaceUrl =
+      "https://maps.googleapis.com/maps/api/place/findplacefromtext/json";
+    const findPlaceParams = {
+      input: universityName,
+      inputtype: "textquery",
+      fields: "place_id",
+      key: GOOGLE_PLACES_API_KEY,
+    };
+
+    const findPlaceResponse = await axios.get(findPlaceUrl, {
+      params: findPlaceParams,
+    });
+    if (
+      findPlaceResponse.data.status !== "OK" ||
+      !findPlaceResponse.data.candidates ||
+      findPlaceResponse.data.candidates.length === 0
+    ) {
+      return null; // Place not found
+    }
+
+    const placeId = findPlaceResponse.data.candidates[0].place_id;
+
+    const detailsUrl =
+      "https://maps.googleapis.com/maps/api/place/details/json";
+    const detailsParams = {
+      place_id: placeId,
+      fields: "name,geometry,photos",
+      key: GOOGLE_PLACES_API_KEY,
+    };
+
+    const detailsResponse = await axios.get(detailsUrl, {
+      params: detailsParams,
+    });
+
+    if (detailsResponse.data.status !== "OK") {
+      return null; // Error getting details
+    }
+
+    const universityDetails = detailsResponse.data.result;
+
+    const result = {
+      name: universityDetails.name,
+      latitude: universityDetails.geometry.location.lat,
+      longitude: universityDetails.geometry.location.lng,
+      photos: universityDetails.photos
+        ? universityDetails.photos.map((photo) => photo.photo_reference)
+        : [], // Extract photo references
+    };
+    return result;
+  } catch (error) {
+    console.error("Error fetching place details:", error);
+    return null;
+  }
+}
+
+// Converts Photo References from Google Places API into URL's that can be stored in the database
+export async function getUniPhotoUrl(photoReference, maxWidth = 400) {
+  try {
+    const photoUrl = `https://maps.googleapis.com/maps/api/place/photo?maxwidth=${maxWidth}&photoreference=${photoReference}&key=${GOOGLE_PLACES_API_KEY}`;
+
+    // You can directly use the photoUrl in an <img> tag or fetch the image data.
+    return photoUrl;
+  } catch (error) {
+    console.error("Error fetching photo:", error);
+    return null;
+  }
+}
