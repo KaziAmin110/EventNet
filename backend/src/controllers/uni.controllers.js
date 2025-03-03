@@ -12,7 +12,7 @@ export const createUniversityProfile = async (req, res, next) => {
   try {
     // Get User-Id through refresh Token from Bearer
     const user_id = req.user;
-    const { uni_name, description } = req.body;
+    const { uni_name, description, domain } = req.body;
 
     // Verify SuperAdmin Status
     const isSuperAdmin = await isUserRole("super_admin", user_id);
@@ -38,7 +38,9 @@ export const createUniversityProfile = async (req, res, next) => {
     const uniData = await getUniversityDetails(uni_name);
 
     if (!uniData) {
-      const error = new Error("Unable to get University Data Through Places API");
+      const error = new Error(
+        "Unable to get University Data Through Places API"
+      );
       error.statusCode = 403;
       throw error;
     }
@@ -56,7 +58,8 @@ export const createUniversityProfile = async (req, res, next) => {
       uniData.latitude,
       uniData.longitude,
       description,
-      photoUrls
+      photoUrls,
+      domain
     );
 
     return res.status(201).json({

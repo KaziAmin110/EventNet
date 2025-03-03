@@ -9,14 +9,23 @@ export const createUniversityDB = async (
   latitude,
   longitude,
   description,
-  pictures
+  pictures,
+  domain
 ) => {
   try {
     const num_students = 0;
     const { data, error } = await supabase
       .from("university") // Table name
       .insert([
-        { uni_name, latitude, longitude, description, num_students, pictures },
+        {
+          uni_name,
+          latitude,
+          longitude,
+          description,
+          num_students,
+          pictures,
+          domain,
+        },
       ]);
     if (error) {
       console.log(error.message);
