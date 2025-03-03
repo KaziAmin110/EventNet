@@ -7,6 +7,7 @@ import {
   getUniversityDetails,
   isUniversityStudent,
   updateUniversityStudents,
+  leaveUniversityDB,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
@@ -119,10 +120,6 @@ export const joinUniversity = async (req, res, next) => {
     return res.status(201).json({
       success: true,
       message: "Joined University Successfully",
-      data: {
-        user_id: user.id,
-        uni_id: uni_id,
-      },
     });
   } catch (err) {
     return res
@@ -192,6 +189,56 @@ export const getUniversityInfo = async (req, res, next) => {
         pictures: university.pictures,
         domain: university.domain,
       },
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+export const leaveUniversity = async (req, res, next) => {
+  try {
+    // Get user_id from refresh token
+    const user_id = req.user;
+    const { uni_id } = req.body;
+
+    const user = await getUserByAttribute("id", user_id);
+    const university = await getUniByAttribute("uni_id", uni_id);
+    const isStudent = await isUniversityStudent(user_id, uni_id);
+
+    // Checks whether user_id is valid
+    if (!user) {
+      const error = new Error("Join Unsuccessful - User not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
+    // Checks whether uni_id is valid
+    if (!university) {
+      const error = new Error("Join Unsuccessful - University not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
+    // Checks to see if User is already a student at that University
+    if (!isStudent) {
+      const error = new Error(
+        "Leave Unsuccesful - User is not a student at the university"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Join Uni by adding entry in student table
+    await leaveUniversityDB(user_id, uni_id);
+    await updateUniversityStudents(
+      uni_id,
+      university.num_students,
+      "decrement"
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: "User left University Successfully",
     });
   } catch (err) {
     return res

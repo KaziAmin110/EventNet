@@ -60,6 +60,28 @@ export const joinUniversityDB = async (user_id, uni_id, name, email) => {
   }
 };
 
+// Removes a student in the Student Table with uni_id
+export const leaveUniversityDB = async (user_id, uni_id) => {
+  try {
+    const { data, error, count } = await supabase
+      .from("student")
+      .delete()
+      .eq("uni_id", uni_id)
+      .eq("user_id", user_id);
+
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    return { message: "Student Removed Successfully", data, status: 200 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
 // Updates the number of students at a university (Increment or Decrement)
 export const updateUniversityStudents = async (uni_id, num_students, mode) => {
   try {
