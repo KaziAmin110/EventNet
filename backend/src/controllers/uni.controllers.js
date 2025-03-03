@@ -6,6 +6,7 @@ import {
   getUniPhotoUrl,
   getUniversityDetails,
   isUniversityStudent,
+  updateUniversityStudents,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
@@ -83,16 +84,22 @@ export const joinUniversity = async (req, res, next) => {
     const { uni_id } = req.body;
 
     const user = await getUserByAttribute("id", user_id);
+    const university = await getUniByAttribute("uni_id", uni_id);
+    const isStudent = await isUniversityStudent(user_id, uni_id);
 
+    // Checks whether user_id is valid
     if (!user) {
       const error = new Error("Join Unsuccessful - User not in Database");
       error.statusCode = 403;
       throw error;
     }
-
+    // Checks whether uni_id is valid
+    if (!university) {
+      const error = new Error("Join Unsuccessful - University not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
     // Checks to see if User is already a student at that University
-    const isStudent = await isUniversityStudent(user_id, uni_id);
-
     if (isStudent) {
       const error = new Error(
         "Join Unsuccesful - User is already a student at the university"
@@ -103,6 +110,11 @@ export const joinUniversity = async (req, res, next) => {
 
     // Join Uni by adding entry in student table
     await joinUniversityDB(user_id, uni_id, user.name, user.email);
+    await updateUniversityStudents(
+      uni_id,
+      university.num_students,
+      "increment"
+    );
 
     return res.status(201).json({
       success: true,

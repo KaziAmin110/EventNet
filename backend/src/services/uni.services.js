@@ -60,6 +60,28 @@ export const joinUniversityDB = async (user_id, uni_id, name, email) => {
   }
 };
 
+// Updates the number of students at a university (Increment or Decrement)
+export const updateUniversityStudents = async (uni_id, num_students, mode) => {
+  try {
+    if (mode === "increment") {
+      const { data, error } = await supabase
+        .from("university")
+        .update({ num_students: num_students + 1 })
+        .eq("uni_id", uni_id);
+    } else if (mode === "decrement") {
+      const { data, error } = await supabase
+        .from("university")
+        .update({ num_students: num_students - 1 })
+        .eq("uni_id", uni_id);
+    } else {
+      return { error: error.message, status: 500 };
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Checks If a Student is Part of a Particular University
 export const isUniversityStudent = async (user_id, uni_id) => {
   try {
     const { data, error } = await supabase
@@ -75,7 +97,7 @@ export const isUniversityStudent = async (user_id, uni_id) => {
 
     return false;
   } catch (err) {
-    throw new Error(error.message);
+    throw new Error(err.message);
   }
 };
 
