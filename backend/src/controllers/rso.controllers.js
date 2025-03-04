@@ -1,5 +1,5 @@
 import {
-  addRsoInPendingDB,
+  addRsoAsPendingDB,
   isRSOAlreadyPending,
   sendInvitationEmail,
 } from "../services/rso.services.js";
@@ -7,6 +7,11 @@ import {
   isUniversityStudent,
   getUniByAttribute,
 } from "../services/uni.services.js";
+import {
+  createAdmin,
+  getAdminByAttribute,
+  getUserByAttribute,
+} from "../services/users.services.js";
 
 export const createRSO = async (req, res, next) => {
   try {
@@ -15,7 +20,9 @@ export const createRSO = async (req, res, next) => {
 
     const university = await getUniByAttribute("uni_id", uni_id);
     const isStudent = await isUniversityStudent(user_id, uni_id);
-    const isPending = await isRSOAlreadyPending(rso_name, user_id, uni_id);
+    const isPending = await isRSOAlreadyPending(rso_name, uni_id);
+    const user = await getUserByAttribute("id", user_id);
+
     // Checks whether uni_id is valid
     if (!university) {
       const error = new Error("Create RSO Failed - University not in Database");
@@ -40,7 +47,9 @@ export const createRSO = async (req, res, next) => {
       throw error;
     }
 
-    await addRsoInPendingDB(user_id, uni_id, rso_name);
+    await createAdmin(user_id, user.name, user.email, uni_id);
+    const admin_data = await getAdminByAttribute("user_id", user_id);
+    await addRsoAsPendingDB(admin_data.admin_id, uni_id, rso_name);
 
     return res.status(201).json({
       success: true,

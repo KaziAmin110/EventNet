@@ -42,18 +42,17 @@ export const sendInvitationEmail = async (
 };
 
 // Inserts a student in the Student Table with uni_id
-export const addRsoInPendingDB = async (user_id, uni_id, rso_name) => {
+export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
   try {
-    console.log(1);
     const { data, error } = await supabase
-      .from("pending_rso") // Table name
-      .insert([{ rso_name, user_id, uni_id }]);
+      .from("rso") // Table name
+      .insert([{ rso_name, admin_id, uni_id }]);
     if (error) {
       console.log(error);
       return { error: error.message, status: 500 };
     }
 
-    return { message: "Pending RSO Added Successfully", data, status: 201 };
+    return { message: "Added RSO as Pending Successfully", data, status: 201 };
   } catch (error) {
     return {
       error: error.message,
@@ -63,20 +62,20 @@ export const addRsoInPendingDB = async (user_id, uni_id, rso_name) => {
 };
 
 // Get University by Attribute
-export const isRSOAlreadyPending = async (rso_name, user_id, uni_id) => {
+export const isRSOAlreadyPending = async (rso_name, uni_id) => {
   try {
     const { data, error } = await supabase
-      .from("pending_rso")
-      .select("*")
+      .from("rso")
+      .select("rso_status")
       .eq("rso_name", rso_name)
-      .eq("user_id", user_id)
       .eq("uni_id", uni_id)
       .single();
 
     if (data) {
-      return true;
+      if (data.rso_status === "pending") {
+        return true;
+      }
     }
-
     // No RSO Associated with Given rso_name
     return false;
   } catch (error) {

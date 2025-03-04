@@ -98,4 +98,28 @@ export const createAdmin = async (user_id, name, email, uni_id) => {
   }
 };
 
+// Retrieves User Entity Based on Attribute
+export const getAdminByAttribute = async (attribute, value) => {
+  try {
+    const { data, error } = await supabase
+      .from("admin")
+      .select("admin_id, name, email, uni_id, user_id")
+      .eq(attribute, value)
+      .single();
 
+    if (data) {
+      return {
+        admin_id: data.admin_id,
+        name: data.name,
+        email: data.email,
+        uni_id: data.uni_id,
+        user_id: data.user_id,
+      };
+    }
+
+    // No User Associated with Given Attribute
+    return false;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
