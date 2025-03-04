@@ -134,3 +134,12 @@ CREATE TABLE Rate (
     FOREIGN KEY (private_event_id) REFERENCES Private_Event(event_id),
     FOREIGN KEY (rso_event_id) REFERENCES RSO_Event(event_id)
 );
+
+CREATE TABLE pending_rsos (
+  id SERIAL PRIMARY KEY,
+  inviter_id INT REFERENCES users(id) ON DELETE CASCADE,
+  org_name TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  num_accepted INT DEFAULT 0
+);
+

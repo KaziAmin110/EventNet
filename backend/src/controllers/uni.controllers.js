@@ -165,6 +165,7 @@ export const getAllUniversities = async (req, res, next) => {
   }
 };
 
+// Returns information regarding one university
 export const getUniversityInfo = async (req, res, next) => {
   try {
     const uni_id = req.params.uni_id;
@@ -197,6 +198,7 @@ export const getUniversityInfo = async (req, res, next) => {
   }
 };
 
+// Allows User to leave a University and makes the necessary changes
 export const leaveUniversity = async (req, res, next) => {
   try {
     // Get user_id from refresh token
@@ -228,7 +230,7 @@ export const leaveUniversity = async (req, res, next) => {
       throw error;
     }
 
-    // Join Uni by adding entry in student table
+    // Leave Uni by removing entry from student table
     await leaveUniversityDB(user_id, uni_id);
     await updateUniversityStudents(
       uni_id,
