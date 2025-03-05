@@ -65,13 +65,19 @@ export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
   try {
     const { data, error } = await supabase
       .from("rso") // Table name
-      .insert([{ rso_name, admin_id, uni_id }]);
+      .insert([{ rso_name, admin_id, uni_id }])
+      .select("rso_id, rso_name, admin_id, num_members, uni_id, rso_status")
+      .single();
     if (error) {
       console.log(error);
       return { error: error.message, status: 500 };
     }
 
-    return { message: "Added RSO as Pending Successfully", data, status: 201 };
+    return {
+      message: "Added RSO as Pending Successfully",
+      data,
+      status: 201,
+    };
   } catch (error) {
     return {
       error: error.message,

@@ -54,11 +54,12 @@ export const createRSO = async (req, res, next) => {
 
     await createAdmin(user_id, user.name, user.email, uni_id, "pending");
     const admin_data = await getAdminByAttribute("user_id", user_id);
-    await addRsoAsPendingDB(admin_data.admin_id, uni_id, rso_name);
+    const data = await addRsoAsPendingDB(admin_data.admin_id, uni_id, rso_name);
 
     return res.status(201).json({
       success: true,
       message: "Added Pending RSO Successfully",
+      data,
     });
   } catch (err) {
     return res
@@ -67,13 +68,14 @@ export const createRSO = async (req, res, next) => {
   }
 };
 
+// Invites a User to join a RSO through a code sent to the User's Email
 export const inviteToRSO = async (req, res, next) => {
   try {
     const user_id = req.user;
     const { inviteeEmail, rso_id } = req.body;
 
     const invitee = await getStudentByAttribute("email", inviteeEmail);
-    // const user = await getUserByAttribute("user_id", user_id);
+    const user = await getStudentByAttribute("user_id", user_id);
     const rso = await getRsoByAttribute("rso_id", rso_id);
 
     // Check Existence of RSO and Invitee
@@ -86,6 +88,10 @@ export const inviteToRSO = async (req, res, next) => {
       );
       error.statusCode = 400;
       throw error;
+    }
+
+    if (!user) {
+      ("Invitation Error - User is not associated with the host ");
     }
     // Check if invitee attends the same university as rso
     if (rso.uni_id !== invitee.uni_id) {
