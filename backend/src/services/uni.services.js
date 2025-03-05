@@ -222,3 +222,29 @@ export async function getUniPhotoUrl(photoReference, maxWidth = 400) {
     return null;
   }
 }
+
+// Retrieves User Entity Based on Attribute
+export const getStudentByAttribute = async (attribute, value) => {
+  try {
+    const { data, error } = await supabase
+      .from("student")
+      .select("student_id, user_id, name, email, uni_id")
+      .eq(attribute, value)
+      .single();
+
+    if (data) {
+      return {
+        student_id: data.student_id,
+        user_id: data.user_id,
+        name: data.name,
+        email: data.email,
+        uni_id: data.uni_id,
+      };
+    }
+
+    // No User Associated with Given Attribute
+    return false;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
