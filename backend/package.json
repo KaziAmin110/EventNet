@@ -26,7 +26,8 @@
     "node-fetch": "^3.3.2",
     "nodemailer": "^6.10.0",
     "pg": "^8.13.3",
-    "pg-pool": "^3.7.1"
+    "pg-pool": "^3.7.1",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.20.0",

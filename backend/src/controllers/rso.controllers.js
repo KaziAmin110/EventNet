@@ -3,8 +3,8 @@ import {
   isRSOAlreadyPending,
   sendInvitationEmail,
   getRsoByAttribute,
-  addRsoInviteDB,
-  generateOTP,
+  addRSOInviteDB,
+  generateInviteToken,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -68,20 +68,21 @@ export const createRSO = async (req, res, next) => {
   }
 };
 
-// Invites a User to join a RSO through a code sent to the User's Email
+// Invites a User to join a RSO through an accept-token sent to the User's Email
 export const inviteToRSO = async (req, res, next) => {
   try {
     const user_id = req.user;
     const { inviteeEmail, rso_id } = req.body;
 
     const invitee = await getStudentByAttribute("email", inviteeEmail);
-    const user = await getStudentByAttribute("user_id", user_id);
     const rso = await getRsoByAttribute("rso_id", rso_id);
+    const admin = await getAdminByAttribute("user_id", user_id);
 
     // Check Existence of RSO and Invitee
     if (!rso) {
       const error = new Error("Invitation Error - Not a valid rso");
     }
+
     if (!invitee) {
       const error = new Error(
         "Invitation Error - Invitee is not associated with a university"
@@ -90,10 +91,22 @@ export const inviteToRSO = async (req, res, next) => {
       throw error;
     }
 
-    if (!user) {
-      ("Invitation Error - User is not associated with the host ");
+    if (!admin) {
+      const error = new Error("Invitation Error - User is not an admin");
+      error.statusCode = 400;
+      throw error;
     }
-    // Check if invitee attends the same university as rso
+
+    // Checks if User is an admin of the rso
+    if (admin.admin_id !== rso.admin_id) {
+      const error = new Error(
+        "Invitation Error - User does not have admin access for the rso"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Checks if invitee attends the same university as rso
     if (rso.uni_id !== invitee.uni_id) {
       const error = new Error(
         "Invitation Error - Invitee does not attend rso host university"
@@ -101,12 +114,13 @@ export const inviteToRSO = async (req, res, next) => {
       error.statusCode = 403;
       throw error;
     }
-    const otp = generateOTP();
-    const expiryTime = await sendInvitationEmail(
-      inviteeEmail,
-      invitee.user_id,
-      rso.rso_name
-    );
+    const inviteToken = generateInviteToken();
+    const expires_at = new Date();
+    expires_at.setHours(expires_at.getHours() + 48); // Expiration Date (48 Hours)
+
+    // Sending Accept Link Logic
+    await addRSOInviteDB(invitee.user_id, rso_id, inviteToken, expires_at);
+    await sendInvitationEmail(inviteeEmail, rso.rso_name, inviteToken);
   } catch (err) {
     return res
       .status(err.statusCode || 500)

@@ -84,12 +84,17 @@ export const createAdmin = async (user_id, name, email, uni_id, status) => {
   try {
     const { data, error } = await supabase
       .from("admin") // Table name
-      .insert([{ name, email, uni_id, user_id, status }]);
+      .insert([{ name, email, uni_id, user_id, status }].select("admin_id"))
+      .single();
     if (error) {
       return { error: error.message, status: 500 };
     }
 
-    return { message: "Admin created successfully", data, status: 201 };
+    return {
+      message: "Admin created successfully",
+      admin_id: data.admin_id,
+      status: 201,
+    };
   } catch (error) {
     return {
       error: error.message,

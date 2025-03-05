@@ -1,6 +1,7 @@
 import { EVENTS_EMAIL, EVENTS_PASSWORD } from "../../config/env.js";
 import { supabase } from "../database/db.js";
 import nodemailer from "nodemailer";
+import { v4 as uuidv4 } from "uuid";
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -10,20 +11,19 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Sends Invitation Email to Recieving User
 export const sendInvitationEmail = async (
   recieverEmail,
-  inviteeId,
-  rso_name
+  rso_name,
+  inviteToken
 ) => {
   try {
-    const otp = generateOTP();
-    const expiryTime = Date.now() + 10 * 60 * 1000;
+    const acceptLink = `https://yourdomain.com/rso/accept-invite?token=${inviteToken}`;
 
-    await storeOTP(inviteeId, otp, expiryTime);
     const mailOptions = {
       from: EVENTS_EMAIL,
       to: recipientEmail,
-      subject: `Invitation to Join ${orgName}`,
+      subject: `Invitation to Join ${rso_name}`,
       html: `
           <p>You have been invited to join <strong>${rso_name}</strong>.</p>
           <p>Click the link below to accept the invitation:</p>
@@ -32,29 +32,10 @@ export const sendInvitationEmail = async (
         `,
     };
     await transporter.sendMail(mailOptions);
-    return { message: `Invitation sent to ${recieverEmail}` };
+    return { message: `Invitation sent to ${recieverEmail}`, status: 200 };
   } catch (err) {
     return {
       error: err.message,
-      status: 500,
-    };
-  }
-};
-
-export const addRsoInviteDB = async (user_id, rso_id, otp_code) => {
-  try {
-    const { data, error } = await supabase
-      .from("invites_rso") // Table name
-      .insert([{ user_id, rso_id, otp_code }]);
-    if (error) {
-      console.log(error);
-      return { error: error.message, status: 500 };
-    }
-
-    return { message: "Added RSO as Pending Successfully", data, status: 201 };
-  } catch (error) {
-    return {
-      error: error.message,
       status: 500,
     };
   }
@@ -75,6 +56,37 @@ export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
 
     return {
       message: "Added RSO as Pending Successfully",
+      data,
+      status: 201,
+    };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
+// Inserts a student in the Student Table with uni_id
+export const addRSOInviteDB = async (
+  user_id,
+  rso_id,
+  accept_token,
+  expire_date
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("invites_rso") // Table name
+      .insert([{ rso_id, user_id, accept_token, expire_date }])
+      .select("invite_id")
+      .single();
+    if (error) {
+      console.log(error);
+      return { error: error.message, status: 500 };
+    }
+
+    return {
+      message: "Added Invite in DB as Pending Successfully",
       data,
       status: 201,
     };
@@ -135,6 +147,6 @@ export const getRsoByAttribute = async (attribute, value) => {
   }
 };
 
-export const generateOTP = () => {
-  return Math.floor(100000 + Math.random() * 900000).toString(); // Generates a 6-digit OTP
+export const generateInviteToken = () => {
+  return uuidv4(); // Generates a 6-digit OTP
 };
