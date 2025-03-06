@@ -2,6 +2,7 @@ import User from "../entities/user.entities.js";
 import {
   EVENTS_EMAIL,
   EVENTS_PASSWORD,
+  NODE_ENV,
   REFRESH_SECRET,
 } from "../../config/env.js";
 import nodemailer from "nodemailer";
@@ -97,6 +98,7 @@ export const signIn = async (req, res, next) => {
     await updateRefreshToken(user.id, refreshToken);
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
+      secure: NODE_ENV === "production",
       maxAge: refreshTokenAge,
     });
 
