@@ -17,11 +17,12 @@ import {
   getUserByAttribute,
 } from "../services/users.services.js";
 
-// Allows Student to create
+// Allows Student to create a pending RSO
 export const createRSO = async (req, res, next) => {
   try {
     const user_id = req.user;
-    const { rso_name, uni_id } = req.body;
+    const { uni_id } = req.params;
+    const { rso_name } = req.body;
 
     const university = await getUniByAttribute("uni_id", uni_id);
     const isStudent = await isUniversityStudent(user_id, uni_id);
@@ -52,9 +53,15 @@ export const createRSO = async (req, res, next) => {
       throw error;
     }
 
-    await createAdmin(user_id, user.name, user.email, uni_id, "pending");
-    const admin_data = await getAdminByAttribute("user_id", user_id);
-    const data = await addRsoAsPendingDB(admin_data.admin_id, uni_id, rso_name);
+    const admin_id = await createAdmin(
+      user_id,
+      user.name,
+      user.email,
+      uni_id,
+      "pending"
+    );
+
+    const data = await addRsoAsPendingDB(admin_id, uni_id, rso_name);
 
     return res.status(201).json({
       success: true,

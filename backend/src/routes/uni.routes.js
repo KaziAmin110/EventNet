@@ -7,6 +7,7 @@ import {
   joinUniversity,
   leaveUniversity,
 } from "../controllers/uni.controllers.js";
+import { createRSO, inviteToRSO } from "../controllers/rso.controllers.js";
 
 const uniRouter = Router();
 
@@ -15,4 +16,9 @@ uniRouter.post("/:uni_id/join", authenticateUser, joinUniversity);
 uniRouter.get("/", authenticateUser, getAllUniversities);
 uniRouter.get("/:uni_id", authenticateUser, getUniversityInfo);
 uniRouter.delete("/leave", authenticateUser, leaveUniversity);
+
+// RSO Endpoints
+uniRouter.post("/:uni_id/rsos", authenticateUser, createRSO);
+uniRouter.post("/:uni_id/rsos/:rso_id/invite", authenticateUser, inviteToRSO);
+
 export default uniRouter;
