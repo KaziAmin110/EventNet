@@ -18,6 +18,14 @@ export const createUniversityProfile = async (req, res, next) => {
     const user_id = req.user;
     const { uni_name, description, domain } = req.body;
 
+    // Check for required body
+    if (!uni_name || !description) {
+      const error = new Error(
+        "One or more required fields missing. (uni_name, description)"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
     // Verify SuperAdmin Status
     const isSuperAdmin = await isUserRole("super_admin", user_id);
 
@@ -82,7 +90,7 @@ export const joinUniversity = async (req, res, next) => {
   try {
     // Get user_id from refresh token
     const user_id = req.user;
-    const { uni_id } = req.body;
+    const { uni_id } = req.params;
 
     const user = await getUserByAttribute("id", user_id);
     const university = await getUniByAttribute("uni_id", uni_id);
@@ -100,6 +108,19 @@ export const joinUniversity = async (req, res, next) => {
       error.statusCode = 403;
       throw error;
     }
+
+    // Checks if User matches the email domain restriction of the university
+    if (
+      university.domain !== null &&
+      university.domain !== user.email.split("@")[1]
+    ) {
+      const error = new Error(
+        "Join Unsuccesful - User Email Doesn't Match University Domain Restriction"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
     // Checks to see if User is already a student at that University
     if (isStudent) {
       const error = new Error(

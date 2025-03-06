@@ -11,7 +11,7 @@ import {
 const uniRouter = Router();
 
 uniRouter.post("/", authenticateUser, createUniversityProfile);
-uniRouter.post("/join", authenticateUser, joinUniversity);
+uniRouter.post("/:uni_id/join", authenticateUser, joinUniversity);
 uniRouter.get("/", authenticateUser, getAllUniversities);
 uniRouter.get("/:uni_id", authenticateUser, getUniversityInfo);
 uniRouter.delete("/leave", authenticateUser, leaveUniversity);
