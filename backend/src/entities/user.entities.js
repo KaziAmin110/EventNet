@@ -7,7 +7,6 @@ import {
   REFRESH_EXPIRES_IN,
 } from "../../config/env.js";
 
-
 /*
   A high level abstraction of a user that encapsulates its core business logic while remaining independent 
   of lower-level components of the application such as the database.  
@@ -44,18 +43,18 @@ class User {
     });
   }
 
-  generateCode(){
-    const arr = []
-    for (let i = 0; i < 3; i++){
-        for (let i = 0; i < 4; i++){
-            const charCode = Math.floor(Math.random() * 26) + 'A'.charCodeAt(0);
-            const randomChar = String.fromCharCode(charCode);
-            arr.push(randomChar);
-        }
-        arr.push('-');
+  generateCode() {
+    const arr = [];
+    for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < 4; i++) {
+        const charCode = Math.floor(Math.random() * 26) + "A".charCodeAt(0);
+        const randomChar = String.fromCharCode(charCode);
+        arr.push(randomChar);
+      }
+      arr.push("-");
     }
-    return arr.slice(0, -1).join('');
-}
+    return arr.slice(0, -1).join("");
+  }
 }
 
 export default User;

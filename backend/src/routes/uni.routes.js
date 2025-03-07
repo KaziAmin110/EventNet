@@ -15,7 +15,7 @@ uniRouter.post("/", authenticateUser, createUniversityProfile);
 uniRouter.post("/:uni_id/join", authenticateUser, joinUniversity);
 uniRouter.get("/", authenticateUser, getAllUniversities);
 uniRouter.get("/:uni_id", authenticateUser, getUniversityInfo);
-uniRouter.delete("/leave", authenticateUser, leaveUniversity);
+uniRouter.delete("/:uni_id/leave", authenticateUser, leaveUniversity);
 
 // RSO Endpoints
 uniRouter.post("/:uni_id/rsos", authenticateUser, createRSO);

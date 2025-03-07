@@ -7,7 +7,7 @@ export const getUserByAttribute = async (attribute, value) => {
     const { data, error } = await supabase
       .from("users")
       .select("id, email, name, password")
-      .eq("email", "ka678988@ucf.edu")
+      .eq(attribute, value)
       .single();
 
     if (data) {

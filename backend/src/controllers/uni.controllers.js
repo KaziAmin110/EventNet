@@ -224,7 +224,7 @@ export const leaveUniversity = async (req, res, next) => {
   try {
     // Get user_id from refresh token
     const user_id = req.user;
-    const { uni_id } = req.body;
+    const { uni_id } = req.params;
 
     const user = await getUserByAttribute("id", user_id);
     const university = await getUniByAttribute("uni_id", uni_id);
