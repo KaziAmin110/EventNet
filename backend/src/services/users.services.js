@@ -5,9 +5,9 @@ import User from "../entities/user.entities.js";
 export const getUserByAttribute = async (attribute, value) => {
   try {
     const { data, error } = await supabase
-      .from("User")
-      .select("id, name, email, password")
-      .eq(attribute, value)
+      .from("users")
+      .select("id, email, name, password")
+      .eq("email", "ka678988@ucf.edu")
       .single();
 
     if (data) {
@@ -45,7 +45,7 @@ export const isUserRole = async (role, user_id) => {
 export const createUser = async (name, email, password) => {
   try {
     const { data, error } = await supabase
-      .from("User") // Table name
+      .from("users") // Table name
       .insert([{ name, email, password }]);
     if (error) {
       return { error: error.message, status: 500 };
