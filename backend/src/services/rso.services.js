@@ -18,11 +18,11 @@ export const sendInvitationEmail = async (
   inviteToken
 ) => {
   try {
-    const acceptLink = `https://yourdomain.com/rso/accept-invite?token=${inviteToken}`;
+    const acceptLink = `http://127.0.0.1/rso/accept-invite?token=${inviteToken}`;
 
     const mailOptions = {
       from: EVENTS_EMAIL,
-      to: recipientEmail,
+      to: recieverEmail,
       subject: `Invitation to Join ${rso_name}`,
       html: `
           <p>You have been invited to join <strong>${rso_name}</strong>.</p>
@@ -71,13 +71,14 @@ export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
 export const addRSOInviteDB = async (
   user_id,
   rso_id,
+  invite_status,
   accept_token,
   expire_date
 ) => {
   try {
     const { data, error } = await supabase
       .from("invites_rso") // Table name
-      .insert([{ rso_id, user_id, accept_token, expire_date }])
+      .insert([{ rso_id, user_id, accept_token, expire_date, invite_status }])
       .select("invite_id")
       .single();
     if (error) {
@@ -149,4 +150,67 @@ export const getRsoByAttribute = async (attribute, value) => {
 
 export const generateInviteToken = () => {
   return uuidv4(); // Generates a 6-digit OTP
+};
+
+// Checks If a User is Part of a Particular RSO
+export const isRSOMember = async (user_id, rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("joins_rso")
+      .select("user_id, rso_id")
+      .eq("user_id", user_id)
+      .eq("rso_id", rso_id)
+      .single();
+
+    if (data) {
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// Removes a Member of the RSO from the joins_rso table with the rso_id
+export const leaveRsoDB = async (user_id, rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("joins_rso")
+      .delete()
+      .eq("rso_id", rso_id)
+      .eq("user_id", user_id);
+
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    return { message: "User Removed from RSO Successfully", data, status: 200 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
+// Updates the number of members of a RSO (Increment or Decrement)
+export const updateRsoMembers = async (rso_id, num_members, mode) => {
+  try {
+    if (mode === "increment") {
+      const { data, error } = await supabase
+        .from("university")
+        .update({ num_members: num_members + 1 })
+        .eq("rso_id", rso_id);
+    } else if (mode === "decrement") {
+      const { data, error } = await supabase
+        .from("university")
+        .update({ num_members: num_members - 1 })
+        .eq("rso_id", rso_id);
+    } else {
+      return { error: error.message, status: 500 };
+    }
+  } catch (error) {
+    throw new Error(error.message);
+  }
 };
