@@ -1,14 +1,15 @@
+import { RSO_SECRET } from "../../config/env.js";
 import {
   addRsoAsPendingDB,
   isRSOAlreadyPending,
   sendInvitationEmail,
   getRsoByAttribute,
   addRSOInviteDB,
-  generateInviteToken,
   isRSOMember,
   leaveRsoDB,
   updateRsoMembers,
   getAllRsosDB,
+  joinRsoDB,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -20,6 +21,7 @@ import {
   getAdminByAttribute,
   getUserByAttribute,
 } from "../services/users.services.js";
+import jwt from "jsonwebtoken";
 
 // Allows Student to create a pending RSO
 export const createRSO = async (req, res, next) => {
@@ -92,7 +94,7 @@ export const inviteToRSO = async (req, res, next) => {
 
     // Check Existence of RSO and Invitee
     if (!rso) {
-      const error = new Error("Invitation Error - Not a valid rso");
+      const error = new Error("Invitation Error - Not a valid RSO");
     }
 
     if (!invitee) {
@@ -121,28 +123,81 @@ export const inviteToRSO = async (req, res, next) => {
     // Checks if invitee attends the same university as rso
     if (uni_id !== invitee.uni_id) {
       const error = new Error(
-        "Invitation Error - Invitee does not attend rso host university"
+        "Invitation Error - Invitee does not attend RSO host university"
       );
       error.statusCode = 403;
       throw error;
     }
 
-    const inviteToken = generateInviteToken();
-    const expires_at = new Date();
-    expires_at.setHours(expires_at.getHours() + 24); // Expiration Date (24 Hours)
-
     // Sending Accept Link Logic
-    await addRSOInviteDB(
+    await addRSOInviteDB(invitee.user_id, rso_id, "pending", user_id, rso_id);
+    await sendInvitationEmail(
+      inviteeEmail,
+      rso.rso_name,
       invitee.user_id,
-      rso_id,
-      "pending",
-      inviteToken,
-      expires_at
+      rso_id
     );
-    await sendInvitationEmail(inviteeEmail, rso.rso_name, inviteToken);
+
     return res.status(200).json({
       success: true,
       message: "Join RSO Email Sent Successfully",
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Allows a Student to Join an RSO using an RSO accept-token
+export const joinRSO = async (req, res, next) => {
+  try {
+    const { accept_token } = req.body;
+
+    if (!accept_token) {
+      const error = new Error(
+        "Join Unsuccessful - 'accept-token' not sent in request body"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    const decoded = jwt.verify(accept_token, RSO_SECRET);
+    const { user_id, rso_id } = decoded;
+
+    const user = await getUserByAttribute("id", user_id);
+    const rso = await getRsoByAttribute("rso_id", rso_id);
+    const isMember = await isRSOMember(user_id, rso_id);
+
+    // Checks whether user_id is valid
+    if (!user) {
+      const error = new Error("Join Unsuccessful - User not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
+    // Checks whether uni_id is valid
+    if (!rso) {
+      const error = new Error("Join Unsuccessful - RSO not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Checks to see if User is already a member of the RSO
+    if (isMember) {
+      const error = new Error(
+        "Join Unsuccesful - User is already a member of the RSO"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Join Uni by adding entry in student table
+    await joinRsoDB(user_id, rso_id);
+    await updateRsoMembers(rso_id, rso.num_members, "increment");
+
+    return res.status(201).json({
+      success: true,
+      message: "Joined RSO Successfully",
     });
   } catch (err) {
     return res

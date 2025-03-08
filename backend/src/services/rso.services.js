@@ -1,7 +1,7 @@
-import { EVENTS_EMAIL, EVENTS_PASSWORD } from "../../config/env.js";
+import { EVENTS_EMAIL, EVENTS_PASSWORD, RSO_SECRET } from "../../config/env.js";
 import { supabase } from "../database/db.js";
 import nodemailer from "nodemailer";
-import { v4 as uuidv4 } from "uuid";
+import jwt from "jsonwebtoken";
 
 const transporter = nodemailer.createTransport({
   service: "Gmail",
@@ -15,9 +15,14 @@ const transporter = nodemailer.createTransport({
 export const sendInvitationEmail = async (
   recieverEmail,
   rso_name,
-  inviteToken
+  user_id,
+  rso_id
 ) => {
   try {
+    const inviteToken = jwt.sign({ user_id, rso_id }, RSO_SECRET, {
+      expiresIn: "7d", // Token Expires in 7 Days
+    });
+
     const acceptLink = `http://127.0.0.1/rso/accept-invite?token=${inviteToken}`;
 
     const mailOptions = {
@@ -99,6 +104,25 @@ export const addRSOInviteDB = async (
   }
 };
 
+// Inserts a Member in the RSO Table with rso_id
+export const joinRsoDB = async (user_id, rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("joins_rso") // Table name
+      .insert([{ user_id, rso_id }]);
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    return { message: "Member Added Successfully", data, status: 201 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
 // Get University by Attribute
 export const isRSOAlreadyPending = async (rso_name, uni_id) => {
   try {
@@ -146,10 +170,6 @@ export const getRsoByAttribute = async (attribute, value) => {
   } catch (error) {
     throw new Error(error.message);
   }
-};
-
-export const generateInviteToken = () => {
-  return uuidv4(); // Generates a 6-digit OTP
 };
 
 // Checks If a User is Part of a Particular RSO
