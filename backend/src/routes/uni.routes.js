@@ -27,7 +27,7 @@ uniRouter.delete("/:uni_id/leave", authenticateUser, leaveUniversity);
 // RSO Endpoints
 uniRouter.post("/:uni_id/rsos", authenticateUser, createRSO);
 uniRouter.post("/:uni_id/rsos/:rso_id/invite", authenticateUser, inviteToRSO);
-uniRouter.post("/uni_id/rsos/:rso_id/join", joinRSO);
+uniRouter.post("/rsos/join", joinRSO);
 uniRouter.get("/:uni_id/rsos/", authenticateUser, getAllRSOs);
 uniRouter.delete("/:uni_id/rsos/:rso_id/leave", authenticateUser, leaveRSO);
 

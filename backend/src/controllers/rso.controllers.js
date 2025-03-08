@@ -10,6 +10,7 @@ import {
   updateRsoMembers,
   getAllRsosDB,
   joinRsoDB,
+  updateRsoStatus,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -193,7 +194,16 @@ export const joinRSO = async (req, res, next) => {
 
     // Join Uni by adding entry in student table
     await joinRsoDB(user_id, rso_id);
-    await updateRsoMembers(rso_id, rso.num_members, "increment");
+    rso.num_members = await updateRsoMembers(
+      rso_id,
+      rso.num_members,
+      "increment"
+    );
+
+    // If RSO is now valid (4 Members)
+    if (rso.num_members === 4) {
+      await updateRsoStatus(rso_id, "valid");
+    }
 
     return res.status(201).json({
       success: true,

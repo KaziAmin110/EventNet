@@ -222,11 +222,15 @@ export const updateRsoMembers = async (rso_id, num_members, mode) => {
         .from("university")
         .update({ num_members: num_members + 1 })
         .eq("rso_id", rso_id);
+
+      return num_members + 1;
     } else if (mode === "decrement") {
       const { data, error } = await supabase
         .from("university")
         .update({ num_members: num_members - 1 })
         .eq("rso_id", rso_id);
+
+      return num_members - 1;
     } else {
       return { error: error.message, status: 500 };
     }
@@ -260,5 +264,17 @@ export const getAllRsosDB = async (uni_id, start, end) => {
     });
   } catch (err) {
     throw new Error(err.message);
+  }
+};
+
+// Updates the Status of an RSO
+export const updateRsoStatus = async (rso_id, status) => {
+  try {
+    const { data, error } = await supabase
+      .from("rso")
+      .update({ rso_status: status })
+      .eq("rso_id", rso_id);
+  } catch (error) {
+    throw new Error(error.message);
   }
 };
