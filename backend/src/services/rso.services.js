@@ -16,13 +16,10 @@ export const sendInvitationEmail = async (
   recieverEmail,
   rso_name,
   user_id,
-  rso_id
+  rso_id,
+  inviteToken
 ) => {
   try {
-    const inviteToken = jwt.sign({ user_id, rso_id }, RSO_SECRET, {
-      expiresIn: "7d", // Token Expires in 7 Days
-    });
-
     const acceptLink = `http://127.0.0.1/rso/accept-invite?token=${inviteToken}`;
 
     const mailOptions = {
@@ -73,17 +70,11 @@ export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
 };
 
 // Inserts a student in the Student Table with uni_id
-export const addRSOInviteDB = async (
-  user_id,
-  rso_id,
-  invite_status,
-  accept_token,
-  expire_date
-) => {
+export const addRSOInviteDB = async (user_id, rso_id, invite_status) => {
   try {
     const { data, error } = await supabase
       .from("invites_rso") // Table name
-      .insert([{ rso_id, user_id, accept_token, expire_date, invite_status }])
+      .insert([{ rso_id, user_id, invite_status }])
       .select("invite_id")
       .single();
     if (error) {
@@ -175,9 +166,10 @@ export const getRsoByAttribute = async (attribute, value) => {
 // Checks If a User is Part of a Particular RSO
 export const isRSOMember = async (user_id, rso_id) => {
   try {
+    console.log(user_id, rso_id);
     const { data, error } = await supabase
       .from("joins_rso")
-      .select("user_id, rso_id")
+      .select("*")
       .eq("user_id", user_id)
       .eq("rso_id", rso_id)
       .single();
@@ -219,14 +211,14 @@ export const updateRsoMembers = async (rso_id, num_members, mode) => {
   try {
     if (mode === "increment") {
       const { data, error } = await supabase
-        .from("university")
+        .from("rso")
         .update({ num_members: num_members + 1 })
         .eq("rso_id", rso_id);
 
       return num_members + 1;
     } else if (mode === "decrement") {
       const { data, error } = await supabase
-        .from("university")
+        .from("rso")
         .update({ num_members: num_members - 1 })
         .eq("rso_id", rso_id);
 

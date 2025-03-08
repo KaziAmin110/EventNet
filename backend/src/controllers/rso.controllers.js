@@ -93,17 +93,17 @@ export const inviteToRSO = async (req, res, next) => {
     const rso = await getRsoByAttribute("rso_id", rso_id);
     const admin = await getAdminByAttribute("user_id", user_id);
 
-    // Check Existence of RSO and Invitee
-    if (!rso) {
-      const error = new Error("Invitation Error - Not a valid RSO");
-    }
-
     if (!invitee) {
       const error = new Error(
         "Invitation Error - Invitee is not associated with a university"
       );
       error.statusCode = 400;
       throw error;
+    }
+
+    // Check Existence of RSO and Invitee
+    if (!rso) {
+      const error = new Error("Invitation Error - Not a valid RSO");
     }
 
     if (!admin) {
@@ -122,7 +122,7 @@ export const inviteToRSO = async (req, res, next) => {
     }
 
     // Checks if invitee attends the same university as rso
-    if (uni_id !== invitee.uni_id) {
+    if (uni_id != invitee.uni_id) {
       const error = new Error(
         "Invitation Error - Invitee does not attend RSO host university"
       );
@@ -130,13 +130,23 @@ export const inviteToRSO = async (req, res, next) => {
       throw error;
     }
 
+    // Create Invite Token and Expire Date (7 Days)
+    const expire_date = new Date();
+    expire_date.setDate(expire_date.getDate() + 7);
+
+    const inviteeId = invitee.user_id;
+    const inviteToken = jwt.sign({ inviteeId, rso_id }, RSO_SECRET, {
+      expiresIn: "7d", // Token Expires in 7 Days
+    });
+
     // Sending Accept Link Logic
-    await addRSOInviteDB(invitee.user_id, rso_id, "pending", user_id, rso_id);
+    await addRSOInviteDB(invitee.user_id, rso_id, "pending");
     await sendInvitationEmail(
       inviteeEmail,
       rso.rso_name,
       invitee.user_id,
-      rso_id
+      rso_id,
+      inviteToken
     );
 
     return res.status(200).json({
@@ -164,11 +174,11 @@ export const joinRSO = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(accept_token, RSO_SECRET);
-    const { user_id, rso_id } = decoded;
+    const { inviteeId, rso_id } = decoded;
 
-    const user = await getUserByAttribute("id", user_id);
+    const user = await getUserByAttribute("id", inviteeId);
     const rso = await getRsoByAttribute("rso_id", rso_id);
-    const isMember = await isRSOMember(user_id, rso_id);
+    const isMember = await isRSOMember(inviteeId, rso_id);
 
     // Checks whether user_id is valid
     if (!user) {
@@ -193,15 +203,15 @@ export const joinRSO = async (req, res, next) => {
     }
 
     // Join Uni by adding entry in student table
-    await joinRsoDB(user_id, rso_id);
+    await joinRsoDB(inviteeId, rso_id);
     rso.num_members = await updateRsoMembers(
       rso_id,
       rso.num_members,
       "increment"
     );
 
-    // If RSO is now valid (4 Members)
-    if (rso.num_members === 4) {
+    // Update RSO Status If RSO is now valid (4 Members)
+    if (rso.num_members === 2) {
       await updateRsoStatus(rso_id, "valid");
     }
 

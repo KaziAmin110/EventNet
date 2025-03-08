@@ -228,7 +228,7 @@ export const getStudentByAttribute = async (attribute, value) => {
   try {
     const { data, error } = await supabase
       .from("student")
-      .select("student_id, user_id, name, email, uni_id")
+      .select("*")
       .eq(attribute, value)
       .single();
 
