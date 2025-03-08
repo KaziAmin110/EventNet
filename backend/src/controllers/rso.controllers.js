@@ -178,16 +178,17 @@ export const getAllRSOs = async (req, res, next) => {
       .json({ success: false, message: err.message || "Server Error" });
   }
 };
+
 // Allows a RSO Member to Leave an RSO
 export const leaveRSO = async (req, res, next) => {
   try {
     // Get user_id from refresh token
     const user_id = req.user;
-    const { uni_id, rso_id } = req.params;
+    const { rso_id } = req.params;
 
     const user = await getUserByAttribute("id", user_id);
     const rso = await getRsoByAttribute("rso_id", rso_id);
-    const isMember = await isRSOMember(user_id, uni_id);
+    const isMember = await isRSOMember(user_id, rso_id);
 
     // Checks whether user_id is valid
     if (!user) {
