@@ -8,6 +8,7 @@ import {
   isRSOMember,
   leaveRsoDB,
   updateRsoMembers,
+  getAllRsosDB,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -139,6 +140,10 @@ export const inviteToRSO = async (req, res, next) => {
       expires_at
     );
     await sendInvitationEmail(inviteeEmail, rso.rso_name, inviteToken);
+    return res.status(200).json({
+      success: true,
+      message: "Join RSO Email Sent Successfully",
+    });
   } catch (err) {
     return res
       .status(err.statusCode || 500)
@@ -146,6 +151,33 @@ export const inviteToRSO = async (req, res, next) => {
   }
 };
 
+// Gets ALL RSO's at a Given University
+export const getAllRSOs = async (req, res, next) => {
+  try {
+    const user = req.user;
+    const { uni_id } = req.params;
+
+    // Extract Page Number from request or default to 1
+    const page = parseInt(req.body.page) || 1;
+    const pageSize = 10;
+
+    // Calculation of Start and End Range for Pagination
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+    const rsoInfo = await getAllRsosDB(uni_id, start, end);
+
+    return res.status(200).json({
+      success: true,
+      data: rsoInfo.data,
+      pagination: data.pagination,
+      message: "RSOs Information Returned Successfully",
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
 // Allows a RSO Member to Leave an RSO
 export const leaveRSO = async (req, res, next) => {
   try {

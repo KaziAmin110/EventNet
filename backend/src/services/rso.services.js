@@ -214,3 +214,31 @@ export const updateRsoMembers = async (rso_id, num_members, mode) => {
     throw new Error(error.message);
   }
 };
+
+// Get ALL RSOs at a Given University
+export const getAllRsosDB = async (uni_id, start, end) => {
+  try {
+    // Fetch Data with pagination
+    const { data, error, count } = await supabase
+      .from("rso")
+      .select("*", { count: "exact" })
+      .eq("uni_id", uni_id)
+      .range(start, end);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return res.status(200).json({
+      success: true,
+      data,
+      pagination: {
+        totalRecords: count,
+        totalPages: Math.ceil(count / pageSize),
+        currentPage: page,
+        pageSize,
+      },
+    });
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
