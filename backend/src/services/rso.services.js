@@ -3,14 +3,6 @@ import { supabase } from "../database/db.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
 
-const transporter = nodemailer.createTransport({
-  service: "Gmail",
-  auth: {
-    user: EVENTS_EMAIL,
-    pass: EVENTS_PASSWORD,
-  },
-});
-
 // Sends Invitation Email to Recieving User
 export const sendInvitationEmail = async (
   recieverEmail,
@@ -20,6 +12,14 @@ export const sendInvitationEmail = async (
   inviteToken
 ) => {
   try {
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: EVENTS_EMAIL,
+        pass: EVENTS_PASSWORD,
+      },
+    });
+
     const acceptLink = `http://127.0.0.1/rso/accept-invite?token=${inviteToken}`;
 
     const mailOptions = {
@@ -166,7 +166,6 @@ export const getRsoByAttribute = async (attribute, value) => {
 // Checks If a User is Part of a Particular RSO
 export const isRSOMember = async (user_id, rso_id) => {
   try {
-    console.log(user_id, rso_id);
     const { data, error } = await supabase
       .from("joins_rso")
       .select("*")
@@ -232,7 +231,7 @@ export const updateRsoMembers = async (rso_id, num_members, mode) => {
 };
 
 // Get ALL RSOs at a Given University
-export const getAllRsosDB = async (uni_id, start, end) => {
+export const getAllRsosDB = async (uni_id, start, end, page, pageSize) => {
   try {
     // Fetch Data with pagination
     const { data, error, count } = await supabase
@@ -244,7 +243,7 @@ export const getAllRsosDB = async (uni_id, start, end) => {
     if (error) {
       throw new Error(error.message);
     }
-    return res.status(200).json({
+    return {
       success: true,
       data,
       pagination: {
@@ -253,7 +252,7 @@ export const getAllRsosDB = async (uni_id, start, end) => {
         currentPage: page,
         pageSize,
       },
-    });
+    };
   } catch (err) {
     throw new Error(err.message);
   }
@@ -266,6 +265,19 @@ export const updateRsoStatus = async (rso_id, status) => {
       .from("rso")
       .update({ rso_status: status })
       .eq("rso_id", rso_id);
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Updates the Status of an RSO
+export const updateInviteStatus = async (rso_id, user_id, status) => {
+  try {
+    const { data, error } = await supabase
+      .from("invites_rso")
+      .update({ invite_status: status })
+      .eq("rso_id", rso_id)
+      .eq("user_id", user_id);
   } catch (error) {
     throw new Error(error.message);
   }

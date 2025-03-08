@@ -11,6 +11,7 @@ import {
   getAllRsosDB,
   joinRsoDB,
   updateRsoStatus,
+  updateInviteStatus,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -204,6 +205,7 @@ export const joinRSO = async (req, res, next) => {
 
     // Join Uni by adding entry in student table
     await joinRsoDB(inviteeId, rso_id);
+    await updateInviteStatus(rso_id, inviteeId, "accepted");
     rso.num_members = await updateRsoMembers(
       rso_id,
       rso.num_members,
@@ -239,13 +241,13 @@ export const getAllRSOs = async (req, res, next) => {
     // Calculation of Start and End Range for Pagination
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
-    const rsoInfo = await getAllRsosDB(uni_id, start, end);
+    const rsoInfo = await getAllRsosDB(uni_id, start, end, page, pageSize);
 
     return res.status(200).json({
       success: true,
       data: rsoInfo.data,
-      pagination: data.pagination,
-      message: "RSOs Information Returned Successfully",
+      pagination: rsoInfo.pagination,
+      message: "RSOs Returned Successfully",
     });
   } catch (err) {
     return res
@@ -289,6 +291,7 @@ export const leaveRSO = async (req, res, next) => {
     // Leave Uni by removing entry from student table
     await leaveRsoDB(user_id, rso_id);
     await updateRsoMembers(rso_id, rso.num_members, "decrement");
+    await updateInviteStatus(rso_id, user_id, "pending");
 
     return res.status(200).json({
       success: true,
