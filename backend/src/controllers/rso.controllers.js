@@ -213,7 +213,7 @@ export const joinRSO = async (req, res, next) => {
     );
 
     // Update RSO Status If RSO is now valid (4 Members)
-    if (rso.num_members === 2) {
+    if (rso.num_members === 4) {
       await updateRsoStatus(rso_id, "valid");
     }
 
