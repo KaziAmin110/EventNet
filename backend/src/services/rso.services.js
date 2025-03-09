@@ -56,11 +56,7 @@ export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
       return { error: error.message, status: 500 };
     }
 
-    return {
-      message: "Added RSO as Pending Successfully",
-      data,
-      status: 201,
-    };
+    return data;
   } catch (error) {
     return {
       error: error.message,
@@ -295,45 +291,6 @@ export const getUserRsoDB = async (user_id) => {
       return data;
     }
 
-    return [];
-  } catch (err) {
-    throw new Error(err.message);
-  }
-};
-
-// Gets Admin Id Associated With a User
-export const getUserAdminID = async (user_id) => {
-  try {
-    const { data, error } = await supabase
-      .from("admin")
-      .select("admin_id")
-      .eq("user_id", user_id);
-
-    if (data) {
-      return data[0].admin_id;
-    }
-
-    return false;
-  } catch (err) {
-    throw new Error(err.message);
-  }
-};
-
-// Gets all Rsos that a User is an admin of
-export const getAdminRsosDB = async (user_id) => {
-  try {
-    const admin_id = await getUserAdminID(user_id);
-
-    if (admin_id) {
-      const { data, error } = await supabase
-        .from("rso")
-        .select("*")
-        .eq("admin_id", admin_id);
-
-      if (data) {
-        return data;
-      }
-    }
     return [];
   } catch (err) {
     throw new Error(err.message);

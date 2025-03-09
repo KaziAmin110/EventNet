@@ -13,7 +13,6 @@ import {
   updateRsoStatus,
   updateInviteStatus,
   getUserRsoDB,
-  getAdminRsosDB,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -38,7 +37,7 @@ export const createRSO = async (req, res, next) => {
     const isStudent = await isUniversityStudent(user_id, uni_id);
     const isPending = await isRSOAlreadyPending(rso_name, uni_id);
     const user = await getUserByAttribute("id", user_id);
-    const admin = await getAdminByAttribute("user_id", user_id);
+    let admin = await getAdminByAttribute("user_id", user_id);
 
     // Checks whether uni_id is valid
     if (!university) {
@@ -70,6 +69,8 @@ export const createRSO = async (req, res, next) => {
     }
 
     const data = await addRsoAsPendingDB(admin.admin_id, uni_id, rso_name);
+    await joinRsoDB(user_id, data.rso_id);
+
     return res.status(201).json({
       success: true,
       message: "Added Pending RSO Successfully",
@@ -259,13 +260,10 @@ export const getUserRSOs = async (req, res, next) => {
   try {
     const user_id = req.user;
     const rso_data = await getUserRsoDB(user_id);
-    const admin_rso_data = await getAdminRsosDB(user_id);
-
-    const combined_rso_data = rso_data.concat(admin_rso_data);
     const rso_details = [];
 
-    if (combined_rso_data && combined_rso_data.length > 0) {
-      for (const rso of combined_rso_data) {
+    if (rso_data && rso_data.length > 0) {
+      for (const rso of rso_data) {
         const rso_id = rso.rso_id;
         try {
           const rso_detail = await getRsoByAttribute("rso_id", rso_id);
