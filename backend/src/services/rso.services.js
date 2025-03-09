@@ -286,18 +286,56 @@ export const updateInviteStatus = async (rso_id, user_id, status) => {
 // Gets all Rsos that a User is a member of
 export const getUserRsoDB = async (user_id) => {
   try {
-    // Fetch Data with pagination
     const { data, error } = await supabase
       .from("joins_rso")
       .select("rso_id")
       .eq("user_id", user_id);
 
-    if (error) {
-      throw new Error(error.message);
+    if (data) {
+      return data;
     }
-    return data;
+
+    return [];
   } catch (err) {
     throw new Error(err.message);
   }
 };
 
+// Gets Admin Id Associated With a User
+export const getUserAdminID = async (user_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("admin")
+      .select("admin_id")
+      .eq("user_id", user_id);
+
+    if (data) {
+      return data[0].admin_id;
+    }
+
+    return false;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// Gets all Rsos that a User is an admin of
+export const getAdminRsosDB = async (user_id) => {
+  try {
+    const admin_id = await getUserAdminID(user_id);
+
+    if (admin_id) {
+      const { data, error } = await supabase
+        .from("rso")
+        .select("*")
+        .eq("admin_id", admin_id);
+
+      if (data) {
+        return data;
+      }
+    }
+    return [];
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
