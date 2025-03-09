@@ -80,11 +80,11 @@ export const createSuperAdmin = async (user_id, name, email) => {
 };
 
 // Inserts a New Admin in the Admin Table
-export const createAdmin = async (user_id, name, email, uni_id, status) => {
+export const createAdmin = async (user_id, name, email, uni_id) => {
   try {
     const { data, error } = await supabase
       .from("admin") // Table name
-      .insert([{ name, email, uni_id, user_id, status }])
+      .insert([{ name, email, uni_id, user_id }])
       .select("admin_id")
       .single();
 

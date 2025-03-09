@@ -22,8 +22,6 @@ import {
   createAdmin,
   getAdminByAttribute,
   getUserByAttribute,
-  isUserRole,
-  updateAdminStatus,
 } from "../services/users.services.js";
 import jwt from "jsonwebtoken";
 
@@ -66,13 +64,7 @@ export const createRSO = async (req, res, next) => {
 
     // Makes User into an Admin if not already an Admin
     if (!admin) {
-      admin = await createAdmin(
-        user_id,
-        user.name,
-        user.email,
-        uni_id,
-        "pending"
-      );
+      admin = await createAdmin(user_id, user.name, user.email, uni_id);
     }
 
     const data = await addRsoAsPendingDB(admin.admin_id, uni_id, rso_name);
@@ -220,7 +212,6 @@ export const joinRSO = async (req, res, next) => {
     // Update RSO Status If RSO is now valid (4 Members)
     if (rso.num_members === 2) {
       await updateRsoStatus(rso_id, "valid");
-      await updateAdminStatus(rso.admin_id, "valid");
     }
 
     return res.status(201).json({
