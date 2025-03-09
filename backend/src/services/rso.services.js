@@ -282,3 +282,22 @@ export const updateInviteStatus = async (rso_id, user_id, status) => {
     throw new Error(error.message);
   }
 };
+
+// Gets all Rsos that a User is a member of
+export const getUserRsoDB = async (user_id) => {
+  try {
+    // Fetch Data with pagination
+    const { data, error } = await supabase
+      .from("joins_rso")
+      .select("rso_id")
+      .eq("user_id", user_id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    return data;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+

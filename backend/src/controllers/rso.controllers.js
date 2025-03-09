@@ -12,6 +12,7 @@ import {
   joinRsoDB,
   updateRsoStatus,
   updateInviteStatus,
+  getUserRsoDB,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -228,7 +229,6 @@ export const joinRSO = async (req, res, next) => {
 // Gets ALL RSO's at a Given University
 export const getAllRSOs = async (req, res, next) => {
   try {
-    const user = req.user;
     const { uni_id } = req.params;
 
     // Extract Page Number from request or default to 1
@@ -244,7 +244,7 @@ export const getAllRSOs = async (req, res, next) => {
       success: true,
       data: rsoInfo.data,
       pagination: rsoInfo.pagination,
-      message: "RSOs Returned Successfully",
+      message: "University RSOs Returned Successfully",
     });
   } catch (err) {
     return res
@@ -252,6 +252,78 @@ export const getAllRSOs = async (req, res, next) => {
       .json({ success: false, message: err.message || "Server Error" });
   }
 };
+
+// Gets All RSOs that a User is a member of
+export const getUserRSOs = async (req, res, next) => {
+  try {
+    const user_id = req.user;
+    const rso_data = await getUserRsoDB(user_id);
+
+    const rso_details = [];
+
+    if (rso_data && rso_data.length > 0) {
+      for (const rso of rso_data) {
+        const rso_id = rso.rso_id;
+        try {
+          const rso_detail = await getRsoByAttribute("rso_id", rso_id);
+          if (rso_detail) {
+            rso_details.push(rso_detail);
+          }
+        } catch (err) {
+          console.error(`Error fetching RSO Details of rso_id:${rso_id}`, err);
+        }
+      }
+    }
+    return res.status(200).json({
+      success: true,
+      data: rso_details,
+      message: "User RSO Details Returned Successfully",
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// // Gets RSO Info Based on the provided rso_id
+// export const getRSOInfo = async (req, res, next) => {
+//   try {
+//     const user_id = req.user;
+//     const rso_id = req.params.rso_id;
+//     const rso = await getRsoByAttribute("rso_id", rso_id);
+//     const isMember = await isRSOMember(user_id, rso_id);
+
+//     if (!rso) {
+//       const error = new Error("RSO with Given ID Doesnt Exist in the DB");
+//       error.statusCode = 404;
+//       throw error;
+//     }
+
+//     if (!isMember) {
+//       const error = new Error("Get RSO Info Failed - User is not a member of the RSO");
+//       error.statusCode = 404;
+//       throw error;
+//     }
+
+//     return res.status(200).json({
+//       success: true,
+//       message: "RSO Info Gathered Successfully",
+//       data: {
+//         rso_id: rso.rso_id,
+//         rso_name: rso.rso_name,
+//         admin_id: rso.admin_id,
+//         num_members: rso.num_members,
+//         uni_id: rso.uni_id,
+//         status: rso.rso_status,
+//       },
+//     });
+//   } catch (err) {
+//     return res
+//       .status(err.statusCode || 500)
+//       .json({ success: false, message: err.message || "Server Error" });
+//   }
+// };
 
 // Allows a RSO Member to Leave an RSO
 export const leaveRSO = async (req, res, next) => {
