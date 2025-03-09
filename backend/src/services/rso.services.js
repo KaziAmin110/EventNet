@@ -1,7 +1,6 @@
 import { EVENTS_EMAIL, EVENTS_PASSWORD, RSO_SECRET } from "../../config/env.js";
 import { supabase } from "../database/db.js";
 import nodemailer from "nodemailer";
-import jwt from "jsonwebtoken";
 
 // Sends Invitation Email to Recieving User
 export const sendInvitationEmail = async (
@@ -44,14 +43,14 @@ export const sendInvitationEmail = async (
 };
 
 // Inserts a student in the Student Table with uni_id
-export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name, num_members, rso_status) => {
+export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
   try {
     const { data, error } = await supabase
       .from("rso") // Table name
-      .insert([{ rso_name, admin_id, uni_id, num_members, rso_status }])
+      .insert([{ rso_name, admin_id, uni_id }])
       .select("*")
       .single();
-      
+
     if (error) {
       console.log(error);
       return { error: error.message, status: 500 };

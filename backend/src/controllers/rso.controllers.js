@@ -22,6 +22,7 @@ import {
   createAdmin,
   getAdminByAttribute,
   getUserByAttribute,
+  isUserRole,
   updateAdminStatus,
 } from "../services/users.services.js";
 import jwt from "jsonwebtoken";
@@ -37,6 +38,7 @@ export const createRSO = async (req, res, next) => {
     const isStudent = await isUniversityStudent(user_id, uni_id);
     const isPending = await isRSOAlreadyPending(rso_name, uni_id);
     const user = await getUserByAttribute("id", user_id);
+    const admin = await getAdminByAttribute("user_id", user_id);
 
     // Checks whether uni_id is valid
     if (!university) {
@@ -62,21 +64,18 @@ export const createRSO = async (req, res, next) => {
       throw error;
     }
 
-    const admin_id = await createAdmin(
-      user_id,
-      user.name,
-      user.email,
-      uni_id,
-      "pending"
-    );
+    // Makes User into an Admin if not already an Admin
+    if (!admin) {
+      admin = await createAdmin(
+        user_id,
+        user.name,
+        user.email,
+        uni_id,
+        "pending"
+      );
+    }
 
-    const data = await addRsoAsPendingDB(
-      admin_id,
-      uni_id,
-      rso_name,
-      1,
-      "pending"
-    );
+    const data = await addRsoAsPendingDB(admin.admin_id, uni_id, rso_name);
     return res.status(201).json({
       success: true,
       message: "Added Pending RSO Successfully",

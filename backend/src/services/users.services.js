@@ -92,7 +92,7 @@ export const createAdmin = async (user_id, name, email, uni_id, status) => {
       return { error: error.message, status: 500 };
     }
 
-    return data.admin_id;
+    return data;
   } catch (error) {
     return {
       error: error.message,
