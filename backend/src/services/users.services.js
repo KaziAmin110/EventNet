@@ -126,3 +126,15 @@ export const getAdminByAttribute = async (attribute, value) => {
     throw new Error(error.message);
   }
 };
+
+// Updates the Status of an Admin
+export const updateAdminStatus = async (admin_id, status) => {
+  try {
+    const { data, error } = await supabase
+      .from("admin")
+      .update({ status: status })
+      .eq("admin_id", admin_id);
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};

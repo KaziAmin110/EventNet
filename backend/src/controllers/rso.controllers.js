@@ -22,6 +22,7 @@ import {
   createAdmin,
   getAdminByAttribute,
   getUserByAttribute,
+  updateAdminStatus,
 } from "../services/users.services.js";
 import jwt from "jsonwebtoken";
 
@@ -69,8 +70,13 @@ export const createRSO = async (req, res, next) => {
       "pending"
     );
 
-    const data = await addRsoAsPendingDB(admin_id, uni_id, rso_name);
-
+    const data = await addRsoAsPendingDB(
+      admin_id,
+      uni_id,
+      rso_name,
+      1,
+      "pending"
+    );
     return res.status(201).json({
       success: true,
       message: "Added Pending RSO Successfully",
@@ -215,6 +221,7 @@ export const joinRSO = async (req, res, next) => {
     // Update RSO Status If RSO is now valid (4 Members)
     if (rso.num_members === 2) {
       await updateRsoStatus(rso_id, "valid");
+      await updateAdminStatus(rso.admin_id, "valid");
     }
 
     return res.status(201).json({

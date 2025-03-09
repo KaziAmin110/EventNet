@@ -44,13 +44,14 @@ export const sendInvitationEmail = async (
 };
 
 // Inserts a student in the Student Table with uni_id
-export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
+export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name, num_members, rso_status) => {
   try {
     const { data, error } = await supabase
       .from("rso") // Table name
-      .insert([{ rso_name, admin_id, uni_id }])
-      .select("rso_id, rso_name, admin_id, num_members, uni_id, rso_status")
+      .insert([{ rso_name, admin_id, uni_id, num_members, rso_status }])
+      .select("*")
       .single();
+      
     if (error) {
       console.log(error);
       return { error: error.message, status: 500 };
