@@ -68,7 +68,12 @@ export const createRSO = async (req, res, next) => {
       admin = await createAdmin(user_id, user.name, user.email, uni_id);
     }
 
-    const data = await addRsoAsPendingDB(admin.admin_id, uni_id, rso_name);
+    const data = await addRsoAsPendingDB(
+      admin.admin_id,
+      uni_id,
+      rso_name,
+      user_id
+    );
     await joinRsoDB(user_id, data.rso_id);
 
     return res.status(201).json({
@@ -83,72 +88,71 @@ export const createRSO = async (req, res, next) => {
   }
 };
 
-// Invites a User to join a RSO through an accept-token sent to the User's Email
+// Invites a User to join a RSO by sending an accept-token to the User's Email
 export const inviteToRSO = async (req, res, next) => {
   try {
     const user_id = req.user;
     const { rso_id, uni_id } = req.params;
     const { inviteeEmail } = req.body;
 
-    const invitee = await getStudentByAttribute("email", inviteeEmail);
-    const rso = await getRsoByAttribute("rso_id", rso_id);
-    const admin = await getAdminByAttribute("user_id", user_id);
+    const [invitee, rso] = await Promise.all([
+      getStudentByAttribute("email", inviteeEmail),
+      getRsoByAttribute("rso_id", rso_id),
+    ]);
 
     if (!invitee) {
-      const error = new Error(
-        "Invitation Error - Invitee is not associated with a university"
-      );
+      const error = new Error("Invitee is not associated with a university");
       error.statusCode = 400;
       throw error;
     }
 
     // Check Existence of RSO and Invitee
     if (!rso) {
-      const error = new Error("Invitation Error - Not a valid RSO");
-    }
-
-    if (!admin) {
-      const error = new Error("Invitation Error - User is not an admin");
-      error.statusCode = 400;
-      throw error;
+      const error = new Error("Invalid RSO");
     }
 
     // Checks if User is an admin of the rso
-    if (admin.admin_id !== rso.admin_id) {
-      const error = new Error(
-        "Invitation Error - User does not have admin access for the RSO"
-      );
+    if (user_id !== rso.admin_user_id) {
+      const error = new Error("User is not RSO admin");
       error.statusCode = 403;
       throw error;
     }
 
     // Checks if invitee attends the same university as rso
     if (uni_id != invitee.uni_id) {
-      const error = new Error(
-        "Invitation Error - Invitee does not attend RSO host university"
-      );
+      const error = new Error("Invitee does not attend RSO host university");
       error.statusCode = 403;
       throw error;
     }
 
-    // Create Invite Token and Expire Date (7 Days)
-    const expire_date = new Date();
-    expire_date.setDate(expire_date.getDate() + 7);
+    // Checks to see if User is already part of the rso
+    const isMember = await isRSOMember(invitee.user_id, rso_id);
+    if (isMember) {
+      const error = new Error("Invitee is already part of the RSO");
+      error.statusCode = 400;
+      throw error;
+    }
 
-    const inviteeId = invitee.user_id;
-    const inviteToken = jwt.sign({ inviteeId, rso_id }, RSO_SECRET, {
-      expiresIn: "7d", // Token Expires in 7 Days
-    });
-
-    // Sending Accept Link Logic
-    await addRSOInviteDB(invitee.user_id, rso_id, "pending");
-    await sendInvitationEmail(
-      inviteeEmail,
-      rso.rso_name,
-      invitee.user_id,
-      rso_id,
-      inviteToken
+    // Generate Invite Token
+    const inviteToken = jwt.sign(
+      { inviteeId: invitee.user_id, rso_id },
+      RSO_SECRET,
+      {
+        expiresIn: "7d", // Token Expires in 7 Days
+      }
     );
+
+    // Save to DB & Send Email in Parallel
+    await Promise.all([
+      await addRSOInviteDB(invitee.user_id, rso_id, "pending"),
+      await sendInvitationEmail(
+        inviteeEmail,
+        rso.rso_name,
+        invitee.user_id,
+        rso_id,
+        inviteToken
+      ),
+    ]);
 
     return res.status(200).json({
       success: true,

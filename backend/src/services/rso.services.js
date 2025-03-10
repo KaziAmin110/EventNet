@@ -43,11 +43,16 @@ export const sendInvitationEmail = async (
 };
 
 // Inserts a student in the Student Table with uni_id
-export const addRsoAsPendingDB = async (admin_id, uni_id, rso_name) => {
+export const addRsoAsPendingDB = async (
+  admin_id,
+  uni_id,
+  rso_name,
+  admin_user_id
+) => {
   try {
     const { data, error } = await supabase
       .from("rso") // Table name
-      .insert([{ rso_name, admin_id, uni_id }])
+      .insert([{ rso_name, admin_id, uni_id, admin_user_id }])
       .select("*")
       .single();
 
@@ -137,7 +142,9 @@ export const getRsoByAttribute = async (attribute, value) => {
   try {
     const { data, error } = await supabase
       .from("rso")
-      .select("rso_id, rso_name, admin_id, num_members, uni_id, rso_status")
+      .select(
+        "rso_id, rso_name, admin_id, num_members, uni_id, rso_status, admin_user_id"
+      )
       .eq(attribute, value)
       .single();
 
@@ -149,6 +156,7 @@ export const getRsoByAttribute = async (attribute, value) => {
         num_members: data.num_members,
         uni_id: data.uni_id,
         rso_status: data.rso_status,
+        admin_user_id: data.admin_user_id,
       };
     }
 
