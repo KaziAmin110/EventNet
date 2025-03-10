@@ -38,11 +38,9 @@ export const signUp = async (req, res) => {
     }
     // Hashing our password via the User entity
     const hashedPassword = await User.hashPassword(password);
+    
     // Create new user within the database
-    await createUser(name, email, hashedPassword);
-
-    // Retreiving the newly added user by their email
-    const newUser = await getUserByAttribute("email", email);
+    const newUser = await createUser(name, email, hashedPassword);
 
     // Getting the JWT token via the user entity
     const accessToken = newUser.generateAccessToken();

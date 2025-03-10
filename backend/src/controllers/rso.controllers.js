@@ -79,6 +79,7 @@ export const createRSO = async (req, res, next) => {
       rso_name,
       user_id
     );
+
     await joinRsoDB(user_id, data.rso_id);
 
     return res.status(201).json({
@@ -301,8 +302,11 @@ export const getRSOInfo = async (req, res, next) => {
   try {
     const user_id = req.user;
     const rso_id = req.params.rso_id;
-    const rso = await getRsoByAttribute("rso_id", rso_id);
-    const isMember = await isRSOMember(user_id, rso_id);
+
+    const [rso, isMember] = await Promise.all([
+      getRsoByAttribute("rso_id", rso_id),
+      isRSOMember(user_id, rso_id),
+    ]);
 
     if (!rso) {
       const error = new Error("RSO with Given ID Doesnt Exist in the DB");
