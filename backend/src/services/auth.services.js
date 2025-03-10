@@ -4,7 +4,7 @@ import { supabase } from "../database/db.js";
 export const updateUserPassword = async (attribute, value, newPassword) => {
   try {
     const { error } = await supabase
-      .from("User")
+      .from("users")
       .update({ password: newPassword })
       .eq(attribute, value);
 
@@ -25,7 +25,7 @@ export const updateUserPassword = async (attribute, value, newPassword) => {
 export const updateRefreshToken = async (id, refresh_token) => {
   try {
     const { error } = await supabase
-      .from("User")
+      .from("users")
       .update({ refresh_token })
       .eq("id", id);
 

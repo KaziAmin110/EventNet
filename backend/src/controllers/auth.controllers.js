@@ -38,7 +38,7 @@ export const signUp = async (req, res) => {
     }
     // Hashing our password via the User entity
     const hashedPassword = await User.hashPassword(password);
-    
+
     // Create new user within the database
     const newUser = await createUser(name, email, hashedPassword);
 
