@@ -18,6 +18,12 @@ export const createUniversityProfile = async (req, res, next) => {
     const user_id = req.user;
     const { uni_name, description, domain } = req.body;
 
+    const [isSuperAdmin, existingEntry, uniData] = await Promise.all([
+      isUserRole("super_admin", user_id),
+      getUniByAttribute("uni_name", uni_name.toLowerCase()),
+      getUniversityDetails(uni_name),
+    ]);
+
     // Check for required body
     if (!uni_name || !description) {
       const error = new Error(
@@ -26,8 +32,6 @@ export const createUniversityProfile = async (req, res, next) => {
       error.statusCode = 403;
       throw error;
     }
-    // Verify SuperAdmin Status
-    const isSuperAdmin = await isUserRole("super_admin", user_id);
 
     if (!isSuperAdmin) {
       const error = new Error("User does not have SuperAdmin Status");
@@ -35,19 +39,11 @@ export const createUniversityProfile = async (req, res, next) => {
       throw error;
     }
 
-    // Check to See if University Already Exists in Database
-    const existingEntry = await getUniByAttribute(
-      "uni_name",
-      uni_name.toLowerCase()
-    );
-
     if (existingEntry) {
       const error = new Error("University Already Exists in DB");
       error.statusCode = 400;
       throw error;
     }
-
-    const uniData = await getUniversityDetails(uni_name);
 
     if (!uniData) {
       const error = new Error(
@@ -56,6 +52,7 @@ export const createUniversityProfile = async (req, res, next) => {
       error.statusCode = 403;
       throw error;
     }
+
     const photoUrls = [];
 
     for (const reference of uniData.photos) {
@@ -92,9 +89,11 @@ export const joinUniversity = async (req, res, next) => {
     const user_id = req.user;
     const { uni_id } = req.params;
 
-    const user = await getUserByAttribute("id", user_id);
-    const university = await getUniByAttribute("uni_id", uni_id);
-    const isStudent = await isUniversityStudent(user_id, uni_id);
+    const [user, university, isStudent] = await Promise.all([
+      getUserByAttribute("id", user_id),
+      getUniByAttribute("uni_id", uni_id),
+      isUniversityStudent(user_id, uni_id),
+    ]);
 
     // Checks whether user_id is valid
     if (!user) {
@@ -131,12 +130,10 @@ export const joinUniversity = async (req, res, next) => {
     }
 
     // Join Uni by adding entry in student table
-    await joinUniversityDB(user_id, uni_id, user.name, user.email);
-    await updateUniversityStudents(
-      uni_id,
-      university.num_students,
-      "increment"
-    );
+    await Promise.all([
+      joinUniversityDB(user_id, uni_id, user.name, user.email),
+      updateUniversityStudents(uni_id, university.num_students, "increment"),
+    ]);
 
     return res.status(201).json({
       success: true,
@@ -226,9 +223,11 @@ export const leaveUniversity = async (req, res, next) => {
     const user_id = req.user;
     const { uni_id } = req.params;
 
-    const user = await getUserByAttribute("id", user_id);
-    const university = await getUniByAttribute("uni_id", uni_id);
-    const isStudent = await isUniversityStudent(user_id, uni_id);
+    const [user, university, isStudent] = await Promise.all([
+      getUserByAttribute("id", user_id),
+      getUniByAttribute("uni_id", uni_id),
+      isUniversityStudent(user_id, uni_id),
+    ]);
 
     // Checks whether user_id is valid
     if (!user) {
@@ -251,13 +250,15 @@ export const leaveUniversity = async (req, res, next) => {
       throw error;
     }
 
-    // Leave Uni by removing entry from student table
-    await leaveUniversityDB(user_id, uni_id);
-    await updateUniversityStudents(
-      uni_id,
-      university.num_students,
-      "decrement"
-    );
+    // Updates Necessary Tables for Leave University Operation
+    await Promise.all([
+      await leaveUniversityDB(user_id, uni_id),
+      await updateUniversityStudents(
+        uni_id,
+        university.num_students,
+        "decrement"
+      ),
+    ]);
 
     return res.status(200).json({
       success: true,
