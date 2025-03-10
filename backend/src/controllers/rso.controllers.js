@@ -32,12 +32,17 @@ export const createRSO = async (req, res, next) => {
     const user_id = req.user;
     const { uni_id } = req.params;
     const { rso_name } = req.body;
+    let admin;
 
-    const university = await getUniByAttribute("uni_id", uni_id);
-    const isStudent = await isUniversityStudent(user_id, uni_id);
-    const isPending = await isRSOAlreadyPending(rso_name, uni_id);
-    const user = await getUserByAttribute("id", user_id);
-    let admin = await getAdminByAttribute("user_id", user_id);
+    const [university, isStudent, isPending, user, adminResult] =
+      await Promise.all([
+        getUniByAttribute("uni_id", uni_id),
+        isUniversityStudent(user_id, uni_id),
+        isRSOAlreadyPending(rso_name, uni_id),
+        getUserByAttribute("id", user_id),
+        getAdminByAttribute("user_id", user_id),
+      ]);
+    admin = adminResult; // Assign the resolved value to admin
 
     // Checks whether uni_id is valid
     if (!university) {
@@ -144,8 +149,8 @@ export const inviteToRSO = async (req, res, next) => {
 
     // Save to DB & Send Email in Parallel
     await Promise.all([
-      await addRSOInviteDB(invitee.user_id, rso_id, "pending"),
-      await sendInvitationEmail(
+      addRSOInviteDB(invitee.user_id, rso_id, "pending"),
+      sendInvitationEmail(
         inviteeEmail,
         rso.rso_name,
         invitee.user_id,
@@ -181,9 +186,11 @@ export const joinRSO = async (req, res, next) => {
     const decoded = jwt.verify(accept_token, RSO_SECRET);
     const { inviteeId, rso_id } = decoded;
 
-    const user = await getUserByAttribute("id", inviteeId);
-    const rso = await getRsoByAttribute("rso_id", rso_id);
-    const isMember = await isRSOMember(inviteeId, rso_id);
+    const [user, rso, isMember] = await Promise.all([
+      getUserByAttribute("id", inviteeId),
+      getRsoByAttribute("rso_id", rso_id),
+      isRSOMember(inviteeId, rso_id),
+    ]);
 
     // Checks whether user_id is valid
     if (!user) {
@@ -208,16 +215,14 @@ export const joinRSO = async (req, res, next) => {
     }
 
     // Join Uni by adding entry in student table
-    await joinRsoDB(inviteeId, rso_id);
-    await updateInviteStatus(rso_id, inviteeId, "accepted");
-    rso.num_members = await updateRsoMembers(
-      rso_id,
-      rso.num_members,
-      "increment"
-    );
+    const [, , newMemberCount] = await Promise.all([
+      joinRsoDB(inviteeId, rso_id),
+      updateInviteStatus(rso_id, inviteeId, "accepted"),
+      updateRsoMembers(rso_id, rso.num_members, "increment"),
+    ]);
 
     // Update RSO Status If RSO is now valid (4 Members)
-    if (rso.num_members === 4) {
+    if (newMemberCount === 4) {
       await updateRsoStatus(rso_id, "valid");
     }
 
@@ -339,9 +344,11 @@ export const leaveRSO = async (req, res, next) => {
     const user_id = req.user;
     const { rso_id } = req.params;
 
-    const user = await getUserByAttribute("id", user_id);
-    const rso = await getRsoByAttribute("rso_id", rso_id);
-    const isMember = await isRSOMember(user_id, rso_id);
+    const [user, rso, isMember] = await Promise.all([
+      getUserByAttribute("id", user_id),
+      getRsoByAttribute("rso_id", rso_id),
+      isRSOMember(user_id, rso_id),
+    ]);
 
     // Checks whether user_id is valid
     if (!user) {
@@ -365,9 +372,11 @@ export const leaveRSO = async (req, res, next) => {
     }
 
     // Leave Uni by removing entry from student table
-    await leaveRsoDB(user_id, rso_id);
-    await updateRsoMembers(rso_id, rso.num_members, "decrement");
-    await updateInviteStatus(rso_id, user_id, "pending");
+    await Promise.all([
+      leaveRsoDB(user_id, rso_id),
+      updateRsoMembers(rso_id, rso.num_members, "decrement"),
+      updateInviteStatus(rso_id, user_id, "pending"),
+    ]);
 
     return res.status(200).json({
       success: true,
