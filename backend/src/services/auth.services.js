@@ -120,7 +120,7 @@ export const verifyPasswordResetToken = (data) => {
   }
 };
 
-// Retrieves User Entity Based on Attribute
+// Retrieves Reset Token Based on Attribute
 export const getResetTokenByAttribute = async (attribute, value) => {
     try {
       const { data, error } = await supabase

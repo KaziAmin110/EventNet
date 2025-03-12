@@ -151,13 +151,7 @@ export const inviteToRSO = async (req, res, next) => {
     // Save to DB & Send Email in Parallel
     await Promise.all([
       addRSOInviteDB(invitee.user_id, rso_id, "pending"),
-      sendInvitationEmail(
-        inviteeEmail,
-        rso.rso_name,
-        invitee.user_id,
-        rso_id,
-        inviteToken
-      ),
+      sendInvitationEmail(inviteeEmail, rso.rso_name, inviteToken),
     ]);
 
     return res.status(200).json({

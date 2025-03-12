@@ -1,13 +1,12 @@
 import { EVENTS_EMAIL, EVENTS_PASSWORD, RSO_SECRET } from "../../config/env.js";
 import { supabase } from "../database/db.js";
 import nodemailer from "nodemailer";
+import RSO_Class from "../entities/rso.entities.js";
 
 // Sends Invitation Email to Recieving User
 export const sendInvitationEmail = async (
   recieverEmail,
   rso_name,
-  user_id,
-  rso_id,
   inviteToken
 ) => {
   try {
@@ -137,9 +136,21 @@ export const isRSOAlreadyPending = async (rso_name, uni_id) => {
   }
 };
 
-// Retrieves User Entity Based on Attribute
+// Retrieves RSO Entity Based on Attribute
 export const getRsoByAttribute = async (attribute, value) => {
   try {
+    // Generate cache key based on attribute (e.g., "rso:name:RSO Name")
+    const cacheKey = `rso:${attribute}:${value}`;
+
+    // Check if RSO data exists in Redis cache
+    const cachedRso = await redisClient.get(cacheKey);
+
+    if (cachedRso) {
+      console.log("Cache hit:", cachedRso);
+      return JSON.parse(cachedRso);
+    }
+
+    // Fetch RSO from Supabase if not found in cache
     const { data, error } = await supabase
       .from("rso")
       .select(
@@ -149,18 +160,25 @@ export const getRsoByAttribute = async (attribute, value) => {
       .single();
 
     if (data) {
-      return {
-        rso_id: data.rso_id,
-        rso_name: data.rso_name,
-        admin_id: data.admin_id,
-        num_members: data.num_members,
-        uni_id: data.uni_id,
-        rso_status: data.rso_status,
-        admin_user_id: data.admin_user_id,
-      };
+      console.log("Cache miss, fetching from database:", data);
+
+      // Store the RSO data in Redis with expiration (e.g., 5 minutes)
+      const rsoData = new RSO_Class(
+        data.rso_id,
+        data.rso_name,
+        data.admin_id,
+        data.num_members,
+        data.uni_id,
+        data.rso_status,
+        data.admin_user_id
+      );
+
+      await redisClient.set(cacheKey, JSON.stringify(rsoData), "EX", 300);
+
+      return rsoData;
     }
 
-    // No User Associated with Given Attribute
+    // No RSO Associated with Given Attribute
     return false;
   } catch (error) {
     throw new Error(error.message);
@@ -170,6 +188,17 @@ export const getRsoByAttribute = async (attribute, value) => {
 // Checks If a User is Part of a Particular RSO
 export const isRSOMember = async (user_id, rso_id) => {
   try {
+    // Generate a cache key based on user_id and rso_id
+    const cacheKey = `rso:membership:${user_id}:${rso_id}`;
+
+    // Check if membership status is already cached in Redis
+    const cachedMembership = await redisClient.get(cacheKey);
+    if (cachedMembership !== null) {
+      console.log("Cache hit:", cachedMembership);
+      return cachedMembership === "true"; // Return true/false based on cached value
+    }
+
+    // Query Supabase if membership data is not cached
     const { data, error } = await supabase
       .from("joins_rso")
       .select("*")
@@ -178,9 +207,16 @@ export const isRSOMember = async (user_id, rso_id) => {
       .single();
 
     if (data) {
+      console.log("Cache miss, fetching from database:", data);
+
+      // Store the membership status in Redis (true/false)
+      await redisClient.set(cacheKey, "true", "EX", 300); // 5 minutes expiration
+
       return true;
     }
 
+    // User is not a member of the RSO, store false in cache
+    await redisClient.set(cacheKey, "false", "EX", 300); // 5 minutes expiration
     return false;
   } catch (err) {
     throw new Error(err.message);

@@ -4,7 +4,7 @@
 */
 class Admin {
   constructor(admin_id, name, email, uni_id, user_id) {
-    this.admin_id = id;
+    this.admin_id = admin_id;
     this.name = name;
     this.email = email;
     this.uni_id = uni_id;
