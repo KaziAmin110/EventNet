@@ -25,6 +25,7 @@ import {
   getUserByAttribute,
 } from "../services/users.services.js";
 import jwt from "jsonwebtoken";
+import redisClient from "../../config/redis.config.js";
 
 // Allows Student to create a pending RSO
 export const createRSO = async (req, res, next) => {
@@ -244,8 +245,28 @@ export const getAllRSOs = async (req, res, next) => {
     // Calculation of Start and End Range for Pagination
     const start = (page - 1) * pageSize;
     const end = start + pageSize - 1;
+
+    // Generate cache key based on uni_id, page, and pagination range
+    const cacheKey = `rsos:uni:${uni_id}:page:${page}:start:${start}:end:${end}`;
+
+    // Check if the data is cached in Redis
+    const cachedRsos = await redisClient.get(cacheKey);
+    if (cachedRsos !== null) {
+      return res.status(200).json({
+        success: true,
+        data: JSON.parse(cachedRsos).data,
+        pagination: JSON.parse(cachedRsos).pagination,
+        message: "University RSOs Retrieved from Cache",
+      });
+    }
+
+    // Fetch data from the database if not found in cache
     const rsoInfo = await getAllRsosDB(uni_id, start, end, page, pageSize);
 
+    // Cache the result in Redis with 5 minutes expiration
+    await redisClient.set(cacheKey, JSON.stringify(rsoInfo), "EX", 300); // 5 minutes expiration
+
+    // Return the fetched data in the response
     return res.status(200).json({
       success: true,
       data: rsoInfo.data,
@@ -297,6 +318,21 @@ export const getRSOInfo = async (req, res, next) => {
     const user_id = req.user;
     const rso_id = req.params.rso_id;
 
+    // Generate a unique cache key based on rso_id and user_id
+    const cacheKey = `rso_info:user:${user_id}:rso:${rso_id}`;
+
+    // Check if the data is already cached in Redis
+    const cachedRSOInfo = await redisClient.get(cacheKey);
+    if (cachedRSOInfo !== null) {
+      console.log("Cache hit:", cachedRSOInfo);
+      return res.status(200).json({
+        success: true,
+        message: "RSO Info Retrieved from Cache",
+        data: JSON.parse(cachedRSOInfo),
+      });
+    }
+
+    // Fetch RSO and membership data if not in cache
     const [rso, isMember] = await Promise.all([
       getRsoByAttribute("rso_id", rso_id),
       isRSOMember(user_id, rso_id),
@@ -316,17 +352,23 @@ export const getRSOInfo = async (req, res, next) => {
       throw error;
     }
 
+    // Prepare the RSO info object to return
+    const rsoInfo = {
+      rso_id: rso.rso_id,
+      rso_name: rso.rso_name,
+      admin_id: rso.admin_id,
+      num_members: rso.num_members,
+      uni_id: rso.uni_id,
+      status: rso.rso_status,
+    };
+
+    // Cache the result in Redis with a 10-minute expiration (600 seconds)
+    await redisClient.set(cacheKey, JSON.stringify(rsoInfo), "EX", 600);
+
     return res.status(200).json({
       success: true,
       message: "RSO Info Gathered Successfully",
-      data: {
-        rso_id: rso.rso_id,
-        rso_name: rso.rso_name,
-        admin_id: rso.admin_id,
-        num_members: rso.num_members,
-        uni_id: rso.uni_id,
-        status: rso.rso_status,
-      },
+      data: rsoInfo,
     });
   } catch (err) {
     return res

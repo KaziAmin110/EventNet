@@ -2,6 +2,7 @@ import { EVENTS_EMAIL, EVENTS_PASSWORD, RSO_SECRET } from "../../config/env.js";
 import { supabase } from "../database/db.js";
 import nodemailer from "nodemailer";
 import RSO_Class from "../entities/rso.entities.js";
+import redisClient from "../../config/redis.config.js";
 
 // Sends Invitation Email to Recieving User
 export const sendInvitationEmail = async (
@@ -146,7 +147,6 @@ export const getRsoByAttribute = async (attribute, value) => {
     const cachedRso = await redisClient.get(cacheKey);
 
     if (cachedRso) {
-      console.log("Cache hit:", cachedRso);
       return JSON.parse(cachedRso);
     }
 
@@ -194,7 +194,6 @@ export const isRSOMember = async (user_id, rso_id) => {
     // Check if membership status is already cached in Redis
     const cachedMembership = await redisClient.get(cacheKey);
     if (cachedMembership !== null) {
-      console.log("Cache hit:", cachedMembership);
       return cachedMembership === "true"; // Return true/false based on cached value
     }
 
@@ -273,7 +272,16 @@ export const updateRsoMembers = async (rso_id, num_members, mode) => {
 // Get ALL RSOs at a Given University
 export const getAllRsosDB = async (uni_id, start, end, page, pageSize) => {
   try {
-    // Fetch Data with pagination
+    // Generate cache key based on uni_id, start, end, page, and pageSize
+    const cacheKey = `rsos:uni:${uni_id}:page:${page}:start:${start}:end:${end}`;
+
+    // Check if the RSOs data is cached in Redis
+    const cachedRsos = await redisClient.get(cacheKey);
+    if (cachedRsos !== null) {
+      return JSON.parse(cachedRsos); // Return cached data
+    }
+
+    // Fetch data from Supabase if not found in cache
     const { data, error, count } = await supabase
       .from("rso")
       .select("*", { count: "exact" })
@@ -283,7 +291,9 @@ export const getAllRsosDB = async (uni_id, start, end, page, pageSize) => {
     if (error) {
       throw new Error(error.message);
     }
-    return {
+
+    // Prepare the pagination data
+    const result = {
       success: true,
       data,
       pagination: {
@@ -293,6 +303,11 @@ export const getAllRsosDB = async (uni_id, start, end, page, pageSize) => {
         pageSize,
       },
     };
+
+    // Cache the RSOs data in Redis with 5 minutes expiration
+    await redisClient.set(cacheKey, JSON.stringify(result), "EX", 300); // 5 minutes expiration
+
+    return result;
   } catch (err) {
     throw new Error(err.message);
   }
@@ -326,16 +341,29 @@ export const updateInviteStatus = async (rso_id, user_id, status) => {
 // Gets all Rsos that a User is a member of
 export const getUserRsoDB = async (user_id) => {
   try {
+    // Generate cache key based on user_id
+    const cacheKey = `user_rso:${user_id}`;
+
+    // Check if the user RSO data is cached in Redis
+    const cachedRsos = await redisClient.get(cacheKey);
+    if (cachedRsos !== null) {
+      return JSON.parse(cachedRsos); // Return cached data
+    }
+
+    // Fetch data from Supabase if not found in cache
     const { data, error } = await supabase
       .from("joins_rso")
       .select("rso_id")
       .eq("user_id", user_id);
 
-    if (data) {
-      return data;
+    if (error) {
+      throw new Error(error.message);
     }
 
-    return [];
+    // Cache the RSOs data in Redis with 5 minutes expiration
+    await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
+
+    return data || [];
   } catch (err) {
     throw new Error(err.message);
   }
