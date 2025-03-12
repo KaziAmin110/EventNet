@@ -2,6 +2,7 @@ import { supabase } from "../database/db.js";
 import University from "../entities/uni.entities.js";
 import axios from "axios";
 import { GOOGLE_PLACES_API_KEY } from "../../config/env.js";
+import redisClient from "../../config/redis.config.js";
 
 // Inserts a new university in the University Table
 export const createUniversityDB = async (
@@ -106,6 +107,17 @@ export const updateUniversityStudents = async (uni_id, num_students, mode) => {
 // Checks If a Student is Part of a Particular University
 export const isUniversityStudent = async (user_id, uni_id) => {
   try {
+    // Generate a cache key based on user_id and uni_id
+    const cacheKey = `university:student:${user_id}:${uni_id}`;
+
+    // Check if the membership status is cached in Redis
+    const cachedStudent = await redisClient.get(cacheKey);
+    if (cachedStudent !== null) {
+      console.log("Cache hit:", cachedStudent);
+      return cachedStudent === "true"; // Return true/false based on cached value
+    }
+
+    // Query Supabase if not found in cache
     const { data, error } = await supabase
       .from("student")
       .select("user_id, uni_id")
@@ -114,9 +126,15 @@ export const isUniversityStudent = async (user_id, uni_id) => {
       .single();
 
     if (data) {
+      console.log("Cache miss, fetching from database:", data);
+
+      // Store the membership status (true) in Redis with 5 minutes expiration
+      await redisClient.set(cacheKey, "true", "EX", 300); // 5 minutes expiration
       return true;
     }
 
+    // If student is not part of the university, store false in cache
+    await redisClient.set(cacheKey, "false", "EX", 300); // 5 minutes expiration
     return false;
   } catch (err) {
     throw new Error(err.message);
@@ -126,6 +144,14 @@ export const isUniversityStudent = async (user_id, uni_id) => {
 // Get University by Attribute
 export const getUniByAttribute = async (attribute, value) => {
   try {
+    const cacheKey = `uni:${attribute}:${value}`;
+    const cachedUni = await redisClient.get(cacheKey);
+
+    if (cachedUni) {
+      console.log("Cache Hit:", cachedUni);
+      return JSON.parse(cachedUni);
+    }
+
     const { data, error } = await supabase
       .from("university")
       .select("*")
@@ -133,7 +159,7 @@ export const getUniByAttribute = async (attribute, value) => {
       .single();
 
     if (data) {
-      return new University(
+      const uni_data = new University(
         data.uni_id,
         data.uni_name,
         data.longitude,
@@ -143,6 +169,8 @@ export const getUniByAttribute = async (attribute, value) => {
         data.pictures,
         data.domain
       );
+      await redisClient.set(cacheKey, JSON.stringify(uni_data), "EX", 300);
+      return uni_data;
     }
 
     // No University Associated with Given Attribute
@@ -155,6 +183,17 @@ export const getUniByAttribute = async (attribute, value) => {
 // Gathers University Info such as Latitude, Longitude, and Photos using Google Place API
 export async function getUniversityDetails(universityName) {
   try {
+    // Generate cache key based on the university name
+    const cacheKey = `university:details:${universityName.toLowerCase()}`;
+
+    // Check if university details are cached in Redis
+    const cachedDetails = await redisClient.get(cacheKey);
+    if (cachedDetails !== null) {
+      console.log("Cache hit:", cachedDetails);
+      return JSON.parse(cachedDetails); // Return the cached data
+    }
+
+    // If not found in cache, proceed with API call to Google Places
     const findPlaceUrl =
       "https://maps.googleapis.com/maps/api/place/findplacefromtext/json";
     const findPlaceParams = {
@@ -167,6 +206,7 @@ export async function getUniversityDetails(universityName) {
     const findPlaceResponse = await axios.get(findPlaceUrl, {
       params: findPlaceParams,
     });
+
     if (
       findPlaceResponse.data.status !== "OK" ||
       !findPlaceResponse.data.candidates ||
@@ -203,6 +243,10 @@ export async function getUniversityDetails(universityName) {
         ? universityDetails.photos.map((photo) => photo.photo_reference)
         : [], // Extract photo references
     };
+
+    // Cache the university details in Redis for future requests
+    await redisClient.set(cacheKey, JSON.stringify(result), "EX", 600); // 10 minutes expiration
+
     return result;
   } catch (error) {
     console.error("Error fetching place details:", error);
@@ -226,6 +270,17 @@ export async function getUniPhotoUrl(photoReference, maxWidth = 400) {
 // Retrieves User Entity Based on Attribute
 export const getStudentByAttribute = async (attribute, value) => {
   try {
+    // Generate cache key based on attribute and value
+    const cacheKey = `student:${attribute}:${value}`;
+
+    // Check if the student data is cached in Redis
+    const cachedStudent = await redisClient.get(cacheKey);
+    if (cachedStudent !== null) {
+      console.log("Cache hit:", cachedStudent);
+      return JSON.parse(cachedStudent); // Return cached data
+    }
+
+    // Query Supabase if data is not found in the cache
     const { data, error } = await supabase
       .from("student")
       .select("*")
@@ -233,13 +288,17 @@ export const getStudentByAttribute = async (attribute, value) => {
       .single();
 
     if (data) {
-      return {
+      const student = {
         student_id: data.student_id,
         user_id: data.user_id,
         name: data.name,
         email: data.email,
         uni_id: data.uni_id,
       };
+
+      // Cache the student data in Redis with 5 minutes expiration
+      await redisClient.set(cacheKey, JSON.stringify(student), "EX", 300); // 5 minutes expiration
+      return student;
     }
 
     // No User Associated with Given Attribute
