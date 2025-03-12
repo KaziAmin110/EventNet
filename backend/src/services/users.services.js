@@ -1,9 +1,21 @@
 import { supabase } from "../database/db.js";
 import User from "../entities/user.entities.js";
+import redisClient from "../../config/redis.config.js";
+import Admin from "../entities/admin.entities.js";
 
 // Retrieves User Entity Based on Attribute
 export const getUserByAttribute = async (attribute, value) => {
   try {
+    // Generate cache key based on attribute (Ex. "user:email:user@gmail.com")
+    const cacheKey = `user:${attribute}:${value}`;
+    const cachedUser = await redisClient.get(cacheKey);
+
+    // Checks if User already exists within Redis Cache
+    if (cachedUser) {
+      const data = JSON.parse(cachedUser);
+      return new User(data.id, data.name, data.email, data.password);
+    }
+
     const { data, error } = await supabase
       .from("users")
       .select("id, email, name, password")
@@ -11,6 +23,8 @@ export const getUserByAttribute = async (attribute, value) => {
       .single();
 
     if (data) {
+      // Store in Redis Cache with expiration (5 minutes)
+      await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
       return new User(data.id, data.name, data.email, data.password);
     }
 
@@ -24,18 +38,28 @@ export const getUserByAttribute = async (attribute, value) => {
 // Checks If user_id exists in a role table
 export const isUserRole = async (role, user_id) => {
   try {
+    // Generate cache key based on role & user_id (e.g "role:admin:12345")
+    const cacheKey = `role:${role}:${user_id}`;
+
+    // Check if user role exists in Redis Cache
+    const cachedRole = await redisClient.get(cacheKey);
+    if (cachedRole != null) {
+      console.log("Cache hit:", cachedRole);
+      return JSON.parse(cachedRole);
+    }
+
     const { data, error } = await supabase
       .from(role)
       .select("name, email")
       .eq("user_id", user_id)
       .single();
 
-    if (data) {
-      return true;
-    }
+    const roleExists = !!data; // Converts data to boolean
 
-    // No User Associated with Given Attribute
-    return false;
+    // Store result in Redis with expiration (5 minutes)
+    await redisClient.set(cacheKey, JSON.stringify(roleExists), "EX", 300);
+
+    return roleExists;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -106,6 +130,22 @@ export const createAdmin = async (user_id, name, email, uni_id) => {
 // Retrieves User Entity Based on Attribute
 export const getAdminByAttribute = async (attribute, value) => {
   try {
+    // Generate cache key based on attribute (Ex. "admin:email:admin@gmail.com")
+    const cacheKey = `admin:${attribute}:${value}`;
+    const cachedUser = await redisClient.get(cacheKey);
+
+    // Checks if User already exists within Redis Cache
+    if (cachedUser) {
+      const data = JSON.parse(cachedUser);
+      return new Admin(
+        data.admin_id,
+        data.name,
+        data.email,
+        data.uni_id,
+        data.user_id
+      );
+    }
+
     const { data, error } = await supabase
       .from("admin")
       .select("admin_id, name, email, uni_id, user_id")
@@ -113,13 +153,8 @@ export const getAdminByAttribute = async (attribute, value) => {
       .single();
 
     if (data) {
-      return {
-        admin_id: data.admin_id,
-        name: data.name,
-        email: data.email,
-        uni_id: data.uni_id,
-        user_id: data.user_id,
-      };
+      // Store in Redis Cache with expiration (5 minutes)
+      await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
     }
 
     // No User Associated with Given Attribute

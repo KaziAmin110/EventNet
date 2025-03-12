@@ -28,7 +28,7 @@ export const signUp = async (req, res) => {
       error.statusCode = 400;
       throw error;
     }
-    // Querying the database to see if the given email exists
+    // Querying the database to see if the given email exists in the database
     const existingUser = await getUserByAttribute("email", email);
 
     if (existingUser) {
