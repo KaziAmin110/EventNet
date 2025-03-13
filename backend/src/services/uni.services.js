@@ -51,6 +51,7 @@ export const joinUniversityDB = async (user_id, uni_id, name, email) => {
 
     // Removes Cache If they Exist
     await redisClient.del(`university:student:${user_id}:${uni_id}`);
+    await redisClient.del(`user_unis:${user_id}`);
 
     return { message: "Student Added Successfully", data, status: 201 };
   } catch (error) {
@@ -73,6 +74,7 @@ export const leaveUniversityDB = async (user_id, uni_id) => {
 
     // Removes Cache If they Exist
     await redisClient.del(`university:student:${user_id}:${uni_id}`);
+    await redisClient.del(`user_unis:${user_id}`);
 
     return { message: "Student Removed Successfully", data, status: 200 };
   } catch (error) {
@@ -317,5 +319,36 @@ export const getStudentByAttribute = async (attribute, value) => {
     return false;
   } catch (error) {
     throw new Error(error.message);
+  }
+};
+
+// Gets all Rsos that a User is a member of
+export const getUserUniversitiesDB = async (user_id) => {
+  try {
+    // Generate cache key based on user_id
+    const cacheKey = `user_unis:${user_id}`;
+
+    // Check if the user RSO data is cached in Redis
+    const cachedRsos = await redisClient.get(cacheKey);
+    if (cachedRsos !== null) {
+      return JSON.parse(cachedRsos); // Return cached data
+    }
+
+    // Fetch data from Supabase if not found in cache
+    const { data, error } = await supabase
+      .from("student")
+      .select("uni_id")
+      .eq("user_id", user_id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // Cache the RSOs data in Redis with 5 minutes expiration
+    await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
+
+    return data || [];
+  } catch (err) {
+    throw new Error(err.message);
   }
 };

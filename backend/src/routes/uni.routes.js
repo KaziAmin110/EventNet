@@ -6,6 +6,7 @@ import {
   getUniversityInfo,
   joinUniversity,
   leaveUniversity,
+  getUserUniversities,
 } from "../controllers/uni.controllers.js";
 import {
   createRSO,
@@ -22,6 +23,7 @@ const uniRouter = Router();
 uniRouter.post("/", authenticateUser, createUniversityProfile);
 uniRouter.post("/:uni_id/join", authenticateUser, joinUniversity);
 uniRouter.get("/", authenticateUser, getAllUniversities);
+uniRouter.get("/me", authenticateUser, getUserUniversities);
 uniRouter.get("/:uni_id", authenticateUser, getUniversityInfo);
 uniRouter.delete("/:uni_id/leave", authenticateUser, leaveUniversity);
 

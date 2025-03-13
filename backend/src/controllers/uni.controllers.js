@@ -8,6 +8,7 @@ import {
   isUniversityStudent,
   updateUniversityStudents,
   leaveUniversityDB,
+  getUserUniversitiesDB,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
@@ -208,6 +209,39 @@ export const getUniversityInfo = async (req, res, next) => {
         pictures: university.pictures,
         domain: university.domain,
       },
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Gets All Universities that a User is a student of
+export const getUserUniversities = async (req, res, next) => {
+  try {
+    const user_id = req.user;
+    const uni_data = await getUserUniversitiesDB(user_id);
+    console.log(uni_data);
+    const uni_details = [];
+
+    if (uni_data && uni_data.length > 0) {
+      for (const uni of uni_data) {
+        const uni_id = uni.uni_id;
+        try {
+          const uni_detail = await getUniByAttribute("uni_id", uni_id);
+          if (uni_detail) {
+            uni_details.push(uni_detail);
+          }
+        } catch (err) {
+          console.error(`Error fetching RSO Details of rso_id:${rso_id}`, err);
+        }
+      }
+    }
+    return res.status(200).json({
+      success: true,
+      data: uni_details,
+      message: "User RSO Details Returned Successfully",
     });
   } catch (err) {
     return res
