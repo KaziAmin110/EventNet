@@ -92,11 +92,16 @@ export const createSuperAdmin = async (user_id, name, email) => {
     const { data, error } = await supabase
       .from("super_admin") // Table name
       .insert([{ user_id, name, email }]);
+
     if (error) {
       return { error: error.message, status: 500 };
     }
 
-    return { message: "SuperAdmin created successfully", data, status: 201 };
+    // Invalidates Cache if they exist
+    await redisClient.del(`role:admin:${user_id}`);
+    await redisClient.del(`role:student:${user_id}`);
+
+    return data;
   } catch (error) {
     return {
       error: error.message,
@@ -117,6 +122,10 @@ export const createAdmin = async (user_id, name, email, uni_id) => {
     if (error) {
       return { error: error.message, status: 500 };
     }
+
+    // Invalidates Cache if they exist
+    await redisClient.del(`role:super_admin:${user_id}`);
+    await redisClient.del(`role:student:${user_id}`);
 
     return data;
   } catch (error) {
@@ -159,18 +168,6 @@ export const getAdminByAttribute = async (attribute, value) => {
 
     // No User Associated with Given Attribute
     return false;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-
-// Updates the Status of an Admin
-export const updateAdminStatus = async (admin_id, status) => {
-  try {
-    const { data, error } = await supabase
-      .from("admin")
-      .update({ status: status })
-      .eq("admin_id", admin_id);
   } catch (error) {
     throw new Error(error.message);
   }

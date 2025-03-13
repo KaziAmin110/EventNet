@@ -52,6 +52,9 @@ export const joinUniversityDB = async (user_id, uni_id, name, email) => {
       return { error: error.message, status: 500 };
     }
 
+    // Removes Cache If they Exist
+    await redisClient.del(`university:student:${user_id}:${uni_id}`);
+
     return { message: "Student Added Successfully", data, status: 201 };
   } catch (error) {
     return {
@@ -74,6 +77,9 @@ export const leaveUniversityDB = async (user_id, uni_id) => {
       return { error: error.message, status: 500 };
     }
 
+    // Removes Cache If they Exist
+    await redisClient.del(`university:student:${user_id}:${uni_id}`);
+
     return { message: "Student Removed Successfully", data, status: 200 };
   } catch (error) {
     return {
@@ -91,14 +97,24 @@ export const updateUniversityStudents = async (uni_id, num_students, mode) => {
         .from("university")
         .update({ num_students: num_students + 1 })
         .eq("uni_id", uni_id);
+
+      // Removes University Cache If they exist
+      await redisClient.del(`uni:uni_id:${uni_id}`);
+      await redisClient.del(`uni:uni_name:${data.uni_name}`);
     } else if (mode === "decrement") {
       const { data, error } = await supabase
         .from("university")
         .update({ num_students: num_students - 1 })
         .eq("uni_id", uni_id);
+
+      // Removes University Cache If they exist
+      await redisClient.del(`uni:uni_id:${uni_id}`);
+      await redisClient.del(`uni:uni_name:${data.uni_name}`);
     } else {
       return { error: error.message, status: 500 };
     }
+
+    return data;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -113,7 +129,6 @@ export const isUniversityStudent = async (user_id, uni_id) => {
     // Check if the membership status is cached in Redis
     const cachedStudent = await redisClient.get(cacheKey);
     if (cachedStudent !== null) {
-      console.log("Cache hit:", cachedStudent);
       return cachedStudent === "true"; // Return true/false based on cached value
     }
 
@@ -148,7 +163,6 @@ export const getUniByAttribute = async (attribute, value) => {
     const cachedUni = await redisClient.get(cacheKey);
 
     if (cachedUni) {
-      console.log("Cache Hit:", cachedUni);
       return JSON.parse(cachedUni);
     }
 

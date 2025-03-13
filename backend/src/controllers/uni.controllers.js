@@ -12,7 +12,7 @@ import {
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
 // Allows SuperAdmin to Create a new University Profile using the uni_name
-export const createUniversityProfile = async (req, res, next) => {
+export const createUniversityProfile = async (req, res, next) => { 
   try {
     // Get User-Id through refresh Token from Bearer
     const user_id = req.user;
