@@ -85,6 +85,29 @@ export const leaveUniversityDB = async (user_id, uni_id) => {
   }
 };
 
+// Removes all Rsos that a User is Associated with at a University
+export const leaveUniRsosDB = async (user_id, uni_id) => {
+  try {
+    const { data, error, count } = await supabase
+      .from("joins_rso")
+      .delete()
+      .eq("uni_id", uni_id)
+      .eq("user_id", user_id);
+
+    if (error) {
+      console.error(error);
+      return { error: error.message, status: 500 };
+    }
+
+    return data;
+  } catch (err) {
+    return {
+      error: err.message,
+      status: 500,
+    };
+  }
+};
+
 // Updates the number of students at a university (Increment or Decrement)
 export const updateUniversityStudents = async (uni_id, num_students, mode) => {
   try {
@@ -282,15 +305,14 @@ export async function getUniPhotoUrl(photoReference, maxWidth = 400) {
 }
 
 // Retrieves User Entity Based on Attribute
-export const getStudentByAttribute = async (attribute, value) => {
+export const getStudentByAttribute = async (email, uni_id) => {
   try {
     // Generate cache key based on attribute and value
-    const cacheKey = `student:${attribute}:${value}`;
+    const cacheKey = `student:${email}:${uni_id}`;
 
     // Check if the student data is cached in Redis
     const cachedStudent = await redisClient.get(cacheKey);
     if (cachedStudent !== null) {
-      console.log("Cache hit:", cachedStudent);
       return JSON.parse(cachedStudent); // Return cached data
     }
 
@@ -298,7 +320,8 @@ export const getStudentByAttribute = async (attribute, value) => {
     const { data, error } = await supabase
       .from("student")
       .select("*")
-      .eq(attribute, value)
+      .eq("email", email)
+      .eq("uni_id", uni_id)
       .single();
 
     if (data) {

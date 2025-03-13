@@ -97,11 +97,11 @@ export const addRSOInviteDB = async (user_id, rso_id, invite_status) => {
 };
 
 // Inserts a Member in the RSO Table with rso_id
-export const joinRsoDB = async (user_id, rso_id) => {
+export const joinRsoDB = async (user_id, rso_id, uni_id) => {
   try {
     const { data, error } = await supabase
       .from("joins_rso") // Table name
-      .insert([{ user_id, rso_id }]);
+      .insert([{ user_id, rso_id, uni_id }]);
     if (error) {
       return { error: error.message, status: 500 };
     }
@@ -295,8 +295,6 @@ export const getRsoByAttribute = async (attribute, value) => {
       .single();
 
     if (data) {
-      console.log("Cache miss, fetching from database:", data);
-
       // Store the RSO data in Redis with expiration (e.g., 5 minutes)
       const rsoData = new RSO_Class(
         data.rso_id,
@@ -363,8 +361,6 @@ export const isRSOMember = async (user_id, rso_id) => {
       .single();
 
     if (data) {
-      console.log("Cache miss, fetching from database:", data);
-
       // Store the membership status in Redis (true/false)
       await redisClient.set(cacheKey, "true", "EX", 300); // 5 minutes expiration
 

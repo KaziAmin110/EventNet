@@ -9,6 +9,7 @@ import {
   updateUniversityStudents,
   leaveUniversityDB,
   getUserUniversitiesDB,
+  leaveUniRsosDB,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
@@ -222,7 +223,6 @@ export const getUserUniversities = async (req, res, next) => {
   try {
     const user_id = req.user;
     const uni_data = await getUserUniversitiesDB(user_id);
-    console.log(uni_data);
     const uni_details = [];
 
     if (uni_data && uni_data.length > 0) {
@@ -286,12 +286,9 @@ export const leaveUniversity = async (req, res, next) => {
 
     // Updates Necessary Tables for Leave University Operation
     await Promise.all([
-      await leaveUniversityDB(user_id, uni_id),
-      await updateUniversityStudents(
-        uni_id,
-        university.num_students,
-        "decrement"
-      ),
+      leaveUniversityDB(user_id, uni_id),
+      updateUniversityStudents(uni_id, university.num_students, "decrement"),
+      leaveUniRsosDB(user_id, uni_id),
     ]);
 
     return res.status(200).json({

@@ -26,6 +26,7 @@ import {
 } from "../services/users.services.js";
 import jwt from "jsonwebtoken";
 import redisClient from "../../config/redis.config.js";
+import { emailQueue } from "../queues/email.queue.js";
 
 // Allows Student to create a pending RSO
 export const createRSO = async (req, res, next) => {
@@ -43,6 +44,8 @@ export const createRSO = async (req, res, next) => {
         getUserByAttribute("id", user_id),
         getAdminByAttribute("user_id", user_id),
       ]);
+
+    console.log("Admin Result From DB:", adminResult);
     admin = adminResult; // Assign the resolved value to admin
 
     // Checks whether uni_id is valid
@@ -63,7 +66,7 @@ export const createRSO = async (req, res, next) => {
     // Checks if RSO Creation Request is Already Pending
     if (isPending) {
       const error = new Error(
-        "Create RSO Failed - RSO Request already pending"
+        "Create RSO Failed - RSO Request Is Already Pending"
       );
       error.statusCode = 400;
       throw error;
@@ -72,6 +75,12 @@ export const createRSO = async (req, res, next) => {
     // Makes User into an Admin if not already an Admin
     if (!admin) {
       admin = await createAdmin(user_id, user.name, user.email, uni_id);
+      console.log("Admin Created: ", admin);
+    }
+
+    // **Check if admin.admin_id exists before using it**
+    if (!admin || !admin.admin_id) {
+      throw new Error("Create RSO Failed - Admin creation failed");
     }
 
     const data = await addRsoAsPendingDB(
@@ -81,7 +90,7 @@ export const createRSO = async (req, res, next) => {
       user_id
     );
 
-    await joinRsoDB(user_id, data.rso_id);
+    await joinRsoDB(user_id, data.rso_id, uni_id);
 
     return res.status(201).json({
       success: true,
@@ -103,13 +112,13 @@ export const inviteToRSO = async (req, res, next) => {
     const { inviteeEmail } = req.body;
 
     const [invitee, rso] = await Promise.all([
-      getStudentByAttribute("email", inviteeEmail),
+      getStudentByAttribute(inviteeEmail, uni_id),
       getRsoByAttribute("rso_id", rso_id),
     ]);
 
     if (!invitee) {
-      const error = new Error("Invitee is not associated with a university");
-      error.statusCode = 400;
+      const error = new Error("Invitee does not attend RSO host university");
+      error.statusCode = 403;
       throw error;
     }
 
@@ -121,13 +130,6 @@ export const inviteToRSO = async (req, res, next) => {
     // Checks if User is an admin of the rso
     if (user_id !== rso.admin_user_id) {
       const error = new Error("User is not RSO admin");
-      error.statusCode = 403;
-      throw error;
-    }
-
-    // Checks if invitee attends the same university as rso
-    if (uni_id != invitee.uni_id) {
-      const error = new Error("Invitee does not attend RSO host university");
       error.statusCode = 403;
       throw error;
     }
@@ -148,7 +150,6 @@ export const inviteToRSO = async (req, res, next) => {
         expiresIn: "7d", // Token Expires in 7 Days
       }
     );
-
     // Save to DB & Send Email in Parallel
     await Promise.all([
       addRSOInviteDB(invitee.user_id, rso_id, "pending"),
@@ -212,7 +213,7 @@ export const joinRSO = async (req, res, next) => {
 
     // Join Uni by adding entry in student table
     const [, , newMemberCount] = await Promise.all([
-      joinRsoDB(inviteeId, rso_id),
+      joinRsoDB(inviteeId, rso_id, rso.uni_id),
       updateInviteStatus(rso_id, inviteeId, "accepted"),
       updateRsoMembers(rso_id, rso.num_members, "increment"),
     ]);
@@ -324,7 +325,6 @@ export const getRSOInfo = async (req, res, next) => {
     // Check if the data is already cached in Redis
     const cachedRSOInfo = await redisClient.get(cacheKey);
     if (cachedRSOInfo !== null) {
-      console.log("Cache hit:", cachedRSOInfo);
       return res.status(200).json({
         success: true,
         message: "RSO Info Retrieved from Cache",
