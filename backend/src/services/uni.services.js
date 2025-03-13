@@ -48,19 +48,13 @@ export const joinUniversityDB = async (user_id, uni_id, name, email) => {
     const { data, error } = await supabase
       .from("student") // Table name
       .insert([{ user_id, uni_id, name, email }]);
-    if (error) {
-      return { error: error.message, status: 500 };
-    }
 
     // Removes Cache If they Exist
     await redisClient.del(`university:student:${user_id}:${uni_id}`);
 
     return { message: "Student Added Successfully", data, status: 201 };
   } catch (error) {
-    return {
-      error: error.message,
-      status: 500,
-    };
+    return console.error(error);
   }
 };
 
@@ -92,29 +86,36 @@ export const leaveUniversityDB = async (user_id, uni_id) => {
 // Updates the number of students at a university (Increment or Decrement)
 export const updateUniversityStudents = async (uni_id, num_students, mode) => {
   try {
+    let returnData;
     if (mode === "increment") {
       const { data, error } = await supabase
         .from("university")
         .update({ num_students: num_students + 1 })
-        .eq("uni_id", uni_id);
+        .eq("uni_id", uni_id)
+        .select("*")
+        .single();
 
       // Removes University Cache If they exist
       await redisClient.del(`uni:uni_id:${uni_id}`);
       await redisClient.del(`uni:uni_name:${data.uni_name}`);
+      returnData = data;
     } else if (mode === "decrement") {
       const { data, error } = await supabase
         .from("university")
         .update({ num_students: num_students - 1 })
-        .eq("uni_id", uni_id);
+        .eq("uni_id", uni_id)
+        .select("*")
+        .single();
 
       // Removes University Cache If they exist
       await redisClient.del(`uni:uni_id:${uni_id}`);
       await redisClient.del(`uni:uni_name:${data.uni_name}`);
+      returnData = data;
     } else {
       return { error: error.message, status: 500 };
     }
 
-    return data;
+    return returnData;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -141,8 +142,6 @@ export const isUniversityStudent = async (user_id, uni_id) => {
       .single();
 
     if (data) {
-      console.log("Cache miss, fetching from database:", data);
-
       // Store the membership status (true) in Redis with 5 minutes expiration
       await redisClient.set(cacheKey, "true", "EX", 300); // 5 minutes expiration
       return true;
@@ -203,7 +202,6 @@ export async function getUniversityDetails(universityName) {
     // Check if university details are cached in Redis
     const cachedDetails = await redisClient.get(cacheKey);
     if (cachedDetails !== null) {
-      console.log("Cache hit:", cachedDetails);
       return JSON.parse(cachedDetails); // Return the cached data
     }
 

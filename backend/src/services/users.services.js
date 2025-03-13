@@ -44,7 +44,6 @@ export const isUserRole = async (role, user_id) => {
     // Check if user role exists in Redis Cache
     const cachedRole = await redisClient.get(cacheKey);
     if (cachedRole != null) {
-      console.log("Cache hit:", cachedRole);
       return JSON.parse(cachedRole);
     }
 
