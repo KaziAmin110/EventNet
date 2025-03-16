@@ -42,8 +42,17 @@ export const signUp = async (req, res) => {
     // Create new user within the database
     const newUser = await createUser(name, email, hashedPassword);
 
-    // Getting the JWT token via the user entity
+    // Sends User Access Token in Response and Refresh Token in Cookies
     const accessToken = newUser.generateAccessToken();
+    const refreshToken = newUser.generateRefreshToken();
+    const refreshTokenAge = 24 * 60 * 60 * 1000;
+
+    await updateRefreshToken(newUser.id, refreshToken);
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: NODE_ENV === "production",
+      maxAge: refreshTokenAge,
+    });
 
     res.status(201).json({
       success: true,
