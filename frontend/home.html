@@ -3,29 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="src/style.css">
     <title>EventNet</title>
+    <link rel="stylesheet" href="src/style.css">
 </head>
-<body id="home-page">
+<body id="home">
 
-    <!-- Header Section -->
+    <!-- Header with School Name -->
     <header>
-        <h1>EventNet</h1>
-        <h2>Find Events at the University of Central Florida</h2>
-        <form>
-            <input type="text" placeholder="Find events">
-            <button type="submit" class="btn">Search</button>
-        </form>
+        <h1>Find Events Near You</h1>
+        <span class="profile">(P)</span> <!-- Profile icon -->
+        <input type="text" id="search-bar" placeholder="SEARCH">
     </header>
 
-    <!-- Navigation Bar (Taskbar) -->
-    <nav>
+    <!-- Taskbar -->
+    <nav class="taskbar">
+        
         <a href="home.html">HOME</a>
         <a href="clubs.html">CLUBS</a>
-        <a href="register.html">REGISTER</a>
         <a href="events.html">EVENTS</a>
-        <a href="contact.html">CONTACT US</a>
+        <a href="contact.html">CONTACT</a>
+
     </nav>
+
+    <!-- Club Events Section -->
+    <section class="events">
+        <h3>Your Clubs (RSO only events)</h3>
+
+        <h3>Events (private/public events)</h3>
+    </section>
 
 </body>
 </html>

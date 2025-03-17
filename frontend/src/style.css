@@ -9,6 +9,7 @@ body{
   font-family: 'Arial', sans-serif;
 }
 
+/*Start of styling for sign in/sign up page*/
 #index-page{
   display: flex;
   justify-content: center;
@@ -99,49 +100,74 @@ p {
   
 }
 
+/*Start of styling for home page*/
 
-
-header{
-  display: flex;
-  background: black;
-  color: white;
-  padding: 20px ;
+/* Global reset for all elements */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
 }
 
-
-
-nav {
-  background-color: #F3EB12; 
-  padding: 10px;
-  text-align: center; 
+/* Global font family */
+body {
+  font-family: 'Arial', sans-serif;
 }
 
-nav a {
+/* Header Styling for Home Page */
+#home header {
+  background-color: black; /* Black background for header */
+  color: white; /* White text color */
+  font-size: 15px; /* Large font for the school name */
+  padding: 30px; /* Add padding to create space around the text */
+}
+#home header h1 {
+ text-align: center;
+}
+#home span {
+  text-align: right;
+  font-size: 20px; /* Smaller font for the tagline */
+  display: block; /* Display the tagline on a new line */
+}
+#home input {
+  font-size: 15px;
+  width: auto;
+  border-radius: 5px;
+  border: 1px solid black;
+}
+
+/* Taskbar Styling */
+nav.taskbar {
+  background-color: #F3EB12; /* Yellow background */
+  padding: 15px;
+  text-align: center;
+  width: 100%;
+}
+
+nav.taskbar a {
   color: black;
   text-decoration: none;
-  padding:5px 40px;
-  margin: 2%; /* Space between buttons */
-  font-size: 15px; /* Font size */
+  padding: 12px 40px;
+  margin: 0 10px;
+  font-size: 16px;
+  border-radius: 5px;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-nav a:hover {
-  background-color: black; /* Change background color when hovered */
+nav.taskbar a:hover {
+  background-color: black;
   color: white;
 }
 
-h1 {
-  color: white;
-  font-size: 30px;
-  text-align: center;
-  margin: 10px;
+/* Styling the buttons and links */
+.btn {
+  background-color: #ADD8E6;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 40px;
+  cursor: pointer;
 }
-h2 {
-  color: white;
-  font-size: 100%;
-  text-align: center;
-  margin: 0px;
-}
-form {
-  text-align: center;
-  margin: 10px;
+
+.btn:hover {
+  background-color: #90d8e6;
 }
