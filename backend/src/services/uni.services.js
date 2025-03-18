@@ -14,7 +14,6 @@ export const createUniversityDB = async (
   domain
 ) => {
   try {
-    const num_students = 0;
     const { data, error } = await supabase
       .from("university") // Table name
       .insert([
@@ -23,7 +22,7 @@ export const createUniversityDB = async (
           latitude,
           longitude,
           description,
-          num_students,
+          num_students: 0,
           pictures,
           domain,
         },
@@ -52,6 +51,10 @@ export const joinUniversityDB = async (user_id, uni_id, name, email) => {
     // Removes Cache If they Exist
     await redisClient.del(`university:student:${user_id}:${uni_id}`);
     await redisClient.del(`user_unis:${user_id}`);
+
+    if (error) {
+      throw new Error();
+    }
 
     return { message: "Student Added Successfully", data, status: 201 };
   } catch (error) {
@@ -111,36 +114,27 @@ export const leaveUniRsosDB = async (user_id, uni_id) => {
 // Updates the number of students at a university (Increment or Decrement)
 export const updateUniversityStudents = async (uni_id, num_students, mode) => {
   try {
-    let returnData;
+    // Increases uni_id num_students by 1 in Database
     if (mode === "increment") {
       const { data, error } = await supabase
         .from("university")
         .update({ num_students: num_students + 1 })
-        .eq("uni_id", uni_id)
-        .select("*")
-        .single();
-
-      // Removes University Cache If they exist
-      await redisClient.del(`uni:uni_id:${uni_id}`);
-      await redisClient.del(`uni:uni_name:${data.uni_name}`);
-      returnData = data;
-    } else if (mode === "decrement") {
+        .eq("uni_id", uni_id);
+    }
+    // Decreases uni_id num_students by 1 in Database
+    else if (mode === "decrement") {
       const { data, error } = await supabase
         .from("university")
         .update({ num_students: num_students - 1 })
-        .eq("uni_id", uni_id)
-        .select("*")
-        .single();
-
-      // Removes University Cache If they exist
-      await redisClient.del(`uni:uni_id:${uni_id}`);
-      await redisClient.del(`uni:uni_name:${data.uni_name}`);
-      returnData = data;
+        .eq("uni_id", uni_id);
     } else {
-      return { error: error.message, status: 500 };
+      return { error: "Invalid Update Students", status: 500 };
     }
 
-    return returnData;
+    // Removes University Cache If they exist
+    await redisClient.del(`uni:uni_id:${uni_id}`);
+
+    return { success: true, status: 200 };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -161,7 +155,7 @@ export const isUniversityStudent = async (user_id, uni_id) => {
     // Query Supabase if not found in cache
     const { data, error } = await supabase
       .from("student")
-      .select("user_id, uni_id")
+      .select("user_id")
       .eq("user_id", user_id)
       .eq("uni_id", uni_id)
       .single();
@@ -180,8 +174,41 @@ export const isUniversityStudent = async (user_id, uni_id) => {
   }
 };
 
-// Get University by Attribute
-export const getUniByAttribute = async (attribute, value) => {
+// Get Name, num_students and domain information regarding University by Attribute
+export const getUniBaseInfo = async (attribute, value) => {
+  try {
+    const cacheKey = `uni_base:${attribute}:${value}`;
+    const cachedUni = await redisClient.get(cacheKey);
+
+    if (cachedUni) {
+      return JSON.parse(cachedUni);
+    }
+
+    let query = supabase
+      .from("university")
+      .select("uni_id, uni_name, num_students, domain");
+
+    if (Array.isArray(value)) {
+      query = query.in(attribute, value);
+    } else {
+      query = query.eq(attribute, value);
+    }
+
+    const { data, error } = await query;
+
+    if (error) {
+      throw new Error(error.message);
+    }
+    await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
+    console.log(data);
+    return data;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Get All data from University by Attribute
+export const getUniAllInfo = async (attribute, value) => {
   try {
     const cacheKey = `uni:${attribute}:${value}`;
     const cachedUni = await redisClient.get(cacheKey);
@@ -207,12 +234,37 @@ export const getUniByAttribute = async (attribute, value) => {
         data.pictures,
         data.domain
       );
+
       await redisClient.set(cacheKey, JSON.stringify(uni_data), "EX", 300);
       return uni_data;
     }
 
     // No University Associated with Given Attribute
     return false;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Get University by Attribute
+export const checkUniversityExistence = async (uni_name) => {
+  try {
+    const cacheKey = `uni_existence:${uni_name}`;
+    const cachedUni = await redisClient.get(cacheKey);
+
+    if (cachedUni) {
+      return JSON.parse(cachedUni);
+    }
+
+    const { data, error } = await supabase
+      .from("university")
+      .select("uni_id")
+      .eq("uni_name", uni_name)
+      .single();
+
+    await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
+
+    return !!data;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -345,7 +397,7 @@ export const getStudentByAttribute = async (email, uni_id) => {
   }
 };
 
-// Gets all Rsos that a User is a member of
+// Gets all Universities that a User is a student of
 export const getUserUniversitiesDB = async (user_id) => {
   try {
     // Generate cache key based on user_id

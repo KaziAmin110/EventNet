@@ -1,7 +1,8 @@
 import { supabase } from "../database/db.js";
 import {
   createUniversityDB,
-  getUniByAttribute,
+  getUniBaseInfo,
+  getUniAllInfo,
   joinUniversityDB,
   getUniPhotoUrl,
   getUniversityDetails,
@@ -10,21 +11,16 @@ import {
   leaveUniversityDB,
   getUserUniversitiesDB,
   leaveUniRsosDB,
+  checkUniversityExistence,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
 // Allows SuperAdmin to Create a new University Profile using the uni_name
 export const createUniversityProfile = async (req, res, next) => {
   try {
-    // Get User-Id through refresh Token from Bearer
+    // Get User-Id From Access Token Using Bearer
     const user_id = req.user;
     const { uni_name, description, domain } = req.body;
-
-    const [isSuperAdmin, existingEntry, uniData] = await Promise.all([
-      isUserRole("super_admin", user_id),
-      getUniByAttribute("uni_name", uni_name.toLowerCase()),
-      getUniversityDetails(uni_name),
-    ]);
 
     // Check for required body
     if (!uni_name || !description) {
@@ -34,6 +30,12 @@ export const createUniversityProfile = async (req, res, next) => {
       error.statusCode = 403;
       throw error;
     }
+
+    const [isSuperAdmin, existingEntry, uniData] = await Promise.all([
+      isUserRole("super_admin", user_id),
+      checkUniversityExistence(uni_name.toLowerCase()),
+      getUniversityDetails(uni_name),
+    ]);
 
     if (!isSuperAdmin) {
       const error = new Error("User does not have SuperAdmin Status");
@@ -93,48 +95,50 @@ export const joinUniversity = async (req, res, next) => {
 
     const [user, university, isStudent] = await Promise.all([
       getUserByAttribute("id", user_id),
-      getUniByAttribute("uni_id", uni_id),
+      getUniBaseInfo("uni_id", uni_id),
       isUniversityStudent(user_id, uni_id),
     ]);
 
     // Checks whether user_id is valid
     if (!user) {
-      const error = new Error("Join Unsuccessful - User not in Database");
-      error.statusCode = 403;
-      throw error;
+      const err = new Error("Join Unsuccessful - User not in Database");
+      err.statusCode = 403;
+      throw err;
     }
     // Checks whether uni_id is valid
     if (!university) {
-      const error = new Error("Join Unsuccessful - University not in Database");
-      error.statusCode = 403;
-      throw error;
-    }
-
-    // Checks if User matches the email domain restriction of the university
-    if (
-      university.domain !== null &&
-      university.domain !== user.email.split("@")[1]
-    ) {
-      const error = new Error(
-        "Join Unsuccesful - User Email Doesn't Match University Domain Restriction"
-      );
-      error.statusCode = 400;
-      throw error;
+      const err = new Error("Join Unsuccessful - University not in Database");
+      err.statusCode = 403;
+      throw err;
     }
 
     // Checks to see if User is already a student at that University
     if (isStudent) {
-      const error = new Error(
+      const err = new Error(
         "Join Unsuccesful - User is already a student at the university"
       );
-      error.statusCode = 400;
-      throw error;
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // Checks if User matches the email domain restriction of the university
+    if (university.domain && university.domain !== user.email.split("@")[1]) {
+      const err = new Error(
+        "Join Unsuccesful - User Email Doesn't Match University Domain Restriction"
+      );
+      err.statusCode = 400;
+      throw err;
     }
 
     // Join Uni by adding entry in student table
     await Promise.all([
       joinUniversityDB(user_id, uni_id, user.name, user.email),
-      updateUniversityStudents(uni_id, university.num_students, "increment"),
+      updateUniversityStudents(
+        uni_id,
+        university.name,
+        university.num_students,
+        "increment"
+      ),
     ]);
 
     return res.status(201).json({
@@ -189,7 +193,7 @@ export const getAllUniversities = async (req, res, next) => {
 export const getUniversityInfo = async (req, res, next) => {
   try {
     const uni_id = req.params.uni_id;
-    const university = await getUniByAttribute("uni_id", uni_id);
+    const university = await getUniAllInfo("uni_id", uni_id);
 
     if (!university) {
       const error = new Error("University with Given ID Doesnt Exist");
@@ -223,20 +227,11 @@ export const getUserUniversities = async (req, res, next) => {
   try {
     const user_id = req.user;
     const uni_data = await getUserUniversitiesDB(user_id);
-    const uni_details = [];
+    const uni_ids = uni_data.map((uni) => uni.uni_id);
+    let uni_details = [];
 
-    if (uni_data && uni_data.length > 0) {
-      for (const uni of uni_data) {
-        const uni_id = uni.uni_id;
-        try {
-          const uni_detail = await getUniByAttribute("uni_id", uni_id);
-          if (uni_detail) {
-            uni_details.push(uni_detail);
-          }
-        } catch (err) {
-          console.error(`Error fetching RSO Details of rso_id:${rso_id}`, err);
-        }
-      }
+    if (uni_ids.length > 0) {
+      uni_details = await getUniBaseInfo("uni_id", uni_ids);
     }
     return res.status(200).json({
       success: true,
@@ -259,7 +254,7 @@ export const leaveUniversity = async (req, res, next) => {
 
     const [user, university, isStudent] = await Promise.all([
       getUserByAttribute("id", user_id),
-      getUniByAttribute("uni_id", uni_id),
+      getUniBaseInfo("uni_id", uni_id),
       isUniversityStudent(user_id, uni_id),
     ]);
 
