@@ -1,4 +1,3 @@
-import supabase from "./supabaseClient.js";
 import api, { setAccessToken } from "./api/axiosInstance.js";
 
 // Sign In Functionality with Access Token Storage in LocalStorage
@@ -30,6 +29,21 @@ export async function signIn(email, password) {
     return response.data;
   } catch (error) {
     console.error("Sign In Error: ", error);
+    throw error;
+  }
+}
+
+// Sign Out Functionality With Access Token Removal
+export async function signOut() {
+  try {
+    await api.post("/auth/sign-out"); // Calls backend logout endpoint
+
+    localStorage.removeItem("accessToken"); // Removes token from storage
+
+    // (Optional) Redirect user to login page
+    window.location.href = "/"; // Adjust the redirect path as needed
+  } catch (error) {
+    console.error("Sign Out Error: ", error);
     throw error;
   }
 }

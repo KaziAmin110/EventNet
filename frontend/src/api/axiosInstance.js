@@ -31,21 +31,35 @@ api.interceptors.request.use(
   (error) => Promise.reject(error)
 );
 
-// Response Interceptor: Handle Expired Tokens by Refreshing
+// Response Interceptor: Handle Expired Access Tokens refresh through Refresh Token
+const MAX_REFRESH_RETRIES = 1;
+let refreshAttempts = 0;
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const originalRequest = error.config;
+
+    // If Unauthorized (401), attempt refresh if retries are available
     if (error.response?.status === 401) {
-      try {
-        const newToken = await refreshAccessToken(); // Fetch new token
-        setAccessToken(newToken.accessToken); // Store it in localStorage
-        error.config.headers.Authorization = `Bearer ${newToken.accessToken}`; // Retry request
-        return api.request(error.config);
-      } catch (refreshError) {
-        console.error("Token Refresh Failed:", refreshError);
-        setAccessToken(null); // Remove expired token
-        return Promise.reject(refreshError);
+      // Prevent infinite retry loop by checking if retry limit has been hit
+      if (refreshAttempts < MAX_REFRESH_RETRIES) {
+        refreshAttempts++;
+
+        try {
+          const newToken = await refreshAccessToken(); // Fetch new token
+          setAccessToken(newToken.accessToken); // Store it in localStorage
+          error.config.headers.Authorization = `Bearer ${newToken.accessToken}`; // Retry request
+          return api.request(error.config);
+        } catch (refreshError) {
+          console.error("Token Refresh Failed:", refreshError);
+          setAccessToken(null); // Remove expired token
+          return Promise.reject(refreshError);
+        }
       }
+      // If Refresh fails or retry limit is hit, log the user out
+      setAccessToken(null);
+      refreshAttempts = 0;
     }
     return Promise.reject(error);
   }
