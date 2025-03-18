@@ -12,7 +12,11 @@ const app = express();
 // // Middlewares
 app.use(
   cors({
-    origin: [`http://127.0.0.1:5501`, "https://hoppscotch.io"],
+    origin: [
+      `http://127.0.0.1:5501`,
+      "https://hoppscotch.io",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );
