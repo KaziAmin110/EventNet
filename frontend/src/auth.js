@@ -1,6 +1,6 @@
 // auth.js
 import supabase from "./supabaseClient.js";
-import axios from "axios";
+import api from "./api/axiosInstance.js";
 
 export async function signUp(email, password) {
   const { data, error } = await supabase.auth.signUp({ email, password });
@@ -13,8 +13,8 @@ export async function signUp(email, password) {
 }
 
 export async function signIn(email, password) {
-  const { data, error } = await axios.post(
-    "http://localhost:5500/api/auth/sign-in",
+  const { data, error } = await api.post(
+    "/auth/sign-in",
     {
       email: email,
       password: password,
