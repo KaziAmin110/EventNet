@@ -7,7 +7,11 @@ import {
 } from "../../config/env.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-import { getUserByAttribute, createUser } from "../services/users.services.js";
+import {
+  getUserByAttribute,
+  createUser,
+  getSignInInfoDB,
+} from "../services/users.services.js";
 import {
   updateUserPassword,
   updateRefreshToken,
@@ -38,20 +42,17 @@ export const signUp = async (req, res) => {
       error.statusCode = 409;
       throw error;
     }
-    // Hashing our password via the User entity
-    const hashedPassword = await User.hashPassword(password);
 
     // Create new user within the database
-    const newUser = await createUser(name, email, hashedPassword);
+    const newUser = await createUser(name, email, password);
 
     // Sends User Access Token in Response and Refresh Token in Cookies
     const accessToken = newUser.generateAccessToken();
     const refreshToken = newUser.generateRefreshToken();
     const refreshTokenAge = 24 * 60 * 60 * 1000;
 
-    const result = await updateRefreshToken(newUser.id, refreshToken);
+    await updateRefreshToken(newUser.id, refreshToken);
 
-    console.log(result);
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
       secure: NODE_ENV === "production",
@@ -82,7 +83,7 @@ export const signIn = async (req, res, next) => {
       throw error;
     }
 
-    const user = await getUserByAttribute("email", email);
+    const [user, hashedPasswordFromDB] = await getSignInInfoDB("email", email);
 
     if (!user) {
       const error = new Error("User not found");
@@ -90,8 +91,17 @@ export const signIn = async (req, res, next) => {
       throw error;
     }
 
+    if (!hashedPasswordFromDB) {
+      const error = new Error("User does not exist in the database");
+      error.statusCode = 404;
+      throw error;
+    }
+
     // Checking if the given password matches the hashed password
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await user.comparePassword(
+      password,
+      hashedPasswordFromDB
+    );
 
     if (!isPasswordValid) {
       const error = new Error("Invalid Password");

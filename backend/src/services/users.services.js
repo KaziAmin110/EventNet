@@ -13,9 +13,31 @@ export const getUserByAttribute = async (attribute, value) => {
     // Checks if User already exists within Redis Cache
     if (cachedUser) {
       const data = JSON.parse(cachedUser);
-      return new User(data.id, data.name, data.email, data.password);
+      return new User(data.id, data.name, data.email);
     }
 
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, email, name")
+      .eq(attribute, value)
+      .single();
+
+    if (data) {
+      // Store in Redis Cache with expiration (5 minutes)
+      await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
+      return new User(data.id, data.name, data.email);
+    }
+
+    // No User Associated with Given Attribute
+    return false;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Retrieves Hashed Password from DB
+export const getSignInInfoDB = async (attribute, value) => {
+  try {
     const { data, error } = await supabase
       .from("users")
       .select("id, email, name, password")
@@ -24,11 +46,10 @@ export const getUserByAttribute = async (attribute, value) => {
 
     if (data) {
       // Store in Redis Cache with expiration (5 minutes)
-      await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
-      return new User(data.id, data.name, data.email, data.password);
+      return [new User(data.id, data.name, data.email), data.password];
     }
 
-    // No User Associated with Given Attribute
+    // No Password Associated with Given Attribute
     return false;
   } catch (error) {
     throw new Error(error.message);
@@ -67,17 +88,20 @@ export const isUserRole = async (role, user_id) => {
 // Inserts a new User in the Database
 export const createUser = async (name, email, password) => {
   try {
+    // Hash password before storing it
+    const hashedPassword = await User.hashPassword(password);
+
     const { data, error } = await supabase
       .from("users") // Table name
-      .insert([{ name, email, password }])
-      .select("*")
+      .insert([{ name, email, password: hashedPassword }])
+      .select("id, name, email")
       .single();
 
     if (error) {
       throw new Error(error.message);
     }
 
-    return new User(data.id, data.name, data.email, data.password);
+    return new User(data.id, data.name, data.email);
   } catch (error) {
     return {
       error: error.message,
