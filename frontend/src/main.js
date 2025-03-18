@@ -22,12 +22,7 @@ if (signInForm) {
     if (result.error) {
       alert("Sign in error: " + result.error.message);
     } else {
-      const user = result.data.user;
-      // Check if the email is verified
-      if (!user.email_confirmed_at) {
-        alert("Please verify your email address before signing in.");
-        return;
-      }
+      const user = result.data.accessToken;
       // Redirect or update the UI for a verified user
       window.location.href = "home.html";
     }
