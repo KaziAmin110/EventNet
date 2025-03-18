@@ -45,7 +45,6 @@ export const createRSO = async (req, res, next) => {
         getAdminByAttribute("user_id", user_id),
       ]);
 
-    console.log("Admin Result From DB:", adminResult);
     admin = adminResult; // Assign the resolved value to admin
 
     // Checks whether uni_id is valid
@@ -75,12 +74,11 @@ export const createRSO = async (req, res, next) => {
     // Makes User into an Admin if not already an Admin
     if (!admin) {
       admin = await createAdmin(user_id, user.name, user.email, uni_id);
-      console.log("Admin Created: ", admin);
     }
 
     // **Check if admin.admin_id exists before using it**
     if (!admin || !admin.admin_id) {
-      throw new Error("Create RSO Failed - Admin creation failed");
+      throw new Error("Create RSO Failed - Admin Value Null (Backend Issue)");
     }
 
     const data = await addRsoAsPendingDB(
