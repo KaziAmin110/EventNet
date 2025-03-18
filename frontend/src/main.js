@@ -1,14 +1,14 @@
 // main.js
 console.log("main.js loaded");
 
-import { signUp, signIn } from './auth.js';
+import { signUp, signIn } from "./auth.js";
 
 // Find the forms on the page
-const signInForm = document.querySelector('.sign-in form');
-const signUpForm = document.querySelector('.register form');
+const signInForm = document.querySelector(".sign-in form");
+const signUpForm = document.querySelector(".register form");
 
 if (signInForm) {
-  signInForm.addEventListener('submit', async (event) => {
+  signInForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     console.log("Sign in form submitted");
 
@@ -17,12 +17,10 @@ if (signInForm) {
     console.log("Sign in credentials:", email, password);
 
     const result = await signIn(email, password);
-    console.log("Sign in result:", result);
-
     if (result.error) {
       alert("Sign in error: " + result.error.message);
     } else {
-      const user = result.data.accessToken;
+      const user = result.accessToken;
       // Redirect or update the UI for a verified user
       window.location.href = "home.html";
     }
@@ -32,7 +30,7 @@ if (signInForm) {
 }
 
 if (signUpForm) {
-  signUpForm.addEventListener('submit', async (event) => {
+  signUpForm.addEventListener("submit", async (event) => {
     event.preventDefault();
     console.log("Sign up form submitted");
 
@@ -47,7 +45,9 @@ if (signUpForm) {
       alert("Sign up error: " + result.error.message);
     } else {
       // Instead of redirecting, inform the user to verify their email.
-      alert("A verification email has been sent. Please check your inbox before signing in.");
+      alert(
+        "A verification email has been sent. Please check your inbox before signing in."
+      );
       //the form fields here.
       signUpForm.reset();
     }

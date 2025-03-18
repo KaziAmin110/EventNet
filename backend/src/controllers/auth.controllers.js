@@ -57,9 +57,7 @@ export const signUp = async (req, res) => {
     res.status(201).json({
       success: true,
       message: "User Created Successfully",
-      data: {
-        accessToken,
-      },
+      accessToken,
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({
@@ -112,9 +110,7 @@ export const signIn = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "User Signed In Successfully",
-      data: {
-        accessToken,
-      },
+      accessToken,
     });
   } catch (error) {
     res
@@ -267,9 +263,7 @@ export const refreshAccess = async (req, res, next) => {
     res.status(200).json({
       success: true,
       message: "JWT Refresh Successful",
-      data: {
-        accessToken,
-      },
+      accessToken,
     });
   } catch (err) {
     res
