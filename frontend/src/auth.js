@@ -1,4 +1,3 @@
-// auth.js
 import supabase from "./supabaseClient.js";
 import api from "./api/axiosInstance.js";
 
