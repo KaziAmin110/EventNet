@@ -70,10 +70,11 @@ export const createUser = async (name, email, password) => {
     const { data, error } = await supabase
       .from("users") // Table name
       .insert([{ name, email, password }])
-      .select("*");
+      .select("*")
+      .single();
 
     if (error) {
-      return { error: error.message, status: 500 };
+      throw new Error(error.message);
     }
 
     return new User(data.id, data.name, data.email, data.password);

@@ -20,7 +20,6 @@ if (signInForm) {
     if (result.error) {
       alert("Sign in error: " + result.error.message);
     } else {
-      const user = result.accessToken;
       // Redirect or update the UI for a verified user
       window.location.href = "home.html";
     }
@@ -36,20 +35,18 @@ if (signUpForm) {
 
     const email = signUpForm.querySelector('input[type="email"]').value;
     const password = signUpForm.querySelector('input[type="password"]').value;
-    console.log("Sign up credentials:", email, password);
+    const name = signUpForm.querySelector('input[type="name"]').value;
 
-    const result = await signUp(email, password);
+    console.log("Sign up credentials:", name, email, password);
+
+    const result = await signUp(name, email, password);
     console.log("Sign up result:", result);
 
     if (result.error) {
       alert("Sign up error: " + result.error.message);
     } else {
       // Instead of redirecting, inform the user to verify their email.
-      alert(
-        "A verification email has been sent. Please check your inbox before signing in."
-      );
-      //the form fields here.
-      signUpForm.reset();
+      window.location.href = "home.html";
     }
   });
 } else {

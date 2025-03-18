@@ -24,16 +24,17 @@ export const updateUserPassword = async (attribute, value, newPassword) => {
 // Updates Refresh Token in DB upon Sign In
 export const updateRefreshToken = async (id, refresh_token) => {
   try {
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("users")
       .update({ refresh_token })
-      .eq("id", id);
+      .eq("id", id)
+      .select("refresh_token");
 
     if (error) {
       return { error: error.message, status: 500 };
     }
 
-    return { message: "User created successfully", data, status: 201 };
+    return { data, message: "Refresh Token Updated Successfully", status: 201 };
   } catch (error) {
     return {
       error: error.message,

@@ -49,7 +49,9 @@ export const signUp = async (req, res) => {
     const refreshToken = newUser.generateRefreshToken();
     const refreshTokenAge = 24 * 60 * 60 * 1000;
 
-    await updateRefreshToken(newUser.id, refreshToken);
+    const result = await updateRefreshToken(newUser.id, refreshToken);
+
+    console.log(result);
     res.cookie("jwt", refreshToken, {
       httpOnly: true,
       secure: NODE_ENV === "production",

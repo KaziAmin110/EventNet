@@ -39,9 +39,6 @@ export async function signOut() {
     await api.post("/auth/sign-out"); // Calls backend logout endpoint
 
     localStorage.removeItem("accessToken"); // Removes token from storage
-
-    // (Optional) Redirect user to login page
-    window.location.href = "/"; // Adjust the redirect path as needed
   } catch (error) {
     console.error("Sign Out Error: ", error);
     throw error;
