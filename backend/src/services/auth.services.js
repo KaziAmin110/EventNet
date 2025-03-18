@@ -122,24 +122,46 @@ export const verifyPasswordResetToken = (data) => {
 
 // Retrieves Reset Token Based on Attribute
 export const getResetTokenByAttribute = async (attribute, value) => {
-    try {
-      const { data, error } = await supabase
-        .from("password_reset")
-        .select("email, reset_token, reset_token_expiry")
-        .eq(attribute, value)
-        .single();
-  
-      if (data) {
-        return {
-          email: data.email,
-          reset_token: data.reset_token,
-          reset_token_expiry: data.reset_token_expiry,
-        };
-      }
-  
-      // No Such User associated with Email
-      return false;
-    } catch (error) {
-      throw new Error(error.message);
+  try {
+    const { data, error } = await supabase
+      .from("password_reset")
+      .select("email, reset_token, reset_token_expiry")
+      .eq(attribute, value)
+      .single();
+
+    if (data) {
+      return {
+        email: data.email,
+        reset_token: data.reset_token,
+        reset_token_expiry: data.reset_token_expiry,
+      };
     }
-  };
+
+    // No Such User associated with Email
+    return false;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Deletes Refresh Token from Database Based on Attribute
+export const deleteResetTokenByAttribute = async (attribute, value) => {
+  try {
+    const { error } = await supabase
+      .from("users")
+      .update({ refresh_token: null })
+      .eq(attribute, value);
+
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    return {
+      success: true,
+      message: "Reset Token Deleted Successfully",
+      status: 201,
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};

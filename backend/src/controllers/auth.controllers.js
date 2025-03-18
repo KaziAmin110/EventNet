@@ -16,7 +16,9 @@ import {
   updatePasswordResetDB,
   removePasswordResetTokenDB,
   getResetTokenByAttribute,
+  deleteResetTokenByAttribute,
 } from "../services/auth.services.js";
+import redisClient from "../../config/redis.config.js";
 
 // Allows for the Creation of a New User in the Supabase DB
 export const signUp = async (req, res) => {
@@ -120,7 +122,26 @@ export const signIn = async (req, res, next) => {
 };
 
 // Allows User to Sign Out -- Clears JWT Token from Cookies
-export const signOut = async (req, res, next) => {};
+export const signOut = async (req, res, next) => {
+  try {
+    // Deletes Refresh Token in DB associated with user_id
+    const user_id = req.user;
+    await deleteResetTokenByAttribute("id", user_id);
+
+    // Clears Refresh Token from HTTP-Only Cookie and Flushes Cache
+    res.clearCookie("jwt");
+    await redisClient.flushAll();
+
+    res.status(201).json({
+      success: true,
+      message: "User logged out successfully.",
+    });
+  } catch (error) {
+    res
+      .status(error.statusCode || 500)
+      .json({ success: false, message: error.message || "Server Error" });
+  }
+};
 
 // Sends Email to User with a Password Reset Token
 export const forgotPassword = async (req, res, next) => {
