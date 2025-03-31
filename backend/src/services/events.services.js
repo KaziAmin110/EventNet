@@ -3,29 +3,36 @@ import redisClient from "../../config/redis.config.js";
 
 // Inserts a new university event in the private_event table
 export const createUniversityEventDB = async (
-  uni_name,
+  event_name,
+  description,
   latitude,
   longitude,
-  description,
-  pictures,
-  domain
+  location,
+  start_date,
+  end_date,
+  uni_id,
+  admin_id,
+  event_categories = null
 ) => {
   try {
     const { data, error } = await supabase
-      .from("university") // Table name
+      .from("university_events") // Table name
       .insert([
         {
-          uni_name,
+          event_name,
+          description,
           latitude,
           longitude,
-          description,
-          num_students: 0,
-          pictures,
-          domain,
+          event_categories,
+          start_date,
+          end_date,
+          uni_id,
+          admin_id,
+          location,
         },
       ]);
     if (error) {
-      console.log(error.message);
+      console.error(error.message);
       return { error: error.message, status: 500 };
     }
 
@@ -40,29 +47,38 @@ export const createUniversityEventDB = async (
 
 // Inserts a new RSO event in the rso_event table
 export const createRSOEventDB = async (
-  uni_name,
+  event_name,
+  description,
   latitude,
   longitude,
-  description,
-  pictures,
-  domain
+  location,
+  start_date,
+  end_date,
+  uni_id,
+  admin_id,
+  rso_id,
+  event_categories = null
 ) => {
   try {
     const { data, error } = await supabase
-      .from("university") // Table name
+      .from("university_events") // Table name
       .insert([
         {
-          uni_name,
+          event_name,
+          description,
           latitude,
           longitude,
-          description,
-          num_students: 0,
-          pictures,
-          domain,
+          event_categories,
+          start_date,
+          end_date,
+          uni_id,
+          admin_id,
+          rso_id,
+          location,
         },
       ]);
     if (error) {
-      console.log(error.message);
+      console.error(error.message);
       return { error: error.message, status: 500 };
     }
 

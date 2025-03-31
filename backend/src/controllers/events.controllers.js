@@ -1,4 +1,5 @@
 import { isUserRole } from "../services/users.services.js";
+import { isRSOAdmin } from "../services/rso.services.js";
 import {
   createUniversityEventDB,
   createRSOEventDB,
@@ -43,7 +44,9 @@ export const createUniversityEvent = async (req, res) => {
     const isAdmin = await isUserRole("admin", user_id);
 
     if (!isAdmin) {
-      const error = new Error("User Unauthorized to Create a University Event");
+      const error = new Error(
+        "User Unauthorized to Create an University Event"
+      );
       error.statusCode = 403;
       throw error;
     }
@@ -58,6 +61,7 @@ export const createUniversityEvent = async (req, res) => {
       start_date,
       end_date,
       uni_id,
+      user_id,
       event_categories ? event_categories : null
     );
 
@@ -109,10 +113,10 @@ export const createRSOEvent = async (req, res) => {
     }
 
     // Checks if User has Permision to Create Event
-    const isAdmin = await isUserRole("admin", user_id);
+    const isAdmin = await isRSOAdmin("admin", user_id);
 
     if (!isAdmin) {
-      const error = new Error("User Unauthorized to Create a University Event");
+      const error = new Error("User Unauthorized to Create a RSO Event");
       error.statusCode = 403;
       throw error;
     }
@@ -127,13 +131,14 @@ export const createRSOEvent = async (req, res) => {
       start_date,
       end_date,
       uni_id,
+      user_id,
       rso_id,
       event_categories ? event_categories : null
     );
 
     return res.status(201).json({
       success: true,
-      message: "University Event created successfully",
+      message: "RSO Event created successfully",
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({

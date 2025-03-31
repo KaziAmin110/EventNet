@@ -355,7 +355,7 @@ export const isRSOMember = async (user_id, rso_id) => {
     // Query Supabase if membership data is not cached
     const { data, error } = await supabase
       .from("joins_rso")
-      .select("*")
+      .select("user_id, rso_id")
       .eq("user_id", user_id)
       .eq("rso_id", rso_id)
       .single();
@@ -369,6 +369,26 @@ export const isRSOMember = async (user_id, rso_id) => {
 
     // User is not a member of the RSO, store false in cache
     await redisClient.set(cacheKey, "false", "EX", 300); // 5 minutes expiration
+    return false;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// Checks If a User is Admin of a Particular RSO
+export const isRSOAdmin = async (user_id, rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("rso")
+      .select("rso_id")
+      .eq("rso_id", rso_id)
+      .eq("admin_user_id", user_id)
+      .single();
+
+    if (data) {
+      return true;
+    }
+
     return false;
   } catch (err) {
     throw new Error(err.message);
