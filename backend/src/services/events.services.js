@@ -61,7 +61,7 @@ export const createRSOEventDB = async (
 ) => {
   try {
     const { data, error } = await supabase
-      .from("university_events") // Table name
+      .from("rso_events") // Table name
       .insert([
         {
           event_name,
