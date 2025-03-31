@@ -3,8 +3,10 @@ import {
   createUniversityEventDB,
   createRSOEventDB,
   createPublicEventRequestDB,
+  approvePublicEventDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
+import { isUserRole } from "../services/users.services.js";
 
 // Logic for Creating a Private University Event
 export const createUniversityEvent = async (req, res) => {
@@ -150,7 +152,6 @@ export const createRSOEvent = async (req, res) => {
 // Logic for Creating a Public Event Request
 export const createPublicEvent = async (req, res) => {
   try {
-    console.log(req.body);
     const user_id = req.user;
     const {
       event_name,
@@ -197,6 +198,38 @@ export const createPublicEvent = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "Public Event Request Created Successfully",
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for SuperAdmin to Approve a Public Event
+export const approvePublicEvent = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id } = req.params;
+
+    // Checks if User has Permision to Create Event
+    const isSuperAdmin = await isUserRole("super_admin", uni_id);
+
+    if (!isSuperAdmin) {
+      const error = new Error(
+        "User Is Not Authorized to Approve Public Events"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Insert University Event into DB
+    await approvePublicEventDB(event_id);
+
+    return res.status(201).json({
+      success: true,
+      message: "University Event created successfully",
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({

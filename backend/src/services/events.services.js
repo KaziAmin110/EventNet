@@ -136,3 +136,25 @@ export const createPublicEventRequestDB = async (
     };
   }
 };
+
+// Inserts a new Public Event in the public_events table
+export const approvePublicEventDB = async (event_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("public_events") // Table name
+      .update({ status: "valid" })
+      .eq("event_id", event_id);
+
+    if (error) {
+      console.error(error.message);
+      return { error: error.message, status: 500 };
+    }
+
+    return { message: "Public Event Approved Successfully", data, status: 200 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
