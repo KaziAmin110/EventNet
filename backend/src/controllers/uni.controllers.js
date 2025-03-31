@@ -33,7 +33,7 @@ export const createUniversityProfile = async (req, res, next) => {
 
     const [isSuperAdmin, existingEntry, uniData] = await Promise.all([
       isUserRole("super_admin", user_id),
-      checkUniversityExistence(uni_name.toLowerCase()),
+      checkUniversityExistence(uni_name.trim().toLowerCase()),
       getUniversityDetails(uni_name),
     ]);
 
