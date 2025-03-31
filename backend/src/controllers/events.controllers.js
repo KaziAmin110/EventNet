@@ -150,6 +150,7 @@ export const createRSOEvent = async (req, res) => {
 // Logic for Creating a Public Event Request
 export const createPublicEvent = async (req, res) => {
   try {
+    console.log(req.body);
     const user_id = req.user;
     const {
       event_name,

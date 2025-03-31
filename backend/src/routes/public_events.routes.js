@@ -4,6 +4,6 @@ import { authenticateUser } from "../middlewares/auth.middleware.js";
 
 const publicEventsRouter = Router();
 
-publicEventsRouter.post("/events", authenticateUser, createPublicEvent);
+publicEventsRouter.post("/", authenticateUser, createPublicEvent);
 
 export default publicEventsRouter;
