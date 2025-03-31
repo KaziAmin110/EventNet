@@ -174,6 +174,27 @@ export const isUniversityStudent = async (user_id, uni_id) => {
   }
 };
 
+// Checks If a User is an Admin of a Particular University
+export const isUniversityAdmin = async (user_id, uni_id) => {
+  try {
+    // Query Supabase if not found in cache
+    const { data, error } = await supabase
+      .from("admin")
+      .select("user_id")
+      .eq("user_id", user_id)
+      .eq("uni_id", uni_id)
+      .single();
+
+    if (data) {
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
 // Get Name, num_students and domain information regarding University by Attribute
 export const getUniBaseInfo = async (attribute, value) => {
   try {

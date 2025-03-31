@@ -1,9 +1,9 @@
-import { isUserRole } from "../services/users.services.js";
 import { isRSOAdmin } from "../services/rso.services.js";
 import {
   createUniversityEventDB,
   createRSOEventDB,
 } from "../services/events.services.js";
+import { isUniversityAdmin } from "../services/uni.services.js";
 
 // Logic for Creating a Private University Event
 export const createUniversityEvent = async (req, res) => {
@@ -41,12 +41,10 @@ export const createUniversityEvent = async (req, res) => {
     }
 
     // Checks if User has Permision to Create Event
-    const isAdmin = await isUserRole("admin", user_id);
+    const isAdmin = await isUniversityAdmin(user_id, uni_id);
 
     if (!isAdmin) {
-      const error = new Error(
-        "User Unauthorized to Create an University Event"
-      );
+      const error = new Error("User is not authorized to create event");
       error.statusCode = 403;
       throw error;
     }
@@ -113,7 +111,7 @@ export const createRSOEvent = async (req, res) => {
     }
 
     // Checks if User has Permision to Create Event
-    const isAdmin = await isRSOAdmin("admin", user_id);
+    const isAdmin = await isRSOAdmin(user_id, rso_id);
 
     if (!isAdmin) {
       const error = new Error("User Unauthorized to Create a RSO Event");

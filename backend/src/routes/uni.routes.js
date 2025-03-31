@@ -45,7 +45,7 @@ uniRouter.delete("/:uni_id/rsos/:rso_id/leave", authenticateUser, leaveRSO);
 
 // RSO Events Endpoints
 uniRouter.post(
-  "/:uni_id:/rsos/:rso_id/events",
+  "/:uni_id/rsos/:rso_id/events",
   authenticateUser,
   createRSOEvent
 );
