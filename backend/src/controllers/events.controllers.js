@@ -2,6 +2,7 @@ import { isRSOAdmin } from "../services/rso.services.js";
 import {
   createUniversityEventDB,
   createRSOEventDB,
+  createPublicEventRequestDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 
@@ -137,6 +138,64 @@ export const createRSOEvent = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "RSO Event created successfully",
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Creating a Public Event Request
+export const createPublicEvent = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const {
+      event_name,
+      description,
+      latitude,
+      longitude,
+      location,
+      start_date,
+      end_date,
+      event_categories,
+    } = req.body;
+
+    // Check for Required Body Info
+    if (
+      !event_name ||
+      !description ||
+      !latitude ||
+      !longitude ||
+      !start_date ||
+      !end_date ||
+      !location
+    ) {
+      const error = new Error(
+        "One or more required fields missing. (event_name, description, latitude, longitude, start_date, end_date, location)"
+      );
+
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Insert University Event into DB
+    await createPublicEventRequestDB(
+      event_name.trim().toLowerCase(),
+      description,
+      latitude,
+      longitude,
+      location,
+      start_date,
+      end_date,
+      user_id,
+      event_categories ? event_categories : null
+    );
+
+    return res.status(201).json({
+      success: true,
+      message: "Public Event Request Created Successfully",
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({

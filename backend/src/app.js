@@ -6,6 +6,7 @@ import usersRouter from "./routes/users.routes.js";
 import uniRouter from "./routes/uni.routes.js";
 // import errorMiddleware from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
+import publicEventsRouter from "./routes/public_events.routes.js";
 
 const app = express();
 
@@ -28,6 +29,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/universities", uniRouter);
+app.use("/public_events", publicEventsRouter);
 
 // Test Route
 app.get("/", (req, res) => res.send("Backend is running"));
