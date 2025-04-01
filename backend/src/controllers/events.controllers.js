@@ -5,6 +5,7 @@ import {
   createPublicEventRequestDB,
   approvePublicEventDB,
   getPublicEventsWithStatusDB,
+  createEventDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
@@ -54,6 +55,8 @@ export const createUniversityEvent = async (req, res) => {
     }
 
     // Insert University Event into DB
+    const event_id = await createEventDB(event_name);
+
     await createUniversityEventDB(
       event_name.trim().toLowerCase(),
       description,
@@ -64,7 +67,8 @@ export const createUniversityEvent = async (req, res) => {
       end_date,
       uni_id,
       user_id,
-      event_categories ? event_categories : null
+      event_categories ? event_categories : null,
+      event_id
     );
 
     return res.status(201).json({
@@ -124,6 +128,7 @@ export const createRSOEvent = async (req, res) => {
     }
 
     // Insert University Event into DB
+    const event_id = await createEventDB(event_name);
     await createRSOEventDB(
       event_name.trim().toLowerCase(),
       description,
@@ -135,7 +140,8 @@ export const createRSOEvent = async (req, res) => {
       uni_id,
       user_id,
       rso_id,
-      event_categories ? event_categories : null
+      event_categories ? event_categories : null,
+      event_id
     );
 
     return res.status(201).json({
@@ -184,6 +190,7 @@ export const createPublicEvent = async (req, res) => {
     }
 
     // Insert University Event into DB
+    const event_id = await createEventDB(event_name);
     await createPublicEventRequestDB(
       event_name.trim().toLowerCase(),
       description,
@@ -193,7 +200,8 @@ export const createPublicEvent = async (req, res) => {
       start_date,
       end_date,
       user_id,
-      event_categories ? event_categories : null
+      event_categories ? event_categories : null,
+      event_id
     );
 
     return res.status(201).json({

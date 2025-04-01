@@ -1,6 +1,34 @@
 import { supabase } from "../database/db.js";
 import redisClient from "../../config/redis.config.js";
 
+// Inserts a new event in the events table
+export const createEventDB = async (event_name) => {
+  try {
+    const { data } = await supabase
+      .from("events") // Table name
+      .insert([
+        {
+          event_name,
+        },
+      ])
+      .select("id")
+      .single();
+
+    if (!data) {
+      const err = new Error("Event Created Unsuccessfully");
+      err.status = false;
+      err.statusCode = 400;
+      throw err;
+    }
+
+    return data.id;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
 // Inserts a new university event in the university_events table
 export const createUniversityEventDB = async (
   event_name,
@@ -12,7 +40,8 @@ export const createUniversityEventDB = async (
   end_date,
   uni_id,
   admin_id,
-  event_categories = null
+  event_categories = null,
+  event_id
 ) => {
   try {
     const { data } = await supabase
@@ -29,6 +58,7 @@ export const createUniversityEventDB = async (
           uni_id,
           admin_id,
           location,
+          event_id,
         },
       ]);
 
@@ -64,7 +94,8 @@ export const createRSOEventDB = async (
   uni_id,
   admin_id,
   rso_id,
-  event_categories = null
+  event_categories = null,
+  event_id
 ) => {
   try {
     const { data } = await supabase
@@ -82,6 +113,7 @@ export const createRSOEventDB = async (
           admin_id,
           rso_id,
           location,
+          event_id,
         },
       ]);
 
@@ -111,7 +143,8 @@ export const createPublicEventRequestDB = async (
   start_date,
   end_date,
   admin_id,
-  event_categories = null
+  event_categories = null,
+  event_id
 ) => {
   try {
     const { data } = await supabase
@@ -127,6 +160,7 @@ export const createPublicEventRequestDB = async (
           end_date,
           admin_id,
           location,
+          event_id,
         },
       ]);
 
