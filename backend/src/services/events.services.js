@@ -171,14 +171,14 @@ export const approvePublicEventDB = async (event_id) => {
 };
 
 // Gets All Pending Public Events from the public_events table
-export const getPendingPublicEventsDB = async () => {
+export const getPublicEventsWithStatusDB = async (status) => {
   try {
     const { data } = await supabase
       .from("public_events") // Table name
       .select(
-        "event_id, event_name, description, latitude, longitude, start_date, end_date, location, event_categories"
+        "event_id, event_name, description, latitude, longitude, event_rating, event_comments, start_date, end_date, location, event_categories"
       )
-      .eq("status", "pending");
+      .eq("status", status);
 
     if (!data) {
       const err = new Error("Public Event Not Found");
@@ -186,11 +186,64 @@ export const getPendingPublicEventsDB = async () => {
       err.statusCode = 404;
       throw err;
     }
+    return data;
+  } catch (error) {
     return {
-      message: "Pending Public Events Retrieved Successfully",
-      data,
-      status: 200,
+      error: error.message,
+      status: error.statusCode || 500,
     };
+  }
+};
+
+// Gets All RSO Events Visible to the User
+export const getRSOEventsDB = async (user_id) => {
+  try {
+    // Inner Join Query between rso_events and joins_rso tables
+    const { data } = await supabase
+      .from("rso_events")
+      .select(
+        "event_id, event_name, description, latitude, longitude, event_rating, event_comments, event_categories, start_date, end_date, location"
+      )
+      .innerJoin("joins_rso", "rso_events.rso_id", "joins_rso.rso_id")
+      .eq("joins_rso.user_id", user_id);
+
+    // Invalid Query
+    if (!data) {
+      const err = new Error("Public Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+
+    return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Gets All Private University Events Visible to the User
+export const getUniversityEventsDB = async (user_id) => {
+  try {
+    // Inner Join Query between University_events and student tables
+    const { data } = await supabase
+      .from("university_events")
+      .select(
+        "event_id, event_name, description, latitude, longitude, event_rating, event_comments, event_categories, start_date, end_date, location"
+      )
+      .innerJoin("student", "university_events.uni_id", "student.uni_id")
+      .eq("student.user_id", user_id);
+
+    if (!data) {
+      const err = new Error("Public Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+
+    return data;
   } catch (error) {
     return {
       error: error.message,

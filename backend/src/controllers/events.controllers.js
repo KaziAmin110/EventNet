@@ -4,7 +4,7 @@ import {
   createRSOEventDB,
   createPublicEventRequestDB,
   approvePublicEventDB,
-  getPendingPublicEventsDB,
+  getPublicEventsWithStatusDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
@@ -245,7 +245,7 @@ export const approvePublicEvent = async (req, res) => {
   }
 };
 
-// Logic for Getting All Invalid Public Events
+// Logic for Getting All Pending Public Events
 export const getPendingPublicEvents = async (req, res) => {
   try {
     const user_id = req.user;
@@ -260,7 +260,7 @@ export const getPendingPublicEvents = async (req, res) => {
     }
 
     // Get Pending Public Events from DB
-    const result = await getPendingPublicEventsDB();
+    const result = await getPublicEventsWithStatusDB("pending");
 
     if (result.error) {
       return res
@@ -273,7 +273,7 @@ export const getPendingPublicEvents = async (req, res) => {
       message: "Public Event Approved Successfully",
     });
   } catch (error) {
-    res.status(error.statusCode || 500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Server Error",
     });
