@@ -4,7 +4,7 @@ import { PORT } from "../config/env.js";
 import authRouter from "./routes/auth.routes.js";
 import usersRouter from "./routes/users.routes.js";
 import uniRouter from "./routes/uni.routes.js";
-import publicEventsRouter from "./routes/public_events.routes.js";
+import eventsRouter from "./routes/events.routes.js";
 // import errorMiddleware from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 
@@ -29,7 +29,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/universities", uniRouter);
-app.use("/api/public_events", publicEventsRouter);
+app.use("/api/events", eventsRouter);
 
 // Test Route
 app.get("/", (req, res) => res.send("Backend is running"));

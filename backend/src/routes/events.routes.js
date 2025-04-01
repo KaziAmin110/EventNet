@@ -6,14 +6,14 @@ import {
 } from "../controllers/events.controllers.js";
 import { authenticateUser } from "../middlewares/auth.middleware.js";
 
-const publicEventsRouter = Router();
+const eventsRouter = Router();
 
-publicEventsRouter.post("/", authenticateUser, createPublicEvent);
-publicEventsRouter.post(
-  "/:event_id/approve",
+eventsRouter.post("/public", authenticateUser, createPublicEvent);
+eventsRouter.post(
+  "/public/:event_id/approve",
   authenticateUser,
   approvePublicEvent
 );
-publicEventsRouter.get("/pending", authenticateUser, getPendingPublicEvents);
+eventsRouter.get("/public/pending", authenticateUser, getPendingPublicEvents);
 
-export default publicEventsRouter;
+export default eventsRouter;

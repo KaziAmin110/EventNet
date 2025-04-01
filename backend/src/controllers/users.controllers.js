@@ -96,7 +96,6 @@ export const getUserEvents = async (req, res) => {
     ]);
 
     const allEvents = [...public_events, ...university_events, ...rso_events];
-    console.log(allEvents);
     return res.status(200).json({
       success: true,
       message: "User Info gathered Successfully",
