@@ -15,7 +15,7 @@ export const createUniversityEventDB = async (
   event_categories = null
 ) => {
   try {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("university_events") // Table name
       .insert([
         {
@@ -31,9 +31,12 @@ export const createUniversityEventDB = async (
           location,
         },
       ]);
-    if (error) {
-      console.error(error.message);
-      return { error: error.message, status: 500 };
+
+    if (!data || data.length == 0) {
+      const err = new Error("Public Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
     }
 
     return {
@@ -64,7 +67,7 @@ export const createRSOEventDB = async (
   event_categories = null
 ) => {
   try {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("rso_events") // Table name
       .insert([
         {
@@ -81,9 +84,12 @@ export const createRSOEventDB = async (
           location,
         },
       ]);
-    if (error) {
-      console.error(error.message);
-      return { error: error.message, status: 500 };
+
+    if (!data || data.length == 0) {
+      const err = new Error("Public Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
     }
 
     return { message: "RSO Event Added Successfully", data, status: 201 };
@@ -108,7 +114,7 @@ export const createPublicEventRequestDB = async (
   event_categories = null
 ) => {
   try {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("public_events") // Table name
       .insert([
         {
@@ -123,9 +129,12 @@ export const createPublicEventRequestDB = async (
           location,
         },
       ]);
-    if (error) {
-      console.error(error.message);
-      return { error: error.message, status: 500 };
+
+    if (!data || data.length == 0) {
+      const err = new Error("Public Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
     }
 
     return { message: "Public Event Added Successfully", data, status: 201 };
@@ -147,12 +156,42 @@ export const approvePublicEventDB = async (event_id) => {
       .select();
 
     if (!data || data.length == 0) {
-      const err = new Error("Event not found");
+      const err = new Error("Public Event Not Found");
       err.status = false;
       err.statusCode = 404;
       throw err;
     }
     return { message: "Public Event Approved Successfully", data, status: 200 };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Inserts a new Public Event in the public_events table
+export const getInvalidPublicEventsDB = async () => {
+  try {
+    const { data } = await supabase
+      .from("public_events") // Table name
+      .select(
+        "event_name, description, latitude, longitude, start_date, end_date, location, event_categories"
+      )
+      .eq("status", "pending");
+
+    if (!data) {
+      const err = new Error("Public Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+    console.log(data);
+    return {
+      message: "Pending Public Events Retrieved Successfully",
+      data,
+      status: 200,
+    };
   } catch (error) {
     return {
       error: error.message,

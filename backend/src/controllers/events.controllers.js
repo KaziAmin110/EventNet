@@ -4,6 +4,7 @@ import {
   createRSOEventDB,
   createPublicEventRequestDB,
   approvePublicEventDB,
+  getPendingPublicEventsDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
@@ -234,6 +235,41 @@ export const approvePublicEvent = async (req, res) => {
     }
     return res.status(200).json({
       success: true,
+      message: "Public Event Approved Successfully",
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Getting All Invalid Public Events
+export const getPendingPublicEvents = async (req, res) => {
+  try {
+    const user_id = req.user;
+
+    // Checks if User has Permision to Create Event
+    const isSuperAdmin = await isUserRole("super_admin", user_id);
+
+    if (!isSuperAdmin) {
+      const error = new Error("User Is Not Authorized to Get Public Events");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Approve Public Event in DB
+    const result = await getPendingPublicEventsDB();
+
+    if (result.error) {
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.error });
+    }
+    return res.status(200).json({
+      success: true,
+      data: result.data,
       message: "Public Event Approved Successfully",
     });
   } catch (error) {
