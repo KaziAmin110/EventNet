@@ -214,7 +214,7 @@ export const approvePublicEvent = async (req, res) => {
     const { event_id } = req.params;
 
     // Checks if User has Permision to Create Event
-    const isSuperAdmin = await isUserRole("super_admin", uni_id);
+    const isSuperAdmin = await isUserRole("super_admin", user_id);
 
     if (!isSuperAdmin) {
       const error = new Error(
@@ -224,12 +224,17 @@ export const approvePublicEvent = async (req, res) => {
       throw error;
     }
 
-    // Insert University Event into DB
-    await approvePublicEventDB(event_id);
+    // Approve Public Event in DB
+    const result = await approvePublicEventDB(event_id);
 
-    return res.status(201).json({
+    if (result.error) {
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.error });
+    }
+    return res.status(200).json({
       success: true,
-      message: "University Event created successfully",
+      message: "Public Event Approved Successfully",
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({

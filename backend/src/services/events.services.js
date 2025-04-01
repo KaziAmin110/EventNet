@@ -143,18 +143,20 @@ export const approvePublicEventDB = async (event_id) => {
     const { data, error } = await supabase
       .from("public_events") // Table name
       .update({ status: "valid" })
-      .eq("event_id", event_id);
+      .eq("event_id", event_id)
+      .select();
 
-    if (error) {
-      console.error(error.message);
-      return { error: error.message, status: 500 };
+    if (!data || data.length == 0) {
+      const err = new Error("Event not found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
     }
-
     return { message: "Public Event Approved Successfully", data, status: 200 };
   } catch (error) {
     return {
       error: error.message,
-      status: 500,
+      status: error.statusCode || 500,
     };
   }
 };
