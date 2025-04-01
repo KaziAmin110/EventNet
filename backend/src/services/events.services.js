@@ -171,7 +171,7 @@ export const approvePublicEventDB = async (event_id) => {
 };
 
 // Inserts a new Public Event in the public_events table
-export const getInvalidPublicEventsDB = async () => {
+export const getPendingPublicEventsDB = async () => {
   try {
     const { data } = await supabase
       .from("public_events") // Table name

@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   approvePublicEvent,
   createPublicEvent,
-  getInvalidPublicEvents,
+  getPendingPublicEvents,
 } from "../controllers/events.controllers.js";
 import { authenticateUser } from "../middlewares/auth.middleware.js";
 
@@ -14,6 +14,6 @@ publicEventsRouter.post(
   authenticateUser,
   approvePublicEvent
 );
-publicEventsRouter.get("/pending", authenticateUser, getInvalidPublicEvents);
+publicEventsRouter.get("/pending", authenticateUser, getPendingPublicEvents);
 
 export default publicEventsRouter;
