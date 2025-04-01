@@ -259,7 +259,7 @@ export const getPendingPublicEvents = async (req, res) => {
       throw error;
     }
 
-    // Approve Public Event in DB
+    // Get Pending Public Events from DB
     const result = await getPendingPublicEventsDB();
 
     if (result.error) {

@@ -101,7 +101,7 @@ export const createRSOEventDB = async (
   }
 };
 
-// Inserts a new Public Event in the public_events table
+// Inserts a new Public Event Request in the public_events table
 export const createPublicEventRequestDB = async (
   event_name,
   description,
@@ -146,7 +146,7 @@ export const createPublicEventRequestDB = async (
   }
 };
 
-// Inserts a new Public Event in the public_events table
+// Approves a new Public Event Request from the public_events table
 export const approvePublicEventDB = async (event_id) => {
   try {
     const { data, error } = await supabase
@@ -170,13 +170,13 @@ export const approvePublicEventDB = async (event_id) => {
   }
 };
 
-// Inserts a new Public Event in the public_events table
+// Gets All Pending Public Events from the public_events table
 export const getPendingPublicEventsDB = async () => {
   try {
     const { data } = await supabase
       .from("public_events") // Table name
       .select(
-        "event_name, description, latitude, longitude, start_date, end_date, location, event_categories"
+        "event_id, event_name, description, latitude, longitude, start_date, end_date, location, event_categories"
       )
       .eq("status", "pending");
 
@@ -186,7 +186,6 @@ export const getPendingPublicEventsDB = async () => {
       err.statusCode = 404;
       throw err;
     }
-    console.log(data);
     return {
       message: "Pending Public Events Retrieved Successfully",
       data,
