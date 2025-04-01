@@ -269,7 +269,6 @@ export const getPendingPublicEvents = async (req, res) => {
 
     // Get Pending Public Events from DB
     const result = await getPublicEventsWithStatusDB("pending");
-
     if (result.error) {
       return res
         .status(result.status)
@@ -277,8 +276,8 @@ export const getPendingPublicEvents = async (req, res) => {
     }
     return res.status(200).json({
       success: true,
-      data: result.data,
-      message: "Public Event Approved Successfully",
+      data: result,
+      message: "Gathered Pending Public Events Successfully",
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({

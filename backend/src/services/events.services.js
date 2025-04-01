@@ -186,7 +186,7 @@ export const approvePublicEventDB = async (event_id) => {
     const { data, error } = await supabase
       .from("public_events") // Table name
       .update({ status: "valid" })
-      .eq("event_id", event_id)
+      .eq("public_event_id", event_id)
       .select();
 
     if (!data || data.length == 0) {
@@ -210,7 +210,7 @@ export const getPublicEventsWithStatusDB = async (status) => {
     const { data } = await supabase
       .from("public_events") // Table name
       .select(
-        "event_id, event_name, description, latitude, longitude, event_rating, event_comments, start_date, end_date, location, event_categories"
+        "public_event_id, event_name, description, latitude, longitude, event_rating, event_comments, start_date, end_date, location, event_categories"
       )
       .eq("status", status);
 
