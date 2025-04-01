@@ -55,9 +55,7 @@ export const createUniversityEvent = async (req, res) => {
     }
 
     // Insert University Event into DB
-    const event_id = await createEventDB(event_name);
-
-    await createUniversityEventDB(
+    const event_id = await createEventDB(
       event_name.trim().toLowerCase(),
       description,
       latitude,
@@ -65,11 +63,10 @@ export const createUniversityEvent = async (req, res) => {
       location,
       start_date,
       end_date,
-      uni_id,
-      user_id,
-      event_categories ? event_categories : null,
-      event_id
+      event_categories
     );
+
+    await createUniversityEventDB(event_id, user_id, uni_id);
 
     return res.status(201).json({
       success: true,
@@ -128,8 +125,7 @@ export const createRSOEvent = async (req, res) => {
     }
 
     // Insert University Event into DB
-    const event_id = await createEventDB(event_name);
-    await createRSOEventDB(
+    const event_id = await createEventDB(
       event_name.trim().toLowerCase(),
       description,
       latitude,
@@ -137,12 +133,9 @@ export const createRSOEvent = async (req, res) => {
       location,
       start_date,
       end_date,
-      uni_id,
-      user_id,
-      rso_id,
-      event_categories ? event_categories : null,
-      event_id
+      event_categories
     );
+    await createRSOEventDB(uni_id, user_id, rso_id, event_id);
 
     return res.status(201).json({
       success: true,
@@ -190,8 +183,7 @@ export const createPublicEvent = async (req, res) => {
     }
 
     // Insert University Event into DB
-    const event_id = await createEventDB(event_name);
-    await createPublicEventRequestDB(
+    const event_id = await createEventDB(
       event_name.trim().toLowerCase(),
       description,
       latitude,
@@ -199,10 +191,9 @@ export const createPublicEvent = async (req, res) => {
       location,
       start_date,
       end_date,
-      user_id,
-      event_categories ? event_categories : null,
-      event_id
+      event_categories ? event_categories : null
     );
+    await createPublicEventRequestDB(user_id, event_id);
 
     return res.status(201).json({
       success: true,

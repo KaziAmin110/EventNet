@@ -2,13 +2,29 @@ import { supabase } from "../database/db.js";
 import redisClient from "../../config/redis.config.js";
 
 // Inserts a new event in the events table
-export const createEventDB = async (event_name) => {
+export const createEventDB = async (
+  event_name,
+  description,
+  latitude,
+  longitude,
+  location,
+  start_date,
+  end_date,
+  event_categories = null
+) => {
   try {
     const { data } = await supabase
       .from("events") // Table name
       .insert([
         {
           event_name,
+          description,
+          latitude,
+          longitude,
+          start_date,
+          end_date,
+          location,
+          event_categories,
         },
       ])
       .select("id")
@@ -30,34 +46,14 @@ export const createEventDB = async (event_name) => {
   }
 };
 // Inserts a new university event in the university_events table
-export const createUniversityEventDB = async (
-  event_name,
-  description,
-  latitude,
-  longitude,
-  location,
-  start_date,
-  end_date,
-  uni_id,
-  admin_id,
-  event_categories = null,
-  event_id
-) => {
+export const createUniversityEventDB = async (event_id, admin_id, uni_id) => {
   try {
     const { data } = await supabase
       .from("university_events") // Table name
       .insert([
         {
-          event_name,
-          description,
-          latitude,
-          longitude,
-          event_categories,
-          start_date,
-          end_date,
           uni_id,
           admin_id,
-          location,
           event_id,
         },
       ]);
@@ -83,36 +79,15 @@ export const createUniversityEventDB = async (
 };
 
 // Inserts a new RSO event in the rso_events table
-export const createRSOEventDB = async (
-  event_name,
-  description,
-  latitude,
-  longitude,
-  location,
-  start_date,
-  end_date,
-  uni_id,
-  admin_id,
-  rso_id,
-  event_categories = null,
-  event_id
-) => {
+export const createRSOEventDB = async (uni_id, admin_id, rso_id, event_id) => {
   try {
     const { data } = await supabase
       .from("rso_events") // Table name
       .insert([
         {
-          event_name,
-          description,
-          latitude,
-          longitude,
-          event_categories,
-          start_date,
-          end_date,
           uni_id,
           admin_id,
           rso_id,
-          location,
           event_id,
         },
       ]);
@@ -134,32 +109,13 @@ export const createRSOEventDB = async (
 };
 
 // Inserts a new Public Event Request in the public_events table
-export const createPublicEventRequestDB = async (
-  event_name,
-  description,
-  latitude,
-  longitude,
-  location,
-  start_date,
-  end_date,
-  admin_id,
-  event_categories = null,
-  event_id
-) => {
+export const createPublicEventRequestDB = async (admin_id, event_id) => {
   try {
     const { data } = await supabase
       .from("public_events") // Table name
       .insert([
         {
-          event_name,
-          description,
-          latitude,
-          longitude,
-          event_categories,
-          start_date,
-          end_date,
           admin_id,
-          location,
           event_id,
         },
       ]);
@@ -186,7 +142,7 @@ export const approvePublicEventDB = async (event_id) => {
     const { data, error } = await supabase
       .from("public_events") // Table name
       .update({ status: "valid" })
-      .eq("public_event_id", event_id)
+      .eq("event_id", event_id)
       .select();
 
     if (!data || data.length == 0) {
@@ -207,12 +163,9 @@ export const approvePublicEventDB = async (event_id) => {
 // Gets All Pending Public Events from the public_events table
 export const getPublicEventsWithStatusDB = async (status) => {
   try {
-    const { data } = await supabase
-      .from("public_events") // Table name
-      .select(
-        "public_event_id, event_name, description, latitude, longitude, event_rating, event_comments, start_date, end_date, location, event_categories"
-      )
-      .eq("status", status);
+    const { data } = await supabase.rpc("get_user_public_events", {
+      status_input: status,
+    });
 
     if (!data) {
       const err = new Error("Public Event Not Found");
@@ -259,13 +212,12 @@ export const getRSOEventsDB = async (user_id) => {
 export const getUniversityEventsDB = async (user_id) => {
   try {
     // Inner Join Query between University_events and student tables
-    const { data, error } = await supabase.rpc("get_user_university_events", {
+    const { data } = await supabase.rpc("get_user_university_events", {
       user_id_input: user_id,
     });
 
     if (!data) {
       const err = new Error("Public Event Not Found");
-      console.log(1);
       err.status = false;
       err.statusCode = 404;
       throw err;
