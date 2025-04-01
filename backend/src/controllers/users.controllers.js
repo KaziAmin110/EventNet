@@ -89,16 +89,18 @@ export const getUserEvents = async (req, res) => {
     const user_id = req.user;
 
     // Get Valid Public Events, University Events, and RSO Events visible to the User
-    const { public_events, private_events, rso_events } = await Promise.all([
+    const [public_events, university_events, rso_events] = await Promise.all([
       getPublicEventsWithStatusDB("valid"),
       getUniversityEventsDB(user_id),
       getRSOEventsDB(user_id),
     ]);
 
+    const allEvents = [...public_events, ...university_events, ...rso_events];
+
     return res.status(200).json({
       success: true,
       message: "User Info gathered Successfully",
-      data: public_events + private_events + rso_events,
+      data: allEvents,
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({

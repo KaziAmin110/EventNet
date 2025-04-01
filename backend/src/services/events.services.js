@@ -186,6 +186,7 @@ export const getPublicEventsWithStatusDB = async (status) => {
       err.statusCode = 404;
       throw err;
     }
+
     return data;
   } catch (error) {
     return {
@@ -199,13 +200,9 @@ export const getPublicEventsWithStatusDB = async (status) => {
 export const getRSOEventsDB = async (user_id) => {
   try {
     // Inner Join Query between rso_events and joins_rso tables
-    const { data } = await supabase
-      .from("rso_events")
-      .select(
-        "event_id, event_name, description, latitude, longitude, event_rating, event_comments, event_categories, start_date, end_date, location"
-      )
-      .innerJoin("joins_rso", "rso_events.rso_id", "joins_rso.rso_id")
-      .eq("joins_rso.user_id", user_id);
+    const { data } = await supabase.rpc("get_user_rso_events", {
+      user_id_input: user_id,
+    });
 
     // Invalid Query
     if (!data) {
@@ -228,21 +225,17 @@ export const getRSOEventsDB = async (user_id) => {
 export const getUniversityEventsDB = async (user_id) => {
   try {
     // Inner Join Query between University_events and student tables
-    const { data } = await supabase
-      .from("university_events")
-      .select(
-        "event_id, event_name, description, latitude, longitude, event_rating, event_comments, event_categories, start_date, end_date, location"
-      )
-      .innerJoin("student", "university_events.uni_id", "student.uni_id")
-      .eq("student.user_id", user_id);
+    const { data, error } = await supabase.rpc("get_user_university_events", {
+      user_id_input: user_id,
+    });
 
     if (!data) {
       const err = new Error("Public Event Not Found");
+      console.log(1);
       err.status = false;
       err.statusCode = 404;
       throw err;
     }
-
     return data;
   } catch (error) {
     return {
