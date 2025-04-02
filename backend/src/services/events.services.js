@@ -10,7 +10,8 @@ export const createEventDB = async (
   location,
   start_date,
   end_date,
-  event_categories = null
+  event_categories = null,
+  event_type
 ) => {
   try {
     const { data } = await supabase
@@ -25,9 +26,10 @@ export const createEventDB = async (
           end_date,
           location,
           event_categories,
+          event_type,
         },
       ])
-      .select("id")
+      .select("event_id")
       .single();
 
     if (!data) {
@@ -37,7 +39,7 @@ export const createEventDB = async (
       throw err;
     }
 
-    return data.id;
+    return data.event_id;
   } catch (error) {
     return {
       error: error.message,

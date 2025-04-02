@@ -63,7 +63,8 @@ export const createUniversityEvent = async (req, res) => {
       location,
       start_date,
       end_date,
-      event_categories
+      event_categories,
+      "university"
     );
 
     await createUniversityEventDB(event_id, user_id, uni_id);
@@ -133,7 +134,8 @@ export const createRSOEvent = async (req, res) => {
       location,
       start_date,
       end_date,
-      event_categories
+      event_categories,
+      "rso"
     );
     await createRSOEventDB(uni_id, user_id, rso_id, event_id);
 
@@ -191,8 +193,10 @@ export const createPublicEvent = async (req, res) => {
       location,
       start_date,
       end_date,
-      event_categories ? event_categories : null
+      event_categories ? event_categories : null,
+      "public"
     );
+
     await createPublicEventRequestDB(user_id, event_id);
 
     return res.status(201).json({
@@ -272,6 +276,81 @@ export const getPendingPublicEvents = async (req, res) => {
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Adding a Comment to an Event
+export const createEventComment = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id } = req.params;
+    const { text } = req.body;
+
+    // Check for Required Body Info
+    if (!event_id || !text) {
+      const error = new Error("One or more required fields missing (text)");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Check to see if User can comment on this event
+
+    // Add Comment into DB Tables events and comments
+    await createPublicEventRequestDB(user_id, event_id);
+
+    return res.status(201).json({
+      success: true,
+      message: "Public Event Request Created Successfully",
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Adding a Rating to an Event
+export const createEventRating = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const event_id = req.params;
+    const { rating } = req.body;
+
+    // Check for Required Body Info
+    if (!event_id || !rating) {
+      const error = new Error(
+        "One or more required fields missing. (event_id, rating)"
+      );
+
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Check to see if User can Rate this event
+
+    // Insert University Event into Events Table and Rating table respectively
+    await createEventDB(
+      event_name.trim().toLowerCase(),
+      description,
+      latitude,
+      longitude,
+      location,
+      start_date,
+      end_date,
+      event_categories ? event_categories : null
+    );
+    await createPublicEventRequestDB(user_id, event_id);
+
+    return res.status(201).json({
+      success: true,
+      message: "Public Event Request Created Successfully",
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Server Error",
     });
