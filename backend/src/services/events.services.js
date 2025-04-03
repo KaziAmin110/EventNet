@@ -138,6 +138,143 @@ export const createPublicEventRequestDB = async (admin_id, event_id) => {
   }
 };
 
+// Inserts a Comment in the Events Table
+export const createCommentToEvents = async (event_id, text) => {
+  try {
+    const { data: existingEvent, error } = await supabase
+      .from("events")
+      .select("event_comments")
+      .eq("event_id", event_id)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    if (!existingEvent) {
+      const err = new Error("Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+
+    // Initialize or append to the event_comments array
+    const updatedComments = existingEvent.event_comments
+      ? [...existingEvent.event_comments, text]
+      : [text];
+
+    // Update Events Table with New Comments Array
+    const { data, error: updateError } = await supabase
+      .from("events")
+      .update({
+        event_comments: updatedComments,
+      })
+      .eq("event_id", event_id)
+      .select();
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    if (!data) {
+      const err = new Error("Failed to update event comments");
+      err.status = false;
+      err.statusCode = 500;
+      throw err;
+    }
+
+    return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Inserts a Comment in the Comments Table
+export const createUserComment = async (event_id, user_id, text) => {
+  try {
+    // Inner Join Query between University_events and student tables
+    const { data } = await supabase.from("comments").insert([
+      {
+        text,
+        user_id,
+        event_id,
+      },
+    ]);
+
+    if (!data) {
+      const err = new Error("Public Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+    return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Inserts new Total Average Rating for Event in events table
+export const createRatingToEvents = async (event_id, rating) => {
+  try {
+    // Update Events Table with New Comments Array
+    const { data } = await supabase
+      .from("events")
+      .update({
+        event_rating: (event_rating + rating) / (num_ratings + 1), // New Average Rating Calculation
+        num_ratings: num_ratings + 1, // Updates Number of Ratings on Event
+      })
+      .eq("event_id", event_id)
+      .select();
+
+    if (!data) {
+      const err = new Error("Failed to update event comments");
+      err.status = false;
+      err.statusCode = 500;
+      throw err;
+    }
+
+    return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Inserts a Rating in the Ratings Table
+export const createUserRating = async (event_id, user_id, rating) => {
+  try {
+    // Inner Join Query between University_events and student tables
+    const { data } = await supabase.from("ratings").insert([
+      {
+        rating,
+        user_id,
+        event_id,
+      },
+    ]);
+
+    if (!data) {
+      const err = new Error("Error Adding Ratings Entry");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+    return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
 // Approves a new Public Event Request from the public_events table
 export const approvePublicEventDB = async (event_id) => {
   try {
@@ -225,6 +362,39 @@ export const getUniversityEventsDB = async (user_id) => {
       throw err;
     }
     return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Checks to see if an event_id exists in the events table
+export const isValidUserEvent = async (user_id, event_id) => {
+  try {
+    // Get Valid Public Events, University Events, and RSO Events visible to the User
+    const [public_events, university_events, rso_events] = await Promise.all([
+      getPublicEventsWithStatusDB("valid"),
+      getUniversityEventsDB(user_id),
+      getRSOEventsDB(user_id),
+    ]);
+
+    const allUserEvents = [
+      ...public_events,
+      ...university_events,
+      ...rso_events,
+    ];
+
+    const allUserEventIds = allUserEvents.map((event) => {
+      return event.event_id;
+    });
+
+    if (event_id in allUserEventIds) {
+      return true;
+    }
+
+    return false;
   } catch (error) {
     return {
       error: error.message,

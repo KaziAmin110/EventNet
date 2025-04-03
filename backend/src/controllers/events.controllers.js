@@ -6,6 +6,11 @@ import {
   approvePublicEventDB,
   getPublicEventsWithStatusDB,
   createEventDB,
+  isValidUserEvent,
+  createCommentToEvents,
+  createUserComment,
+  createUserRating,
+  createRatingToEvents,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
@@ -290,20 +295,28 @@ export const createEventComment = async (req, res) => {
     const { text } = req.body;
 
     // Check for Required Body Info
-    if (!event_id || !text) {
+    if (!text) {
       const error = new Error("One or more required fields missing (text)");
       error.statusCode = 403;
       throw error;
     }
 
     // Check to see if User can comment on this event
+    const isValidEvent = await isValidUserEvent(user_id, event_id);
+
+    if (!isValidEvent) {
+      const error = new Error("User not Authorized to Comment on Event");
+      error.statusCode = 403;
+      throw error;
+    }
 
     // Add Comment into DB Tables events and comments
-    await createPublicEventRequestDB(user_id, event_id);
+    await createUserComment(event_id, user_id, text);
+    await createCommentToEvents(event_id, text);
 
     return res.status(201).json({
       success: true,
-      message: "Public Event Request Created Successfully",
+      message: "Event Comment Added Successfully",
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({
@@ -317,37 +330,32 @@ export const createEventComment = async (req, res) => {
 export const createEventRating = async (req, res) => {
   try {
     const user_id = req.user;
-    const event_id = req.params;
+    const { event_id } = req.params;
     const { rating } = req.body;
 
     // Check for Required Body Info
-    if (!event_id || !rating) {
-      const error = new Error(
-        "One or more required fields missing. (event_id, rating)"
-      );
-
+    if (!rating) {
+      const error = new Error("One or more required fields missing (rating)");
       error.statusCode = 403;
       throw error;
     }
 
-    // Check to see if User can Rate this event
+    // Check to see if User can comment on this event
+    const isValidEvent = await isValidUserEvent(user_id, event_id);
 
-    // Insert University Event into Events Table and Rating table respectively
-    await createEventDB(
-      event_name.trim().toLowerCase(),
-      description,
-      latitude,
-      longitude,
-      location,
-      start_date,
-      end_date,
-      event_categories ? event_categories : null
-    );
-    await createPublicEventRequestDB(user_id, event_id);
+    if (!isValidEvent) {
+      const error = new Error("User not Authorized to Give Rating on Event");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Add Rating into DB Tables events and ratings
+    await createUserRating(event_id, user_id, rating);
+    await createRatingToEvents(event_id, rating);
 
     return res.status(201).json({
       success: true,
-      message: "Public Event Request Created Successfully",
+      message: "Event Rating Added Successfully",
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({
