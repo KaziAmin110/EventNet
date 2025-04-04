@@ -302,6 +302,39 @@ export const approvePublicEventDB = async (event_id) => {
   }
 };
 
+// Verifies event_id exists in Events Table
+export const isValidUserEvent = async (user_id, event_id) => {
+  try {
+    // Get Valid Public Events, University Events, and RSO Events visible to the User
+    const [public_events, university_events, rso_events] = await Promise.all([
+      getPublicEventsWithStatusDB("valid"),
+      getUniversityEventsDB(user_id),
+      getRSOEventsDB(user_id),
+    ]);
+
+    const allUserEvents = [
+      ...public_events,
+      ...university_events,
+      ...rso_events,
+    ];
+
+    const allUserEventIds = allUserEvents.map((event) => {
+      return event.event_id;
+    });
+
+    if (allUserEventIds.includes(Number(event_id))) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
 // Gets All Pending Public Events from the public_events table
 export const getPublicEventsWithStatusDB = async (status) => {
   try {
@@ -335,7 +368,7 @@ export const getRSOEventsDB = async (user_id) => {
 
     // Invalid Query
     if (!data) {
-      const err = new Error("Public Event Not Found");
+      const err = new Error("RSO Events Not Found");
       err.status = false;
       err.statusCode = 404;
       throw err;
@@ -359,7 +392,7 @@ export const getUniversityEventsDB = async (user_id) => {
     });
 
     if (!data) {
-      const err = new Error("Public Event Not Found");
+      const err = new Error("University Events Not Found");
       err.status = false;
       err.statusCode = 404;
       throw err;
@@ -373,7 +406,7 @@ export const getUniversityEventsDB = async (user_id) => {
   }
 };
 
-// Returns total rating sum and number of ratings for average rating calculation
+// Gets (total rating sum and number of ratings) for average rating calculation
 export const getAverageRatingInfo = async (event_id) => {
   try {
     const { data } = await supabase
@@ -405,31 +438,22 @@ export const getAverageRatingInfo = async (event_id) => {
   }
 };
 
-// Checks to see if an event_id exists in the events table
-export const isValidUserEvent = async (user_id, event_id) => {
+// Gets Event Info From DB
+export const getEventInfoDB = async (event_id) => {
   try {
-    // Get Valid Public Events, University Events, and RSO Events visible to the User
-    const [public_events, university_events, rso_events] = await Promise.all([
-      getPublicEventsWithStatusDB("valid"),
-      getUniversityEventsDB(user_id),
-      getRSOEventsDB(user_id),
-    ]);
+    const { data, err } = await supabase
+      .from("events")
+      .select(
+        "event_name, description, latitude, longitude, event_comments, event_rating, start_date, end_date, location, event_categories, event_type"
+      )
+      .eq("event_id", event_id)
+      .single();
 
-    const allUserEvents = [
-      ...public_events,
-      ...university_events,
-      ...rso_events,
-    ];
-
-    const allUserEventIds = allUserEvents.map((event) => {
-      return event.event_id;
-    });
-
-    if (allUserEventIds.includes(Number(event_id))) {
-      return true;
+    if (err) {
+      throw err;
     }
 
-    return false;
+    return data;
   } catch (error) {
     return {
       error: error.message,

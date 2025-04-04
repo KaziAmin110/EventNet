@@ -11,6 +11,7 @@ import {
   createUserComment,
   createUserRating,
   createRatingToEvents,
+  getEventInfoDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
@@ -216,77 +217,6 @@ export const createPublicEvent = async (req, res) => {
   }
 };
 
-// Logic for SuperAdmin to Approve a Public Event
-export const approvePublicEvent = async (req, res) => {
-  try {
-    const user_id = req.user;
-    const { event_id } = req.params;
-
-    // Checks if User has Permision to Create Event
-    const isSuperAdmin = await isUserRole("super_admin", user_id);
-
-    if (!isSuperAdmin) {
-      const error = new Error(
-        "User Is Not Authorized to Approve Public Events"
-      );
-      error.statusCode = 403;
-      throw error;
-    }
-
-    // Approve Public Event in DB
-    const result = await approvePublicEventDB(event_id);
-
-    if (result.error) {
-      return res
-        .status(result.status)
-        .json({ success: false, message: result.error });
-    }
-    return res.status(200).json({
-      success: true,
-      message: "Public Event Approved Successfully",
-    });
-  } catch (error) {
-    res.status(error.statusCode || 500).json({
-      success: false,
-      message: error.message || "Server Error",
-    });
-  }
-};
-
-// Logic for Getting All Pending Public Events
-export const getPendingPublicEvents = async (req, res) => {
-  try {
-    const user_id = req.user;
-
-    // Checks if User has Permision to Create Event
-    const isSuperAdmin = await isUserRole("super_admin", user_id);
-
-    if (!isSuperAdmin) {
-      const error = new Error("User Is Not Authorized to Get Public Events");
-      error.statusCode = 403;
-      throw error;
-    }
-
-    // Get Pending Public Events from DB
-    const result = await getPublicEventsWithStatusDB("pending");
-    if (result.error) {
-      return res
-        .status(result.status)
-        .json({ success: false, message: result.error });
-    }
-    return res.status(200).json({
-      success: true,
-      data: result,
-      message: "Gathered Pending Public Events Successfully",
-    });
-  } catch (error) {
-    return res.status(error.statusCode || 500).json({
-      success: false,
-      message: error.message || "Server Error",
-    });
-  }
-};
-
 // Logic for Adding a Comment to an Event
 export const createEventComment = async (req, res) => {
   try {
@@ -359,6 +289,113 @@ export const createEventRating = async (req, res) => {
     });
   } catch (error) {
     res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for SuperAdmin to Approve a Public Event
+export const approvePublicEvent = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id } = req.params;
+
+    // Checks if User has Permision to Create Event
+    const isSuperAdmin = await isUserRole("super_admin", user_id);
+
+    if (!isSuperAdmin) {
+      const error = new Error(
+        "User Is Not Authorized to Approve Public Events"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Approve Public Event in DB
+    const result = await approvePublicEventDB(event_id);
+
+    if (result.error) {
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.error });
+    }
+    return res.status(200).json({
+      success: true,
+      message: "Public Event Approved Successfully",
+    });
+  } catch (error) {
+    res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Getting All Pending Public Events
+export const getPendingPublicEvents = async (req, res) => {
+  try {
+    const user_id = req.user;
+
+    // Checks if User has Permision to Create Event
+    const isSuperAdmin = await isUserRole("super_admin", user_id);
+
+    if (!isSuperAdmin) {
+      const error = new Error("User Is Not Authorized to Get Public Events");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Get Pending Public Events from DB
+    const result = await getPublicEventsWithStatusDB("pending");
+    if (result.error) {
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.error });
+    }
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: "Gathered Pending Public Events Successfully",
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Getting Individual Event Info
+export const getEventInfo = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id } = req.params;
+
+    // Checks if User has Permission to View Event
+    const isUserEvent = await isValidUserEvent(user_id, event_id);
+    if (!isUserEvent) {
+      const err = new Error("User does not have permission to view event");
+      err.statusCode = 403;
+      throw err;
+    }
+
+    // Get Event Info From DB
+    const result = await getEventInfoDB(event_id);
+    if (result.error) {
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.error });
+    }
+
+    // Success Response
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: "Gathered Event Info Successfully",
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Server Error",
     });
