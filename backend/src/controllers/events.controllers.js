@@ -342,7 +342,6 @@ export const createEventRating = async (req, res) => {
 
     // Check to see if User can comment on this event
     const isValidEvent = await isValidUserEvent(user_id, event_id);
-
     if (!isValidEvent) {
       const error = new Error("User not Authorized to Give Rating on Event");
       error.statusCode = 403;
@@ -350,6 +349,7 @@ export const createEventRating = async (req, res) => {
     }
 
     // Add Rating into DB Tables events and ratings
+
     await createUserRating(event_id, user_id, rating);
     await createRatingToEvents(event_id, rating);
 

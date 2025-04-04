@@ -219,26 +219,29 @@ export const createUserComment = async (event_id, user_id, text) => {
   }
 };
 
-// Inserts new Total Average Rating for Event in events table
+// Inserts new Average Rating for Event in events table
 export const createRatingToEvents = async (event_id, rating) => {
   try {
-    // Update Events Table with New Comments Array
-    const { data } = await supabase
+    const { totalRating, numRatings } = await getAverageRatingInfo(event_id);
+
+    // New Average Rating Calculation
+    const newEventRating = totalRating / numRatings;
+
+    // Update Events Table with new Event Rating and num_ratings
+    const { data, error } = await supabase
       .from("events")
       .update({
-        event_rating: (event_rating + rating) / (num_ratings + 1), // New Average Rating Calculation
-        num_ratings: num_ratings + 1, // Updates Number of Ratings on Event
+        event_rating: newEventRating,
+        num_ratings: numRatings, // Updates Number of Ratings on Event
       })
-      .eq("event_id", event_id)
-      .select();
+      .eq("event_id", event_id);
 
-    if (!data) {
+    if (error) {
       const err = new Error("Failed to update event comments");
       err.status = false;
       err.statusCode = 500;
       throw err;
     }
-
     return data;
   } catch (error) {
     return {
@@ -370,6 +373,38 @@ export const getUniversityEventsDB = async (user_id) => {
   }
 };
 
+// Returns total rating sum and number of ratings for average rating calculation
+export const getAverageRatingInfo = async (event_id) => {
+  try {
+    const { data } = await supabase
+      .from("ratings")
+      .select("rating")
+      .eq("event_id", event_id);
+
+    if (!data) {
+      const err = new Error("Public Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+
+    let sumRatings = 0;
+    for (const item of data) {
+      sumRatings += Number(item.rating);
+    }
+
+    return {
+      totalRating: sumRatings,
+      numRatings: data.length,
+    };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
 // Checks to see if an event_id exists in the events table
 export const isValidUserEvent = async (user_id, event_id) => {
   try {
@@ -390,7 +425,7 @@ export const isValidUserEvent = async (user_id, event_id) => {
       return event.event_id;
     });
 
-    if (event_id in allUserEventIds) {
+    if (allUserEventIds.includes(Number(event_id))) {
       return true;
     }
 
