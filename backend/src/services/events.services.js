@@ -354,7 +354,7 @@ export const isEventConflict = async (location, start_date, end_date) => {
     if (error) {
       throw error;
     }
-
+    
     const newEventStart = new Date(start_date);
     const newEventEnd = new Date(end_date);
 

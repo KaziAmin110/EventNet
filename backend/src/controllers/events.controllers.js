@@ -82,7 +82,11 @@ export const createUniversityEvent = async (req, res) => {
     }
 
     // Checks to see if Event Time and Location Conflicts with Existing Events
-    const isConflict = await isEventConflict(location, start_date, end_date);
+    const isConflict = await isEventConflict(
+      location.trim().toLowerCase(),
+      start_date,
+      end_date
+    );
 
     if (isConflict) {
       const error = new Error(
@@ -107,7 +111,7 @@ export const createUniversityEvent = async (req, res) => {
       description,
       latitude,
       longitude,
-      location,
+      location.trim().toLowerCase(),
       start_date,
       end_date,
       event_categories,
@@ -185,7 +189,11 @@ export const createRSOEvent = async (req, res) => {
     }
 
     // Checks to see if Event Time and Location Conflicts with Existing Events
-    const isConflict = await isEventConflict(location, start_date, end_date);
+    const isConflict = await isEventConflict(
+      location.trim().toLowerCase(),
+      start_date,
+      end_date
+    );
 
     if (isConflict) {
       const error = new Error(
@@ -210,7 +218,7 @@ export const createRSOEvent = async (req, res) => {
       description,
       latitude,
       longitude,
-      location,
+      location.trim().toLowerCase(),
       start_date,
       end_date,
       event_categories,
@@ -285,7 +293,11 @@ export const createPublicEvent = async (req, res) => {
     }
 
     // Checks to see if Event Time and Location Conflicts with Existing Events
-    const isConflict = await isEventConflict(location, start_date, end_date);
+    const isConflict = await isEventConflict(
+      location.trim().toLowerCase(),
+      start_date,
+      end_date
+    );
 
     if (isConflict) {
       const error = new Error(
@@ -301,7 +313,7 @@ export const createPublicEvent = async (req, res) => {
       description,
       latitude,
       longitude,
-      location,
+      location.trim().toLowerCase(),
       start_date,
       end_date,
       event_categories ? event_categories : null,
