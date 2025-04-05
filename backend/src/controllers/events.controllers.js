@@ -15,6 +15,7 @@ import {
   getNonUserEventCommentsDB,
   isValidUserEvent,
   isValidUserComment,
+  isEventConflict,
   updateCommentsInEventsDB,
   updateEventCommentDB,
   deleteEventCommentDB,
@@ -75,6 +76,17 @@ export const createUniversityEvent = async (req, res) => {
     if (contact_email && !isValidEmailFormat(contact_email)) {
       const error = new Error(
         "Invalid Email Format: Email must be in the form <string@astring.string>"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Checks to see if Event Time and Location Conflicts with Existing Events
+    const isConflict = await isEventConflict(location, start_date, end_date);
+
+    if (isConflict) {
+      const error = new Error(
+        "Event Time and Location Conflicts with Existing Event"
       );
       error.statusCode = 400;
       throw error;
@@ -172,6 +184,17 @@ export const createRSOEvent = async (req, res) => {
       throw error;
     }
 
+    // Checks to see if Event Time and Location Conflicts with Existing Events
+    const isConflict = await isEventConflict(location, start_date, end_date);
+
+    if (isConflict) {
+      const error = new Error(
+        "Event Time and Location Conflicts with Existing Event"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
     // Checks if User has Permision to Create Event
     const isAdmin = await isRSOAdmin(user_id, rso_id);
 
@@ -256,6 +279,17 @@ export const createPublicEvent = async (req, res) => {
     if (contact_email && !isValidEmailFormat(contact_email)) {
       const error = new Error(
         "Invalid Email Format: Email must be in the form <string@astring.string>"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Checks to see if Event Time and Location Conflicts with Existing Events
+    const isConflict = await isEventConflict(location, start_date, end_date);
+
+    if (isConflict) {
+      const error = new Error(
+        "Event Time and Location Conflicts with Existing Event"
       );
       error.statusCode = 400;
       throw error;
@@ -584,7 +618,7 @@ export const updateEventComment = async (req, res) => {
       throw error;
     }
 
-    // Performs Necessary Database Updates
+    // Updates Event in Comments Table and Updates Events Table
     await updateEventCommentDB(comment_id, text);
     const event_comments = await getEventCommentsDB(event_id);
     await updateCommentsInEventsDB(event_id, event_comments);
@@ -626,7 +660,7 @@ export const deleteEventComment = async (req, res) => {
       throw error;
     }
 
-    // Performs Necessary Database Updates
+    // Removes Event from Comments Table and Updates Events Table
     await deleteEventCommentDB(comment_id);
     const event_comments = await getEventCommentsDB(event_id);
     await updateCommentsInEventsDB(event_id, event_comments);

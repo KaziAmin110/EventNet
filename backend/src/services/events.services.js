@@ -343,6 +343,50 @@ export const isValidUserComment = async (user_id, comment_id) => {
   }
 };
 
+// Checks to see if Event Time and Location Conflicts with Existing Event
+export const isEventConflict = async (location, start_date, end_date) => {
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .select("start_date, end_date")
+      .eq("location", location);
+
+    if (error) {
+      throw error;
+    }
+
+    const newEventStart = new Date(start_date);
+    const newEventEnd = new Date(end_date);
+
+    for (let event of data) {
+      let currentEventStart = new Date(event.start_date);
+      let currentEventEnd = new Date(event.end_date);
+      // Check if Current Event Location and Time Overlaps Existing Event
+      if (
+        isTimeConflict(
+          newEventStart,
+          newEventEnd,
+          currentEventStart,
+          currentEventEnd
+        )
+      ) {
+        return true;
+      }
+    }
+
+    return false;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+export const isTimeConflict = async (start1, end1, start2, end2) => {
+  return start1 < end2 && end1 > start2;
+};
+
 // Gets All Pending Public Events from the public_events table
 export const getPublicEventsWithStatusDB = async (status) => {
   try {
