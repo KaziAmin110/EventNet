@@ -142,36 +142,14 @@ export const createPublicEventRequestDB = async (admin_id, event_id) => {
   }
 };
 
-// Inserts a Comment in the Events Table
-export const createCommentToEvents = async (event_id, text) => {
+// Inserts New Comments in the Events Table
+export const createCommentToEvents = async (event_id, event_comments) => {
   try {
-    const { data: existingEvent, error } = await supabase
-      .from("events")
-      .select("event_comments")
-      .eq("event_id", event_id)
-      .single();
-
-    if (error) {
-      throw error;
-    }
-
-    if (!existingEvent) {
-      const err = new Error("Event Not Found");
-      err.status = false;
-      err.statusCode = 404;
-      throw err;
-    }
-
-    // Initialize or append to the event_comments array
-    const updatedComments = existingEvent.event_comments
-      ? [...existingEvent.event_comments, text]
-      : [text];
-
     // Update Events Table with New Comments Array
     const { data, error: updateError } = await supabase
       .from("events")
       .update({
-        event_comments: updatedComments,
+        event_comments: event_comments,
       })
       .eq("event_id", event_id)
       .select();
@@ -466,4 +444,84 @@ export const getEventInfoDB = async (event_id) => {
   }
 };
 
+// Gells all Comments from the Comments Table for a specific event
+export const getEventCommentsDB = async (event_id) => {
+  try {
+    // Inner Join Query between University_events and student tables
+    const { data } = await supabase
+      .from("comments")
+      .select(`text`)
+      .eq("event_id", event_id);
 
+    if (!data) {
+      const err = new Error("Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+
+    const comments = data.map((comment) => comment.text);
+    return comments;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Gells all User Comments from the Comments Table for a specific event
+export const getUserEventCommentsDB = async (user_id, event_id) => {
+  try {
+    // Inner Join Query between University_events and student tables
+    const { data } = await supabase
+      .from("comments")
+      .select(`comment_id, text, created_at`)
+      .eq("user_id", user_id)
+      .eq("event_id", event_id);
+
+    if (!data) {
+      const err = new Error("Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+
+    // Adds isUserComment field to data returned
+    data.map((indData) => {
+      indData["isUserComment"] = true;
+    });
+
+    return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Gells all Non-User Comments from the Comments Table
+export const getNonUserEventCommentsDB = async (user_id, event_id) => {
+  try {
+    // Inner Join Query between University_events and student tables
+    const { data } = await supabase
+      .from("comments")
+      .select("comment_id, text, created_at")
+      .neq("user_id", user_id)
+      .eq("event_id", event_id);
+
+    if (!data) {
+      const err = new Error("Event Not Found");
+      err.status = false;
+      err.statusCode = 404;
+      throw err;
+    }
+    return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};

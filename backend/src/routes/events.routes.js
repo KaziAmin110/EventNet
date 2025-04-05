@@ -6,12 +6,15 @@ import {
   createEventRating,
   getPendingPublicEvents,
   getEventInfo,
+  getUserEventComments,
+  getEventComments,
 } from "../controllers/events.controllers.js";
 import { authenticateUser } from "../middlewares/auth.middleware.js";
 
 const eventsRouter = Router();
 
-// Public Event Endpoints
+// General Events Endpoints
+eventsRouter.get("/:event_id", authenticateUser, getEventInfo);
 eventsRouter.post("/public", authenticateUser, createPublicEvent);
 eventsRouter.post(
   "/public/:event_id/approve",
@@ -22,11 +25,14 @@ eventsRouter.get("/public/pending", authenticateUser, getPendingPublicEvents);
 
 // Comments Endpoints
 eventsRouter.post("/:event_id/comments", authenticateUser, createEventComment);
-
+eventsRouter.get("/:event_id/comments", authenticateUser, getEventComments);
+eventsRouter.get(
+  "/:event_id/comments/me",
+  authenticateUser,
+  getUserEventComments
+);
 
 // Ratings Endpoints
 eventsRouter.post("/:event_id/ratings", authenticateUser, createEventRating);
 
-// Events Endpoints
-eventsRouter.get("/:event_id", authenticateUser, getEventInfo);
 export default eventsRouter;

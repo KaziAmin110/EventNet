@@ -12,10 +12,16 @@ import {
   createUserRating,
   createNewAverageRatingToEvents,
   getEventInfoDB,
+  getEventCommentsDB,
+  getUserEventCommentsDB,
+  getNonUserEventCommentsDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
-import { isValidEmailFormat, isValidPhoneFormat } from "../services/auth.services.js";
+import {
+  isValidEmailFormat,
+  isValidPhoneFormat,
+} from "../services/auth.services.js";
 
 // Logic for Creating a Private University Event
 export const createUniversityEvent = async (req, res) => {
@@ -306,7 +312,8 @@ export const createEventComment = async (req, res) => {
 
     // Add Comment into DB Tables events and comments
     await createUserComment(event_id, user_id, text);
-    await createCommentToEvents(event_id, text);
+    const event_comments = await getEventCommentsDB(event_id);
+    await createCommentToEvents(event_id, event_comments);
 
     return res.status(201).json({
       success: true,
@@ -457,6 +464,88 @@ export const getEventInfo = async (req, res) => {
       success: true,
       data: result,
       message: "Gathered Event Info Successfully",
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Getting All User Comments of an Individual Event
+export const getUserEventComments = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id } = req.params;
+
+    // Checks if User has Permission to View Event
+    const isUserEvent = await isValidUserEvent(user_id, event_id);
+    if (!isUserEvent) {
+      const err = new Error("User does not have permission to view event");
+      err.statusCode = 403;
+      throw err;
+    }
+
+    // Get Event Info From DB
+    const userComments = await getUserEventCommentsDB(user_id, event_id);
+    if (userComments.error) {
+      return res
+        .status(userComments.status)
+        .json({ success: false, message: userComments.error });
+    }
+
+    // Success Response
+    return res.status(200).json({
+      success: true,
+      data: userComments,
+      message: "Gathered User Event Comments Successfully",
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Getting All Comments of an Individual Event
+export const getEventComments = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id } = req.params;
+
+    // Checks if User has Permission to View Event
+    const isUserEvent = await isValidUserEvent(user_id, event_id);
+    if (!isUserEvent) {
+      const err = new Error("User does not have permission to view event");
+      err.statusCode = 403;
+      throw err;
+    }
+
+    // Get Event Info From DB
+    const [userComments, nonUserComments] = await Promise.all([
+      getUserEventCommentsDB(user_id, event_id),
+      getNonUserEventCommentsDB(user_id, event_id),
+    ]);
+
+    if (userComments.error) {
+      return res
+        .status(userComments.status)
+        .json({ success: false, message: userComments.error });
+    }
+
+    if (nonUserComments.error) {
+      return res
+        .status(nonUserComments.status)
+        .json({ success: false, message: nonUserComments.error });
+    }
+
+    // Success Response
+    return res.status(200).json({
+      success: true,
+      data: [...userComments, ...nonUserComments],
+      message: "Gathered User Event Comments Successfully",
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
