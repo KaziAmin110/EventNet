@@ -28,6 +28,8 @@ import jwt from "jsonwebtoken";
 import redisClient from "../../config/redis.config.js";
 import { emailQueue } from "../queues/email.queue.js";
 
+const VALID_MEMBER_NUMBER = 5;
+
 // Allows Student to create a pending RSO
 export const createRSO = async (req, res, next) => {
   try {
@@ -216,8 +218,8 @@ export const joinRSO = async (req, res, next) => {
       updateRsoMembers(rso_id, rso.num_members, "increment"),
     ]);
 
-    // Update RSO Status If RSO is now valid (4 Members)
-    if (newMemberCount === 4) {
+    // Update RSO Status If RSO is now valid
+    if (newMemberCount === VALID_MEMBER_NUMBER) {
       await updateRsoStatus(rso_id, "valid");
     }
 

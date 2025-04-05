@@ -23,6 +23,7 @@ eventsRouter.get("/public/pending", authenticateUser, getPendingPublicEvents);
 // Comments Endpoints
 eventsRouter.post("/:event_id/comments", authenticateUser, createEventComment);
 
+
 // Ratings Endpoints
 eventsRouter.post("/:event_id/ratings", authenticateUser, createEventRating);
 

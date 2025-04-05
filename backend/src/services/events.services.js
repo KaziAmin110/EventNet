@@ -11,7 +11,9 @@ export const createEventDB = async (
   start_date,
   end_date,
   event_categories = null,
-  event_type
+  event_type,
+  contact_phone = null,
+  contact_email = null
 ) => {
   try {
     const { data } = await supabase
@@ -27,6 +29,8 @@ export const createEventDB = async (
           location,
           event_categories,
           event_type,
+          contact_phone,
+          contact_email,
         },
       ])
       .select("event_id")
@@ -220,7 +224,7 @@ export const createUserComment = async (event_id, user_id, text) => {
 };
 
 // Inserts new Average Rating for Event in events table
-export const createRatingToEvents = async (event_id, rating) => {
+export const createNewAverageRatingToEvents = async (event_id) => {
   try {
     const { totalRating, numRatings } = await getAverageRatingInfo(event_id);
 
@@ -460,4 +464,18 @@ export const getEventInfoDB = async (event_id) => {
       status: error.statusCode || 500,
     };
   }
+};
+
+// Checks whether a given number is in a valid format
+export const isValidPhoneFormat = async (phone_num) => {
+  let isOnlyNumbers = /^\d+$/;
+  if (phone_num.length == 10 && isOnlyNumbers.test(phone_num)) return true;
+
+  return false;
+};
+
+// Checks whether a given email is in a valid format
+export const isValidEmailFormat = async (email) => {
+  let isEmailFormat = /\S+@\S+\S+/;
+  return isEmailFormat.test(email);
 };

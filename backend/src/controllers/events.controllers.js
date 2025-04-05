@@ -10,8 +10,10 @@ import {
   createCommentToEvents,
   createUserComment,
   createUserRating,
-  createRatingToEvents,
+  createNewAverageRatingToEvents,
   getEventInfoDB,
+  isValidEmailFormat,
+  isValidPhoneFormat,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
@@ -31,6 +33,8 @@ export const createUniversityEvent = async (req, res) => {
       start_date,
       end_date,
       event_categories,
+      contact_phone,
+      contact_email,
     } = req.body;
 
     // Check for Required Body Info
@@ -48,6 +52,23 @@ export const createUniversityEvent = async (req, res) => {
       );
 
       error.statusCode = 403;
+      throw error;
+    }
+
+    // Check valid phone and email formats if they exist
+    if (contact_phone && !isValidPhoneFormat(contact_phone)) {
+      const error = new Error(
+        "Invalid Phone Format: String must only contain digits (0-9) and must contain 10 values."
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (contact_email && !isValidEmailFormat(contact_email)) {
+      const error = new Error(
+        "Invalid Email Format: Email must be in the form <string@astring.string>"
+      );
+      error.statusCode = 400;
       throw error;
     }
 
@@ -70,7 +91,9 @@ export const createUniversityEvent = async (req, res) => {
       start_date,
       end_date,
       event_categories,
-      "university"
+      "university",
+      contact_phone,
+      contact_email
     );
 
     await createUniversityEventDB(event_id, user_id, uni_id);
@@ -102,6 +125,8 @@ export const createRSOEvent = async (req, res) => {
       start_date,
       end_date,
       event_categories,
+      contact_phone,
+      contact_email,
     } = req.body;
 
     // Check for Required Body Info
@@ -119,6 +144,23 @@ export const createRSOEvent = async (req, res) => {
       );
 
       error.statusCode = 403;
+      throw error;
+    }
+
+    // Check valid phone and email formats if they exist
+    if (contact_phone && !isValidPhoneFormat(contact_phone)) {
+      const error = new Error(
+        "Invalid Phone Format: String must only contain digits (0-9) and must contain 10 values."
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (contact_email && !isValidEmailFormat(contact_email)) {
+      const error = new Error(
+        "Invalid Email Format: Email must be in the form <string@astring.string>"
+      );
+      error.statusCode = 400;
       throw error;
     }
 
@@ -141,7 +183,9 @@ export const createRSOEvent = async (req, res) => {
       start_date,
       end_date,
       event_categories,
-      "rso"
+      "rso",
+      contact_phone,
+      contact_email
     );
     await createRSOEventDB(uni_id, user_id, rso_id, event_id);
 
@@ -170,6 +214,8 @@ export const createPublicEvent = async (req, res) => {
       start_date,
       end_date,
       event_categories,
+      contact_phone,
+      contact_email,
     } = req.body;
 
     // Check for Required Body Info
@@ -190,6 +236,23 @@ export const createPublicEvent = async (req, res) => {
       throw error;
     }
 
+    // Check valid phone and email formats if they exist
+    if (contact_phone && !isValidPhoneFormat(contact_phone)) {
+      const error = new Error(
+        "Invalid Phone Format: String must only contain digits (0-9) and must contain 10 values."
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (contact_email && !isValidEmailFormat(contact_email)) {
+      const error = new Error(
+        "Invalid Email Format: Email must be in the form <string@astring.string>"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
     // Insert University Event into DB
     const event_id = await createEventDB(
       event_name.trim().toLowerCase(),
@@ -200,7 +263,9 @@ export const createPublicEvent = async (req, res) => {
       start_date,
       end_date,
       event_categories ? event_categories : null,
-      "public"
+      "public",
+      contact_phone,
+      contact_email
     );
 
     await createPublicEventRequestDB(user_id, event_id);
@@ -281,7 +346,7 @@ export const createEventRating = async (req, res) => {
     // Add Rating into DB Tables events and ratings
 
     await createUserRating(event_id, user_id, rating);
-    await createRatingToEvents(event_id, rating);
+    await createNewAverageRatingToEvents(event_id);
 
     return res.status(201).json({
       success: true,
