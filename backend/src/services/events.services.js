@@ -326,7 +326,11 @@ export const isValidUserComment = async (user_id, comment_id) => {
       .eq("user_id", user_id)
       .eq("comment_id", comment_id);
 
-    if (data) {
+    if (error) {
+      throw error;
+    }
+
+    if (data && data.length != 0) {
       return true;
     }
 
@@ -551,10 +555,14 @@ export const getNonUserEventCommentsDB = async (user_id, event_id) => {
 // Updates Event Comment in Comment table
 export const updateEventCommentDB = async (comment_id, text) => {
   try {
+    const now = new Date();
+    const isoTime = now.toISOString();
+
     const { data, error } = await supabase
       .from("comments")
       .update({
         text,
+        created_at: isoTime,
       })
       .eq("comment_id", comment_id);
 

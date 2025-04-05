@@ -575,7 +575,7 @@ export const updateEventComment = async (req, res) => {
     }
 
     const isUserComment = await isValidUserComment(user_id, comment_id);
-
+    
     if (!isUserComment) {
       const error = new Error(
         "User Does Not Have Permission to Access Comment"
