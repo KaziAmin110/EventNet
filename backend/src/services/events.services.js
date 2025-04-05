@@ -476,6 +476,6 @@ export const isValidPhoneFormat = async (phone_num) => {
 
 // Checks whether a given email is in a valid format
 export const isValidEmailFormat = async (email) => {
-  let isEmailFormat = /\S+@\S+\S+/;
+  let isEmailFormat = /\S+@\S+\.\S+/;
   return isEmailFormat.test(email);
 };

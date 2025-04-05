@@ -23,6 +23,7 @@ import {
   deleteResetTokenByAttribute,
 } from "../services/auth.services.js";
 import redisClient from "../../config/redis.config.js";
+import { isValidEmailFormat } from "../services/events.services.js";
 
 // Allows for the Creation of a New User in the Supabase DB
 export const signUp = async (req, res) => {
@@ -31,6 +32,14 @@ export const signUp = async (req, res) => {
 
     if (!name || !email || !password) {
       const error = new Error("One or more required fields are not present");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!isValidEmailFormat(email)) {
+      const error = new Error(
+        "Emai must be in the format <string@string.string>"
+      );
       error.statusCode = 400;
       throw error;
     }
@@ -59,13 +68,13 @@ export const signUp = async (req, res) => {
       maxAge: refreshTokenAge,
     });
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "User Created Successfully",
       accessToken,
     });
   } catch (error) {
-    res.status(error.statusCode || 500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Server Error",
     });
@@ -121,13 +130,13 @@ export const signIn = async (req, res, next) => {
       maxAge: refreshTokenAge,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User Signed In Successfully",
       accessToken,
     });
   } catch (error) {
-    res
+    return res
       .status(error.statusCode || 500)
       .json({ success: false, message: error.message || "Server Error" });
   }
@@ -144,12 +153,12 @@ export const signOut = async (req, res, next) => {
     res.clearCookie("jwt");
     await redisClient.flushAll();
 
-    res.status(201).json({
+    return res.status(201).json({
       success: true,
       message: "User logged out successfully.",
     });
   } catch (error) {
-    res
+    return res
       .status(error.statusCode || 500)
       .json({ success: false, message: error.message || "Server Error" });
   }
@@ -205,14 +214,14 @@ export const forgotPassword = async (req, res, next) => {
         console.log(error);
         throw error;
       } else {
-        res.status(200).json({
+        return res.status(200).json({
           success: true,
           message: "Reset Email Sent Succesfully",
         });
       }
     });
   } catch (err) {
-    res
+    return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
   }
@@ -242,7 +251,7 @@ export const resetPassword = async (req, res, next) => {
       const hashedPassword = await User.hashPassword(password);
       await updateUserPassword("email", data.email, hashedPassword);
       await removePasswordResetTokenDB("email", data.email);
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "Password Updated Successfully",
       });
@@ -252,7 +261,7 @@ export const resetPassword = async (req, res, next) => {
       throw error;
     }
   } catch (err) {
-    res
+    return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
   }
@@ -293,13 +302,13 @@ export const refreshAccess = async (req, res, next) => {
     });
     const accessToken = user.generateAccessToken();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "JWT Refresh Successful",
       accessToken,
     });
   } catch (err) {
-    res
+    return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
   }
