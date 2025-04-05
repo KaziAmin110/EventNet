@@ -143,7 +143,7 @@ export const createPublicEventRequestDB = async (admin_id, event_id) => {
 };
 
 // Inserts New Comments in the Events Table
-export const createCommentToEvents = async (event_id, event_comments) => {
+export const updateCommentsInEventsDB = async (event_id, event_comments) => {
   try {
     // Update Events Table with New Comments Array
     const { data, error: updateError } = await supabase
@@ -284,7 +284,7 @@ export const approvePublicEventDB = async (event_id) => {
   }
 };
 
-// Verifies event_id exists in Events Table
+// Checks if User has permission to access this event
 export const isValidUserEvent = async (user_id, event_id) => {
   try {
     // Get Valid Public Events, University Events, and RSO Events visible to the User
@@ -305,6 +305,28 @@ export const isValidUserEvent = async (user_id, event_id) => {
     });
 
     if (allUserEventIds.includes(Number(event_id))) {
+      return true;
+    }
+
+    return false;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
+// Checks if User has permission to access this comment
+export const isValidUserComment = async (user_id, comment_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("comments")
+      .select("comment_id")
+      .eq("user_id", user_id)
+      .eq("comment_id", comment_id);
+
+    if (data) {
       return true;
     }
 
@@ -504,7 +526,7 @@ export const getUserEventCommentsDB = async (user_id, event_id) => {
 // Gells all Non-User Comments from the Comments Table
 export const getNonUserEventCommentsDB = async (user_id, event_id) => {
   try {
-    // Inner Join Query between University_events and student tables
+    // Queries All Non User Based Comments
     const { data } = await supabase
       .from("comments")
       .select("comment_id, text, created_at")
@@ -522,6 +544,50 @@ export const getNonUserEventCommentsDB = async (user_id, event_id) => {
     return {
       error: error.message,
       status: error.statusCode || 500,
+    };
+  }
+};
+
+// Updates Event Comment in Comment table
+export const updateEventCommentDB = async (comment_id, text) => {
+  try {
+    const { data, error } = await supabase
+      .from("comments")
+      .update({
+        text,
+      })
+      .eq("comment_id", comment_id);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, message: "Updated Comment Successfully" };
+  } catch (err) {
+    return {
+      error: err.message,
+      status: err.statusCode || 500,
+    };
+  }
+};
+
+// Updates Event Comment in Comment table
+export const deleteEventCommentDB = async (comment_id, text) => {
+  try {
+    const { data, error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("comment_id", comment_id);
+
+    if (error) {
+      throw error;
+    }
+
+    return { success: true, message: "Deleted Comment Successfully" };
+  } catch (err) {
+    return {
+      error: err.message,
+      status: err.statusCode || 500,
     };
   }
 };

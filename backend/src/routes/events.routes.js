@@ -8,6 +8,8 @@ import {
   getEventInfo,
   getUserEventComments,
   getEventComments,
+  updateEventComment,
+  deleteEventComment,
 } from "../controllers/events.controllers.js";
 import { authenticateUser } from "../middlewares/auth.middleware.js";
 
@@ -30,6 +32,16 @@ eventsRouter.get(
   "/:event_id/comments/me",
   authenticateUser,
   getUserEventComments
+);
+eventsRouter.patch(
+  "/:event_id/comments/:comment_id",
+  authenticateUser,
+  updateEventComment
+);
+eventsRouter.delete(
+  "/:event_id/comments/:comment_id",
+  authenticateUser,
+  deleteEventComment
 );
 
 // Ratings Endpoints

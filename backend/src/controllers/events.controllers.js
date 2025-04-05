@@ -3,18 +3,21 @@ import {
   createUniversityEventDB,
   createRSOEventDB,
   createPublicEventRequestDB,
-  approvePublicEventDB,
-  getPublicEventsWithStatusDB,
-  createEventDB,
-  isValidUserEvent,
-  createCommentToEvents,
   createUserComment,
   createUserRating,
   createNewAverageRatingToEvents,
+  createEventDB,
+  approvePublicEventDB,
+  getPublicEventsWithStatusDB,
   getEventInfoDB,
   getEventCommentsDB,
   getUserEventCommentsDB,
   getNonUserEventCommentsDB,
+  isValidUserEvent,
+  isValidUserComment,
+  updateCommentsInEventsDB,
+  updateEventCommentDB,
+  deleteEventCommentDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
@@ -313,7 +316,7 @@ export const createEventComment = async (req, res) => {
     // Add Comment into DB Tables events and comments
     await createUserComment(event_id, user_id, text);
     const event_comments = await getEventCommentsDB(event_id);
-    await createCommentToEvents(event_id, event_comments);
+    await updateCommentsInEventsDB(event_id, event_comments);
 
     return res.status(201).json({
       success: true,
@@ -551,6 +554,91 @@ export const getEventComments = async (req, res) => {
     return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Updating a Comment on an Event
+export const updateEventComment = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id, comment_id } = req.params;
+    const { text } = req.body;
+
+    // Verify User Permission to Access Event and Event Comment
+    const isUserEvent = await isValidUserEvent(user_id, event_id);
+
+    if (!isUserEvent) {
+      const error = new Error("User Does Not Have Access to this Event");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const isUserComment = await isValidUserComment(user_id, comment_id);
+
+    if (!isUserComment) {
+      const error = new Error(
+        "User Does Not Have Permission to Access Comment"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Performs Necessary Database Updates
+    await updateEventCommentDB(comment_id, text);
+    const event_comments = await getEventCommentsDB(event_id);
+    await updateCommentsInEventsDB(event_id, event_comments);
+
+    return res.status(200).json({
+      status: true,
+      message: "Comment Updated Successfully",
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      status: false,
+      message: error.message,
+    });
+  }
+};
+
+// Logic for Deleting a Comment on an Event
+export const deleteEventComment = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id, comment_id } = req.params;
+
+    // Verify User Permission to Access Event and Event Comment
+    const isUserEvent = await isValidUserEvent(user_id, event_id);
+
+    if (!isUserEvent) {
+      const error = new Error("User Does Not Have Access to this Event");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    const isUserComment = await isValidUserComment(user_id, comment_id);
+
+    if (!isUserComment) {
+      const error = new Error(
+        "User Does Not Have Permission to Access Comment"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Performs Necessary Database Updates
+    await deleteEventCommentDB(comment_id, text);
+    const event_comments = await getEventCommentsDB(event_id);
+    await updateCommentsInEventsDB(event_id, event_comments);
+
+    return res.status(200).json({
+      status: true,
+      message: "Comment Deleted Successfully",
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      status: false,
+      message: error.message,
     });
   }
 };
