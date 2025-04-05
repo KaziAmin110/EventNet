@@ -575,7 +575,7 @@ export const updateEventComment = async (req, res) => {
     }
 
     const isUserComment = await isValidUserComment(user_id, comment_id);
-    
+
     if (!isUserComment) {
       const error = new Error(
         "User Does Not Have Permission to Access Comment"
@@ -627,7 +627,7 @@ export const deleteEventComment = async (req, res) => {
     }
 
     // Performs Necessary Database Updates
-    await deleteEventCommentDB(comment_id, text);
+    await deleteEventCommentDB(comment_id);
     const event_comments = await getEventCommentsDB(event_id);
     await updateCommentsInEventsDB(event_id, event_comments);
 

@@ -580,7 +580,7 @@ export const updateEventCommentDB = async (comment_id, text) => {
 };
 
 // Updates Event Comment in Comment table
-export const deleteEventCommentDB = async (comment_id, text) => {
+export const deleteEventCommentDB = async (comment_id) => {
   try {
     const { data, error } = await supabase
       .from("comments")
