@@ -466,16 +466,4 @@ export const getEventInfoDB = async (event_id) => {
   }
 };
 
-// Checks whether a given number is in a valid format
-export const isValidPhoneFormat = (phone_num) => {
-  let isOnlyNumbers = /^\d+$/;
-  if (phone_num.length == 10 && isOnlyNumbers.test(phone_num)) return true;
 
-  return false;
-};
-
-// Checks whether a given email is in a valid format
-export const isValidEmailFormat = (email) => {
-  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
-  return emailRegex.test(email);
-};

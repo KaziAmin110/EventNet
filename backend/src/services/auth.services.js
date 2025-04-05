@@ -166,3 +166,24 @@ export const deleteResetTokenByAttribute = async (attribute, value) => {
     throw new Error(error.message);
   }
 };
+
+// Checks whether a given number is in a valid format
+export const isValidPhoneFormat = (phone_num) => {
+  let isOnlyNumbers = /^\d+$/;
+  if (phone_num.length == 10 && isOnlyNumbers.test(phone_num)) return true;
+
+  return false;
+};
+
+// Checks whether a given email is in a valid format
+export const isValidEmailFormat = (email) => {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  return emailRegex.test(email);
+};
+
+// Checks whether a password matches complexity criteria
+export const isValidPassword = (password) => {
+  const passwordRegex =
+    /^(?=.*[a-zA-Z0-9])(?=.*[!@#$%^&*()_+{}\[\]:;<>,.?/~\\-])(?=.{8,}).*$/;
+  return passwordRegex.test(password);
+};

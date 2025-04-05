@@ -21,9 +21,10 @@ import {
   removePasswordResetTokenDB,
   getResetTokenByAttribute,
   deleteResetTokenByAttribute,
+  isValidEmailFormat,
+  isValidPassword,
 } from "../services/auth.services.js";
 import redisClient from "../../config/redis.config.js";
-import { isValidEmailFormat } from "../services/events.services.js";
 
 // Allows for the Creation of a New User in the Supabase DB
 export const signUp = async (req, res) => {
@@ -36,6 +37,7 @@ export const signUp = async (req, res) => {
       throw error;
     }
 
+    // Check Wheter Email and Password Criterias are met
     if (!isValidEmailFormat(email)) {
       const error = new Error(
         "Emai must be in the format <string@string.string>"
@@ -43,6 +45,15 @@ export const signUp = async (req, res) => {
       error.statusCode = 400;
       throw error;
     }
+
+    if (!isValidPassword(password)) {
+      const error = new Error(
+        "Password must meet the following requirements: 1) 8 characters 2)Atleast 1 special character 3)Atleast One alphanumeric character"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
     // Querying the database to see if the given email exists in the database
     const existingUser = await getUserByAttribute("email", email);
 

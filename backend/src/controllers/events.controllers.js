@@ -12,11 +12,10 @@ import {
   createUserRating,
   createNewAverageRatingToEvents,
   getEventInfoDB,
-  isValidEmailFormat,
-  isValidPhoneFormat,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
+import { isValidEmailFormat, isValidPhoneFormat } from "../services/auth.services.js";
 
 // Logic for Creating a Private University Event
 export const createUniversityEvent = async (req, res) => {
