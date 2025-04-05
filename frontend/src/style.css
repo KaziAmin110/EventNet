@@ -1,134 +1,121 @@
-
-*{
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body{
-  font-family: 'Arial', sans-serif;
-}
-
-/*Start of styling for sign in/sign up page*/
-#index-page{
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background-image:url(https://as2.ftcdn.net/v2/jpg/05/23/36/39/1000_F_523363994_yxxJYDpKFxeWPxPPNre4fwfVqqALwbbM.jpg);
-  background-position: bottom right;
-  background-repeat: no-repeat;
-  background-size: cover;
-
-}
-
-.wrapper{
-  display: flex;
-  justify-content: center; 
-  border: 1px solid black;
- 
-  background: transparent;
-  backdrop-filter: blur(20px);
-  
-  border-radius: 10px;
-  text-align: center;
-  box-shadow: 0px 5px 15px 5px black;
-
-}
-.sign-in{
-  border-right: 1px solid black;
-}
-
-.wrapper .input-box{
-
-  width: 200px;
-  height: 30px;
-  margin: 10px;
- 
-}
-
-.wrapper input {
-
-  width: 100%;
-  height: 100%;
-  border: none;
-  outline: none;
-  background: transparent;
-  
-  border: 1px solid black;
-  border-radius: 40px;
-  padding: 10px
-  
-}
-
-.input-box input::placeholder{
-  color: black;
-}
-
-.wrapper .btn{
-  width: 200px;
-  height: 30px;
-  box-sizing: border-box;
-  margin: 0px 5px 5px 5px;
-  padding: 1px;
-  border: 1px solid transparent;
-  border-radius: 40px;
-  background: #add8e6;
-}
-
-.btn input{
-  margin: 5px;
-}
-
-.btn:hover{
-  border: 1px solid black;
-}
-.btn:active{
-
-  background-color: #90d8e6;
-  border: 1px solid black;
-  
-}
-
-p {
-  position: absolute;
-  width: 20px;
-  background: #add8e6;
-  border-radius: 10px;
-  outline: 1px solid black;
-  translate: -0.5px 10px;  
-  
-}
-
-/*Start of styling for home page*/
-
-/* Global reset for all elements */
+/* Global Reset */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Global font family */
 body {
   font-family: 'Arial', sans-serif;
 }
 
-/* Header Styling for Home Page */
+/* Sign In/Sign Up Page */
+#index-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background-image: url(https://as2.ftcdn.net/v2/jpg/05/23/36/39/1000_F_523363994_yxxJYDpKFxeWPxPPNre4fwfVqqALwbbM.jpg);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.auth-container {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(15px);
+  padding: 2rem;
+  border-radius: 16px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
+  max-width: 350px;
+  width: 90%;
+  margin: 2rem;
+  text-align: center;
+}
+
+.tab-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.tab {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  cursor: pointer;
+  background-color: #eee;
+  border-radius: 8px 8px 0 0;
+  transition: background-color 0.3s ease;
+}
+
+.tab.active {
+  background-color: #add8e6;
+  font-weight: bold;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.auth-form input {
+  margin: 10px 0;
+  padding: 10px;
+  border: 1px solid black;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+}
+
+.auth-form button.btn {
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #ADD8E6;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.auth-form button.btn:hover {
+  background-color: #90d8e6;
+}
+
+.hidden {
+  display: none;
+}
+
+.guest-btn {
+  margin-top: 1.5rem;
+  background: none;
+  border: none;
+}
+
+.guest-btn a {
+  color: #0077cc;
+  text-decoration: underline;
+  font-size: 0.9rem;
+}
+
+/* Home Page */
 #home header {
-  background-color: black; /* Black background for header */
-  color: white; /* White text color */
-  font-size: 15px; /* Large font for the school name */
-  padding: 30px; /* Add padding to create space around the text */
+  background-color: black;
+  color: white;
+  font-size: 15px;
+  padding: 30px;
 }
+
 #home header h1 {
- text-align: center;
+  text-align: center;
 }
+
 #home span {
   text-align: right;
-  font-size: 20px; /* Smaller font for the tagline */
-  display: block; /* Display the tagline on a new line */
+  font-size: 20px;
+  display: block;
 }
+
 #home input {
   font-size: 15px;
   width: auto;
@@ -136,9 +123,8 @@ body {
   border: 1px solid black;
 }
 
-/* Taskbar Styling */
 nav.taskbar {
-  background-color: #F3EB12; /* Yellow background */
+  background-color: #F3EB12;
   padding: 15px;
   text-align: center;
   width: 100%;
@@ -157,17 +143,4 @@ nav.taskbar a {
 nav.taskbar a:hover {
   background-color: black;
   color: white;
-}
-
-/* Styling the buttons and links */
-.btn {
-  background-color: #ADD8E6;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 40px;
-  cursor: pointer;
-}
-
-.btn:hover {
-  background-color: #90d8e6;
 }

@@ -1,56 +1,85 @@
-<!-- index.html -->
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="src/style.css">
-  <title>College Events</title>
+  <link rel="stylesheet" href="src/style.css" />
+  <title>EventNet | Sign In</title>
 </head>
 
 <body id="index-page">
-  <div class="wrapper">
+  <div class="auth-container">
+    <div class="tab-buttons">
+      <button id="signInTab" class="tab active">Sign In</button>
+      <button id="signUpTab" class="tab">Sign Up</button>
+    </div>
 
-    <!-- Sign in form-->
+    <!-- Sign In Form -->
     <div class="sign-in">
-      <form action="">
-        <h1>Sign In</h1>
+      <form id="signInForm" class="auth-form">
+        <h2>Welcome Back</h2>
         <div class="input-box">
-          <input type="email" placeholder="E-mail" required>
+          <input type="email" name="email" placeholder="E-mail" required />
         </div>
         <div class="input-box">
-          <input type="password" placeholder="Password" required>
+          <input type="password" name="password" placeholder="Password" required />
         </div>
         <button type="submit" class="btn">Login</button>
       </form>
     </div>
-    <p>or</p>
 
-    <!-- Sign up form-->
-    <div class="register">
-      <form action="">
-        <h1>Sign Up</h1>
+    <!-- Sign Up Form -->
+    <div class="register hidden">
+      <form id="signUpForm" class="auth-form">
+        <h2>Create Account</h2>
         <div class="input-box">
-          <input type="name" placeholder="Name" required>
+          <input type="text" name="name" placeholder="Full Name" required />
+          <p class="error-msg" id="name-error" style="display: none; color: red; font-size: 0.8rem;"></p>
         </div>
         <div class="input-box">
-          <input type="email" placeholder="E-mail" required>
+          <input type="email" name="email" placeholder="E-mail" required />
+          <p class="error-msg" id="email-error" style="display: none; color: red; font-size: 0.8rem;"></p>
         </div>
         <div class="input-box">
-          <input type="password" placeholder="Password" required>
+          <input type="password" name="password" placeholder="Password" required />
+          <p class="error-msg" id="password-error" style="display: none; color: red; font-size: 0.8rem;"></p>
         </div>
         <button type="submit" class="btn">Register</button>
       </form>
     </div>
 
+    <button class="guest-btn">
+      <a href="home.html">Continue as Guest</a>
+    </button>
   </div>
 
-  <!-- TEMP -->
-  <Button><a href="home.html"> Continue as a guest</a></Button>
-
-  <!-- Include main.js as a module -->
   <script type="module" src="src/main.js"></script>
+  <script>
+    // Toggle Forms
+    const signInTab = document.getElementById("signInTab");
+    const signUpTab = document.getElementById("signUpTab");
+    const signInFormBox = document.querySelector(".sign-in");
+    const signUpFormBox = document.querySelector(".register");
+
+    console.log("Page loaded. Initializing tab functionality...");
+
+    signInTab.onclick = () => {
+      console.log("Switched to Sign In tab");
+      signInTab.classList.add("active");
+      signUpTab.classList.remove("active");
+      signInFormBox.classList.remove("hidden");
+      signUpFormBox.classList.add("hidden");
+    };
+
+    signUpTab.onclick = () => {
+      console.log("Switched to Sign Up tab");
+      signUpTab.classList.add("active");
+      signInTab.classList.remove("active");
+      signUpFormBox.classList.remove("hidden");
+      signInFormBox.classList.add("hidden");
+    };
+  </script>
 </body>
 
 </html>

@@ -12,7 +12,7 @@ export async function signUp(name, email, password) {
     setAccessToken(response.data.accessToken);
     return response.data;
   } catch (error) {
-    console.error("Sign In Error: ", error);
+    console.error("Sign Up Error: ", error.response?.data || error.message || error);
     throw error;
   }
 }
