@@ -1,6 +1,14 @@
+// profile.js
 import api from "./api/axiosInstance.js";
 
-// Load user info from backend using axiosInstance
+// 🔒 Block access if no token is present
+const token = localStorage.getItem("accessToken");
+if (!token) {
+  console.warn("No token found — redirecting to login.");
+  window.location.href = "index.html";
+}
+
+// Load user info from backend
 async function loadUserInfo() {
   try {
     const res = await api.get("/users/me");
@@ -10,12 +18,14 @@ async function loadUserInfo() {
     document.getElementById("profile-email").textContent = user.email;
     document.getElementById("profile-role").textContent = user.role || "student";
 
+    localStorage.setItem("userId", user.user_id);
+    localStorage.setItem("userRole", user.role);
     fetchUserExtras(user.user_id);
   } catch (err) {
     console.error("Error fetching user info:", err);
+    window.location.href = "index.html";
   }
 }
-
 
 // Fetch university and RSO info for the profile
 async function fetchUserExtras(userId) {
@@ -24,11 +34,10 @@ async function fetchUserExtras(userId) {
     const data = res.data;
     console.log("User extras response:", data);
 
-    // Check if the response format includes the info inside a data field
-    const university = data.data?.university || data.university || "Unavailable";
-    const rsos = data.data?.rsos || data.rsos || [];
+    const university = data.data?.university || "Unavailable";
+    const rsos = data.data?.rsos || [];
 
-    document.getElementById("profile-university").textContent = uni_name || "N/A";
+    document.getElementById("profile-university").textContent = university;
     document.getElementById("profile-rsos").textContent = rsos.length ? rsos.join(", ") : "None";
   } catch (err) {
     console.error("Error fetching profile extras:", err);
@@ -41,7 +50,7 @@ async function fetchUserExtras(userId) {
 const logoutBtn = document.getElementById("logout-button");
 logoutBtn.addEventListener("click", () => {
   localStorage.clear();
-  window.location.href = "index.html";  
+  window.location.href = "index.html";
 });
 
 // Start loading

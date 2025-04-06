@@ -16,13 +16,14 @@ async function fetchUniversities() {
   }
 
   try {
-    const res = await fetch("http://localhost:5500/api/universities?page=1", {
+    const res = await fetch("http://localhost:5500/api/universities/joinable?page=1", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
       }
     });
+    
 
     const result = await res.json();
     console.log("Universities API response:", result);
