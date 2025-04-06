@@ -264,8 +264,6 @@ export const getJoinableUniversities = async (req, res) => {
     const uni_data = await getJoinableUniversitiesDB(
       user_id,
       user.email,
-      start,
-      end
     );
 
     return res.status(200).json({

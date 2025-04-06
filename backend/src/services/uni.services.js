@@ -448,8 +448,6 @@ export const getUserUniversitiesDB = async (user_id, start, end) => {
 export const getJoinableUniversitiesDB = async (
   user_id,
   user_email,
-  start,
-  end
 ) => {
   try {
     // Fetch data from Supabase if not found in cache
