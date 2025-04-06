@@ -51,6 +51,7 @@ export const joinUniversityDB = async (user_id, uni_id, name, email) => {
     // Removes Cache If they Exist
     await redisClient.del(`university:student:${user_id}:${uni_id}`);
     await redisClient.del(`user_unis:${user_id}`);
+    await redisClient.del(`joinable_unis:${user_id}`);
 
     if (error) {
       throw new Error();
@@ -196,6 +197,7 @@ export const isUniversityAdmin = async (user_id, uni_id) => {
   }
 };
 
+// Checks if a University With a given uni_id Exists in the Database
 export const isValidUniversity = async (uni_id) => {
   try {
     // Query Supabase if not found in cache
@@ -215,7 +217,7 @@ export const isValidUniversity = async (uni_id) => {
   }
 };
 
-// Get University by Attribute
+// Checks to see if a University_name is already taken in the Database
 export const checkUniversityExistence = async (uni_name) => {
   try {
     const cacheKey = `uni_existence:${uni_name}`;
