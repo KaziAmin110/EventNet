@@ -16,7 +16,7 @@ import {
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
-  getUniBaseInfo,
+  isValidUniversity,
   getStudentByAttribute,
 } from "../services/uni.services.js";
 import {
@@ -40,7 +40,7 @@ export const createRSO = async (req, res, next) => {
 
     const [university, isStudent, isPending, user, adminResult] =
       await Promise.all([
-        getUniBaseInfo("uni_id", uni_id),
+        isValidUniversity("uni_id", uni_id),
         isUniversityStudent(user_id, uni_id),
         isRSOAlreadyPending(rso_name, uni_id),
         getUserByAttribute("id", user_id),

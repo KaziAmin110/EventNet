@@ -1,7 +1,7 @@
 import { supabase } from "../database/db.js";
 import {
   createUniversityDB,
-  getUniBaseInfo,
+  isValidUniversity,
   getUniAllInfo,
   joinUniversityDB,
   getUniPhotoUrl,
@@ -10,13 +10,14 @@ import {
   updateUniversityStudents,
   leaveUniversityDB,
   getUserUniversitiesDB,
+  getJoinableUniversitiesDB,
   leaveUniRsosDB,
   checkUniversityExistence,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
 // Allows SuperAdmin to Create a new University Profile using the uni_name
-export const createUniversityProfile = async (req, res, next) => {
+export const createUniversityProfile = async (req, res) => {
   try {
     // Get User-Id From Access Token Using Bearer
     const user_id = req.user;
@@ -87,7 +88,7 @@ export const createUniversityProfile = async (req, res, next) => {
 };
 
 // Allows User to join a University
-export const joinUniversity = async (req, res, next) => {
+export const joinUniversity = async (req, res) => {
   try {
     // Get user_id from refresh token
     const user_id = req.user;
@@ -95,7 +96,7 @@ export const joinUniversity = async (req, res, next) => {
 
     const [user, university, isStudent] = await Promise.all([
       getUserByAttribute("id", user_id),
-      getUniBaseInfo("uni_id", uni_id),
+      isValidUniversity("uni_id", uni_id),
       isUniversityStudent(user_id, uni_id),
     ]);
 
@@ -153,7 +154,7 @@ export const joinUniversity = async (req, res, next) => {
 };
 
 // Returns a list of all universities. has optional page parameter
-export const getAllUniversities = async (req, res, next) => {
+export const getAllUniversities = async (req, res) => {
   try {
     // Extract Page Number from request or default to 1
     const page = parseInt(req.body.page) || 1;
@@ -190,7 +191,7 @@ export const getAllUniversities = async (req, res, next) => {
 };
 
 // Returns information regarding one university
-export const getUniversityInfo = async (req, res, next) => {
+export const getUniversityInfo = async (req, res) => {
   try {
     const uni_id = req.params.uni_id;
     const university = await getUniAllInfo("uni_id", uni_id);
@@ -223,16 +224,29 @@ export const getUniversityInfo = async (req, res, next) => {
 };
 
 // Gets All Universities that a User is a student of
-export const getUserUniversities = async (req, res, next) => {
+export const getUserUniversities = async (req, res) => {
   try {
     const user_id = req.user;
     const uni_data = await getUserUniversitiesDB(user_id);
-    const uni_ids = uni_data.map((uni) => uni.uni_id);
-    let uni_details = [];
 
-    if (uni_ids.length > 0) {
-      uni_details = await getUniBaseInfo("uni_id", uni_ids);
-    }
+    return res.status(200).json({
+      success: true,
+      data: uni_data,
+      message: "User RSO Details Returned Successfully",
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Gets All Universities that a User can Join
+export const getJoinableUniversities = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const uni_data = await getJoinableUniversitiesDB(user_id);
+
     return res.status(200).json({
       success: true,
       data: uni_details,
@@ -246,7 +260,7 @@ export const getUserUniversities = async (req, res, next) => {
 };
 
 // Allows User to leave a University and makes the necessary changes
-export const leaveUniversity = async (req, res, next) => {
+export const leaveUniversity = async (req, res) => {
   try {
     // Get user_id from refresh token
     const user_id = req.user;
@@ -254,7 +268,7 @@ export const leaveUniversity = async (req, res, next) => {
 
     const [user, university, isStudent] = await Promise.all([
       getUserByAttribute("id", user_id),
-      getUniBaseInfo("uni_id", uni_id),
+      isValidUniversity("uni_id", uni_id),
       isUniversityStudent(user_id, uni_id),
     ]);
 

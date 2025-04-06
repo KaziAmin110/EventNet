@@ -195,34 +195,44 @@ export const isUniversityAdmin = async (user_id, uni_id) => {
   }
 };
 
-// Get Name, num_students and domain information regarding University by Attribute
-export const getUniBaseInfo = async (attribute, value) => {
+export const isValidUniversity = async (uni_id) => {
   try {
-    const cacheKey = `uni_base:${attribute}:${value}`;
+    // Query Supabase if not found in cache
+    const { data, error } = await supabase
+      .from("universities")
+      .select("uni_id")
+      .eq("uni_id", uni_id)
+      .single();
+
+    if (data) {
+      return true;
+    }
+
+    return false;
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// Get University by Attribute
+export const checkUniversityExistence = async (uni_name) => {
+  try {
+    const cacheKey = `uni_existence:${uni_name}`;
     const cachedUni = await redisClient.get(cacheKey);
 
     if (cachedUni) {
       return JSON.parse(cachedUni);
     }
 
-    let query = supabase
+    const { data, error } = await supabase
       .from("university")
-      .select("uni_id, uni_name, num_students, domain");
+      .select("uni_id")
+      .eq("uni_name", uni_name)
+      .single();
 
-    if (Array.isArray(value)) {
-      query = query.in(attribute, value);
-    } else {
-      query = query.eq(attribute, value);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
-      throw new Error(error.message);
-    }
     await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
-    console.log(data);
-    return data;
+
+    return !!data;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -262,30 +272,6 @@ export const getUniAllInfo = async (attribute, value) => {
 
     // No University Associated with Given Attribute
     return false;
-  } catch (error) {
-    throw new Error(error.message);
-  }
-};
-
-// Get University by Attribute
-export const checkUniversityExistence = async (uni_name) => {
-  try {
-    const cacheKey = `uni_existence:${uni_name}`;
-    const cachedUni = await redisClient.get(cacheKey);
-
-    if (cachedUni) {
-      return JSON.parse(cachedUni);
-    }
-
-    const { data, error } = await supabase
-      .from("university")
-      .select("uni_id")
-      .eq("uni_name", uni_name)
-      .single();
-
-    await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
-
-    return !!data;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -418,23 +404,22 @@ export const getStudentByAttribute = async (email, uni_id) => {
   }
 };
 
-// Gets all Universities that a User is a student of
+// Queries all Universities that a User is a student of
 export const getUserUniversitiesDB = async (user_id) => {
   try {
-    // Generate cache key based on user_id
+    // // Generate cache key based on user_id
     const cacheKey = `user_unis:${user_id}`;
 
-    // Check if the user RSO data is cached in Redis
+    // // Check if the user RSO data is cached in Redis
     const cachedRsos = await redisClient.get(cacheKey);
     if (cachedRsos !== null) {
       return JSON.parse(cachedRsos); // Return cached data
     }
 
     // Fetch data from Supabase if not found in cache
-    const { data, error } = await supabase
-      .from("student")
-      .select("uni_id")
-      .eq("user_id", user_id);
+    const { data, error } = await supabase.rpc("get_joinable_universities", {
+      user_id_input: user_id,
+    });
 
     if (error) {
       throw new Error(error.message);
@@ -442,6 +427,38 @@ export const getUserUniversitiesDB = async (user_id) => {
 
     // Cache the RSOs data in Redis with 5 minutes expiration
     await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
+
+    return data || [];
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// Queries all Universities that a User Can Join from DB
+export const getJoinableUniversitiesDB = async (user_id) => {
+  try {
+    // // Generate cache key based on user_id
+    // const cacheKey = `joinable_unis:${user_id}`;
+
+    // // Check if the user RSO data is cached in Redis
+    // const cachedRsos = await redisClient.get(cacheKey);
+    // if (cachedRsos !== null) {
+    //   return JSON.parse(cachedRsos); // Return cached data
+    // }
+
+    // Fetch data from Supabase if not found in cache
+    const { data, error } = await supabase
+      .from("student")
+      .select("uni_id, uni_name, description, pictures, num_students")
+      .neq("user_id", user_id);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    console.log(data);
+    // // Cache the RSOs data in Redis with 5 minutes expiration
+    // await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
 
     return data || [];
   } catch (err) {
