@@ -279,7 +279,7 @@ export const getJoinableUniversities = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: uni_data.data,
+      data: uni_data.data || [],
       pagination: {
         totalRecords: uni_data.count,
         totalPages: Math.ceil(uni_data.count / pageSize),
