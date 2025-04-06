@@ -48,7 +48,7 @@ export const signUp = async (req, res) => {
 
     if (!isValidPassword(password)) {
       const error = new Error(
-        "Password must meet the following requirements: 1) 8 characters 2)Atleast 1 special character 3)Atleast One alphanumeric character"
+        `Password must meet the following requirements: Atleast 8 characters : Atleast One Special Character : Atleast One Alphanumeric Character`
       );
       error.statusCode = 400;
       throw error;
@@ -251,6 +251,14 @@ export const resetPassword = async (req, res, next) => {
 
     if (!password) {
       const error = new Error("Password Field Not Present in API request");
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!isValidPassword(password)) {
+      const error = new Error(
+        "Password must meet the following requirements: 8 characters : Atleast One Special Character : Atleast One Alphanumeric Character"
+      );
       error.statusCode = 400;
       throw error;
     }
