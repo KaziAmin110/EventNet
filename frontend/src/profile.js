@@ -1,24 +1,35 @@
-// src/profile.js
+import api from "./api/axiosInstance.js";
 
-// Load basic user info from localStorage
-const name = localStorage.getItem("name") || "Unknown";
-const email = localStorage.getItem("email") || "Unknown";
-const role = localStorage.getItem("userRole") || "student";
-const userId = localStorage.getItem("userId");
+// Load user info from backend using axiosInstance
+async function loadUserInfo() {
+  try {
+    const res = await api.get("/users/me");
+    const user = res.data.data;
 
-document.getElementById("profile-name").textContent = name;
-document.getElementById("profile-email").textContent = email;
-document.getElementById("profile-role").textContent = role;
+    document.getElementById("profile-name").textContent = user.name;
+    document.getElementById("profile-email").textContent = user.email;
+    document.getElementById("profile-role").textContent = user.role || "student";
+
+    fetchUserExtras(user.user_id);
+  } catch (err) {
+    console.error("Error fetching user info:", err);
+  }
+}
+
 
 // Fetch university and RSO info for the profile
-async function fetchUserExtras() {
+async function fetchUserExtras(userId) {
   try {
-    const res = await fetch(`http://localhost:5500/api/users/${userId}/extras`); // route needs to be implemented in backend
-    const data = await res.json();
-    if (data.success) {
-      document.getElementById("profile-university").textContent = data.university || "N/A";
-      document.getElementById("profile-rsos").textContent = data.rsos?.join(", ") || "None";
-    }
+    const res = await api.get(`/users/${userId}/extras`);
+    const data = res.data;
+    console.log("User extras response:", data);
+
+    // Check if the response format includes the info inside a data field
+    const university = data.data?.university || data.university || "Unavailable";
+    const rsos = data.data?.rsos || data.rsos || [];
+
+    document.getElementById("profile-university").textContent = uni_name || "N/A";
+    document.getElementById("profile-rsos").textContent = rsos.length ? rsos.join(", ") : "None";
   } catch (err) {
     console.error("Error fetching profile extras:", err);
     document.getElementById("profile-university").textContent = "Unavailable";
@@ -26,41 +37,12 @@ async function fetchUserExtras() {
   }
 }
 
-if (userId) fetchUserExtras();
-
-// Handle super admin promotion
-const promoteBtn = document.getElementById("superadmin-promote");
-const result = document.getElementById("superadmin-result");
-
-promoteBtn.addEventListener("click", async () => {
-  const secret_token = document.getElementById("superadmin-secret").value;
-  if (!secret_token || !userId) return;
-
-  try {
-    const res = await fetch("http://localhost:5500/api/users/roles/super_admin", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ user_id: userId, secret_token })
-    });
-
-    const data = await res.json();
-    result.textContent = data.message;
-    result.style.color = data.success ? "green" : "red";
-
-    if (data.success) {
-      localStorage.setItem("userRole", "super_admin");
-      document.getElementById("profile-role").textContent = "super_admin";
-    }
-  } catch (err) {
-    console.error("Promotion failed:", err);
-    result.textContent = "Server error";
-    result.style.color = "red";
-  }
-});
-
 // Log out
 const logoutBtn = document.getElementById("logout-button");
 logoutBtn.addEventListener("click", () => {
   localStorage.clear();
-  window.location.href = "index.html";
+  window.location.href = "index.html";  
 });
+
+// Start loading
+loadUserInfo();

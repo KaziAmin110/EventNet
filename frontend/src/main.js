@@ -1,4 +1,3 @@
-// main.js
 console.log("main.js loaded");
 
 import { signUp, signIn } from "./auth.js";
@@ -80,7 +79,7 @@ if (signUpForm) {
     try {
       const result = await signUp(name, email, password);
       console.log("Sign up result:", result);
-      window.location.href = "home.html";
+      window.location.href = "index.html";
     } catch (error) {
       console.error("Sign up failed:", error);
       const message = error.response?.data?.error || "An unknown error occurred.";

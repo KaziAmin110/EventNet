@@ -1,6 +1,16 @@
 // home.js
+const universityId = localStorage.getItem("universityId");
 
-// Show/hide profile dropdown menu
+// Instead of redirecting, show a prompt on the home page
+if (!universityId) {
+  const prompt = document.getElementById("university-prompt");
+  if (prompt) prompt.style.display = "block";
+} else {
+  // Continue loading home content as normal
+  console.log("User has joined university:", universityId);
+}
+
+
 const profileButton = document.getElementById("profile-button");
 const profileMenu = document.getElementById("profile-menu");
 
