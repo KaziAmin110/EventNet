@@ -2,39 +2,62 @@
 <html lang="en">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventNet</title>
-    <link rel="stylesheet" href="src/style.css">
-    <script type="module" src="home.js" defer></script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="src/style.css" />
+  <title>EventNet | Home</title>
 </head>
 
 <body id="home">
+  <header>
+    <div class="top-bar">
+      <h1>EventNet</h1>
 
-    <!-- Header with School Name -->
-    <header>
-        <h1>Find Events Near You</h1>
-        <span class="profile">(P)</span> <!-- Profile icon -->
-        <input type="text" id="search-bar" placeholder="SEARCH">
-    </header>
+      <input type="text" id="search-bar" placeholder="SEARCH" />
 
-    <!-- Taskbar -->
-    <nav class="taskbar">
+      <div class="profile-icon" id="profile-button">
+        <img src="images/profile-icon.jpg" alt="Profile" />
+      </div>
 
-        <a href="home.html">HOME</a>
-        <a href="clubs.html">CLUBS</a>
-        <a href="events.html">EVENTS</a>
-        <a href="contact.html">CONTACT</a>
+      <div class="dropdown-content" id="profile-menu">
+        <a href="#">Profile</a>
+        <a href="#">Notifications</a>
+        <a href="#">Messages</a>
         <button class="sign_out_btn">Log Out</button>
-    </nav>
+      </div>
+    </div>
+  </header>
 
-    <!-- Club Events Section -->
-    <section class="events">
-        <h3>Your Clubs (RSO only events)</h3>
+  <nav class="taskbar">
+    <a href="#">Home</a>
+    <a href="#">RSO Events</a>
+    <a href="#">Public Events</a>
+    <a href="#">University Events</a>
+    <a href="#">My RSOs</a>
+  </nav>
 
-        <h3>Events (private/public events)</h3>
+  <main>
+    <section>
+      <h2>Upcoming Public Events</h2>
+      <div class="event-card">
+        <!-- Public event content -->
+      </div>
     </section>
 
+    <section>
+      <h2>Upcoming RSO Events</h2>
+      <!-- Event Cards dynamically inserted here -->
+    </section>
+
+    <section>
+      <h2>Upcoming University Events</h2>
+      <!-- Event Cards dynamically inserted here -->
+    </section>
+
+
+  </main>
+
+  <script type="module" src="home.js"></script>
 </body>
 
 </html>
