@@ -200,7 +200,7 @@ export const isValidUniversity = async (uni_id) => {
   try {
     // Query Supabase if not found in cache
     const { data, error } = await supabase
-      .from("universities")
+      .from("university")
       .select("uni_id")
       .eq("uni_id", uni_id)
       .single();
@@ -408,7 +408,7 @@ export const getStudentByAttribute = async (email, uni_id) => {
 // Queries all Universities that a User is a student of
 export const getUserUniversitiesDB = async (user_id, start, end) => {
   try {
-    // // // Generate cache key based on user_id
+    // Generate cache key based on user_id
     const cacheKey = `user_unis:${user_id}`;
 
     // // // Check if the user RSO data is cached in Redis
@@ -448,20 +448,38 @@ export const getUserUniversitiesDB = async (user_id, start, end) => {
 export const getJoinableUniversitiesDB = async (
   user_id,
   user_email,
+  start,
+  end
 ) => {
   try {
+    // Generate cache key based on user_id
+    const cacheKey = `joinable_unis:${user_id}`;
+
+    // Check if the user RSO data is cached in Redis
+    const cachedRsos = await redisClient.get(cacheKey);
+    if (cachedRsos !== null) {
+      return JSON.parse(cachedRsos); // Return cached data
+    }
+
     // Fetch data from Supabase if not found in cache
-    const { data, error, count } = await supabase.rpc(
-      "get_joinable_universities",
-      {
-        user_id_input: user_id,
-        user_domain_input: user_email.split("@")[1],
-      }
-    );
+    const { data, error, count } = await supabase
+      .rpc(
+        "get_joinable_universities",
+        {
+          user_id_input: user_id,
+          user_domain_input: user_email.split("@")[1],
+        },
+        { count: "exact" }
+      )
+      .range(start, end);
 
     if (error) {
       throw new Error(error.message);
     }
+
+    // // Cache the RSOs data in Redis with 5 minutes expiration
+    await redisClient.set(cacheKey, JSON.stringify({ data, count }), "EX", 300); // 5 minutes expiration
+
     return {
       data: data || [],
       count: count,
