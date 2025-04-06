@@ -1,4 +1,4 @@
-# 🎓 College Events Website
+# 🎓 Eventify
 
 ## 📌 Project Description  
 
