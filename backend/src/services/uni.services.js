@@ -78,6 +78,7 @@ export const leaveUniversityDB = async (user_id, uni_id) => {
     // Removes Cache If they Exist
     await redisClient.del(`university:student:${user_id}:${uni_id}`);
     await redisClient.del(`user_unis:${user_id}`);
+    await redisClient.del(`joinable_unis:${user_id}`);
 
     return { message: "Student Removed Successfully", data, status: 200 };
   } catch (error) {
@@ -405,10 +406,54 @@ export const getStudentByAttribute = async (email, uni_id) => {
 };
 
 // Queries all Universities that a User is a student of
-export const getUserUniversitiesDB = async (user_id) => {
+export const getUserUniversitiesDB = async (user_id, start, end) => {
+  try {
+    // // // Generate cache key based on user_id
+    const cacheKey = `user_unis:${user_id}`;
+
+    // // // Check if the user RSO data is cached in Redis
+    const cachedRsos = await redisClient.get(cacheKey);
+    if (cachedRsos !== null) {
+      return JSON.parse(cachedRsos); // Return cached data
+    }
+
+    // Fetch data from Supabase if not found in cache
+    const { data, error, count } = await supabase
+      .rpc(
+        "get_joined_universities",
+        {
+          user_id_input: user_id,
+        },
+        { count: "exact" }
+      )
+      .range(start, end);
+
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    // // Cache the RSOs data in Redis with 5 minutes expiration
+    await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
+
+    return {
+      data: data || [],
+      count: count,
+    };
+  } catch (err) {
+    throw new Error(err.message);
+  }
+};
+
+// Queries all Universities that a User Can Join from DB
+export const getJoinableUniversitiesDB = async (
+  user_id,
+  user_email,
+  start,
+  end
+) => {
   try {
     // // Generate cache key based on user_id
-    const cacheKey = `user_unis:${user_id}`;
+    const cacheKey = `joinable_unis:${user_id}`;
 
     // // Check if the user RSO data is cached in Redis
     const cachedRsos = await redisClient.get(cacheKey);
@@ -417,48 +462,27 @@ export const getUserUniversitiesDB = async (user_id) => {
     }
 
     // Fetch data from Supabase if not found in cache
-    const { data, error } = await supabase.rpc("get_joined_universities", {
-      user_id_input: user_id,
-    });
-
-    if (error) {
-      throw new Error(error.message);
-    }
-
-    // Cache the RSOs data in Redis with 5 minutes expiration
-    await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
-
-    return data || [];
-  } catch (err) {
-    throw new Error(err.message);
-  }
-};
-
-// Queries all Universities that a User Can Join from DB
-export const getJoinableUniversitiesDB = async (user_id, user_email) => {
-  try {
-    // // Generate cache key based on user_id
-    // const cacheKey = `joinable_unis:${user_id}`;
-
-    // // Check if the user RSO data is cached in Redis
-    // const cachedRsos = await redisClient.get(cacheKey);
-    // if (cachedRsos !== null) {
-    //   return JSON.parse(cachedRsos); // Return cached data
-    // }
-
-    // Fetch data from Supabase if not found in cache
-    const { data, error } = await supabase.rpc("get_joinable_universities", {
-      user_id_input: user_id,
-      user_domain_input: user_email.split("@")[1],
-    });
+    const { data, error, count } = await supabase
+      .rpc(
+        "get_joinable_universities",
+        {
+          user_id_input: user_id,
+          user_domain_input: user_email.split("@")[1],
+        },
+        { count: "exact" }
+      )
+      .range(start, end);
 
     if (error) {
       throw new Error(error.message);
     }
     // // Cache the RSOs data in Redis with 5 minutes expiration
-    // await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
+    await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
 
-    return data || [];
+    return {
+      data: data || [],
+      count: count,
+    };
   } catch (err) {
     throw new Error(err.message);
   }

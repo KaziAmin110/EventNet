@@ -227,12 +227,27 @@ export const getUniversityInfo = async (req, res) => {
 export const getUserUniversities = async (req, res) => {
   try {
     const user_id = req.user;
-    const uni_data = await getUserUniversitiesDB(user_id);
+
+    // Extract Page Number from request or default to 1
+    const page = parseInt(req.body.page) || 1;
+    const pageSize = 10;
+
+    // Calculation of Start and End Range for Pagination
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    const uni_data = await getUserUniversitiesDB(user_id, start, end);
 
     return res.status(200).json({
       success: true,
-      data: uni_data,
-      message: "User RSO Details Returned Successfully",
+      data: uni_data.data || [],
+      pagination: {
+        totalRecords: uni_data.count,
+        totalPages: Math.ceil(uni_data.count / pageSize),
+        currentPage: page,
+        pageSize,
+      },
+      message: "User Joined Universities Returned Successfully",
     });
   } catch (err) {
     return res
@@ -245,12 +260,32 @@ export const getUserUniversities = async (req, res) => {
 export const getJoinableUniversities = async (req, res) => {
   try {
     const user_id = req.user;
+
+    // Extract Page Number from request or default to 1
+    const page = parseInt(req.body.page) || 1;
+    const pageSize = 10;
+
+    // Calculation of Start and End Range for Pagination
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
     const user = await getUserByAttribute("id", user_id);
-    const uni_data = await getJoinableUniversitiesDB(user_id, user.email);
+    const uni_data = await getJoinableUniversitiesDB(
+      user_id,
+      user.email,
+      start,
+      end
+    );
 
     return res.status(200).json({
       success: true,
-      data: uni_data,
+      data: uni_data.data,
+      pagination: {
+        totalRecords: uni_data.count,
+        totalPages: Math.ceil(uni_data.count / pageSize),
+        currentPage: page,
+        pageSize,
+      },
       message: "User Joinable Universities Returned Successfully",
     });
   } catch (err) {
