@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="src/style.css" />
+  <title>EventNet | Profile</title>
+</head>
+<body id="profile-page">
+  <header>
+    <div class="top-bar">
+      <h1>My Profile</h1>
+    </div>
+  </header>
+
+  <main class="profile-container">
+    <section>
+      <h2>Account Info</h2>
+      <p><strong>Name:</strong> <span id="profile-name"></span></p>
+      <p><strong>Email:</strong> <span id="profile-email"></span></p>
+      <p><strong>Role:</strong> <span id="profile-role"></span></p>
+      <p><strong>University:</strong> <span id="profile-university"></span></p>
+      <p><strong>RSOs Joined:</strong> <span id="profile-rsos"></span></p>
+    </section>
+    
+    <section>
+      <h2>Access</h2>
+      <p>Have the credentials to elevate your role?</p>
+      <a href="promote.html">
+        <button id="superadmin-link">Become a Super Admin</button>
+      </a>
+    </section>
+    
+    <section>
+      <button id="logout-button">Log Out</button>
+    </section>
+    
+  </main>
+
+  <script type="module" src="src/profile.js"></script>
+</body>
+</html>

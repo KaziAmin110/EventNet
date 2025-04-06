@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="src/style.css" />
+  <title>Become a Super Admin</title>
+</head>
+
+<body id="promote-page">
+  <header>
+    <div class="top-bar">
+      <h1>Super Admin Promotion</h1>
+    </div>
+  </header>
+
+  <main class="profile-container">
+    <section>
+      <h2>Enter Secret Token</h2>
+      <p>Use your assigned credentials to become a Super Admin.</p>
+      <input type="password" id="superadmin-secret" placeholder="Secret Token" required />
+      <button id="superadmin-promote">Submit</button>
+      <p id="superadmin-result"></p>
+    </section>
+
+    <section>
+      <a href="profile.html"><button>Back to Profile</button></a>
+    </section>
+  </main>
+
+  <script type="module" src="src/promote.js"></script>
+</body>
+
+</html>
