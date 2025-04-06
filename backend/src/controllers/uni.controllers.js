@@ -245,12 +245,13 @@ export const getUserUniversities = async (req, res) => {
 export const getJoinableUniversities = async (req, res) => {
   try {
     const user_id = req.user;
-    const uni_data = await getJoinableUniversitiesDB(user_id);
+    const user = await getUserByAttribute("id", user_id);
+    const uni_data = await getJoinableUniversitiesDB(user_id, user.email);
 
     return res.status(200).json({
       success: true,
-      data: uni_details,
-      message: "User RSO Details Returned Successfully",
+      data: uni_data,
+      message: "User Joinable Universities Returned Successfully",
     });
   } catch (err) {
     return res

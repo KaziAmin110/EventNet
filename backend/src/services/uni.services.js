@@ -417,7 +417,7 @@ export const getUserUniversitiesDB = async (user_id) => {
     }
 
     // Fetch data from Supabase if not found in cache
-    const { data, error } = await supabase.rpc("get_joinable_universities", {
+    const { data, error } = await supabase.rpc("get_joined_universities", {
       user_id_input: user_id,
     });
 
@@ -435,7 +435,7 @@ export const getUserUniversitiesDB = async (user_id) => {
 };
 
 // Queries all Universities that a User Can Join from DB
-export const getJoinableUniversitiesDB = async (user_id) => {
+export const getJoinableUniversitiesDB = async (user_id, user_email) => {
   try {
     // // Generate cache key based on user_id
     // const cacheKey = `joinable_unis:${user_id}`;
@@ -447,16 +447,14 @@ export const getJoinableUniversitiesDB = async (user_id) => {
     // }
 
     // Fetch data from Supabase if not found in cache
-    const { data, error } = await supabase
-      .from("student")
-      .select("uni_id, uni_name, description, pictures, num_students")
-      .neq("user_id", user_id);
+    const { data, error } = await supabase.rpc("get_joinable_universities", {
+      user_id_input: user_id,
+      user_domain_input: user_email.split("@")[1],
+    });
 
     if (error) {
       throw new Error(error.message);
     }
-
-    console.log(data);
     // // Cache the RSOs data in Redis with 5 minutes expiration
     // await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300); // 5 minutes expiration
 
