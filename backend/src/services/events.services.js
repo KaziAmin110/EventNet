@@ -62,7 +62,7 @@ export const createUniversityEventDB = async (event_id, admin_id, uni_id) => {
           admin_id,
           event_id,
         },
-      ]);
+      ]).select();
 
     if (!data || data.length == 0) {
       const err = new Error("Public Event Not Found");
@@ -124,7 +124,7 @@ export const createPublicEventRequestDB = async (admin_id, event_id) => {
           admin_id,
           event_id,
         },
-      ]);
+      ]).select();
 
     if (!data || data.length == 0) {
       const err = new Error("Public Event Not Found");
