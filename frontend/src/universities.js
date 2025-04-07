@@ -1,4 +1,3 @@
-
 const universityList = document.getElementById("university-list");
 
 async function fetchUniversities() {
@@ -23,7 +22,6 @@ async function fetchUniversities() {
         "Authorization": `Bearer ${token}`
       }
     });
-    
 
     const result = await res.json();
     console.log("Universities API response:", result);
@@ -49,6 +47,9 @@ async function fetchUniversities() {
         const button = e.currentTarget;
         const uniId = button.dataset.id;
 
+        console.log("Attempting to join university ID:", uniId);
+        console.log("Using token:", token);
+
         try {
           const joinRes = await fetch(`http://localhost:5500/api/universities/${uniId}/join`, {
             method: "POST",
@@ -59,7 +60,8 @@ async function fetchUniversities() {
           });
 
           if (!joinRes.ok) {
-            throw new Error(`Join request failed with status ${joinRes.status}`);
+            const errorText = await joinRes.text();
+            throw new Error(`Join request failed with status ${joinRes.status}: ${errorText}`);
           }
 
           const joinData = await joinRes.json();
