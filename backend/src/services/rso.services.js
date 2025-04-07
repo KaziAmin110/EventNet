@@ -547,3 +547,24 @@ export const isUserAlreadyInvited = async (user_id, rso_id) => {
     };
   }
 };
+
+// Checks If a Given RSO Is Part of a University
+export const isUniversityRSO = async (uni_id, rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("rso")
+      .select("rso_id")
+      .eq("uni_id", uni_id)
+      .eq("rso_id", rso_id)
+      .single();
+
+    if (error) throw error;
+
+    return !!data;
+  } catch (error) {
+    return {
+      status: error.statusCode,
+      message: error.message,
+    };
+  }
+};

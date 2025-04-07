@@ -21,6 +21,7 @@ import {
   getRsoInvitesData,
   isRSOAdmin,
   isUserAlreadyInvited,
+  isUniversityRSO,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -316,7 +317,7 @@ export const getUserRSOs = async (req, res) => {
         const rso_id = rso.rso_id;
         try {
           const rso_detail = await getRsoByAttribute("rso_id", rso_id);
-          const members = await getRSOMembers(user_id, rso_id);
+          const members = await getAllRSOMembers(rso_id);
 
           rso_detail.members = members;
           if (rso_detail) {
@@ -434,23 +435,36 @@ export const leaveRSO = async (req, res) => {
     const user_id = req.user;
     const { uni_id, rso_id } = req.params;
 
-    const [university, rso, isMember] = await Promise.all([
-      isValidUniversity(uni_id),
+    const [isStudent, rso, isUniRSO, isMember] = await Promise.all([
+      isUniversityStudent(user_id, uni_id),
       getRsoByAttribute("rso_id", rso_id),
+      isUniversityRSO(uni_id, rso_id),
       isRSOMember(user_id, rso_id),
     ]);
 
     // Checks whether RSO Request Data is Valid
-    if (!university) {
+    if (!isStudent) {
       const error = new Error(
         "Leave RSO Unsuccessful - University not in Database"
       );
+      error.statusCode = 403;
+      throw error;
     }
+
     if (!rso) {
       const error = new Error("Leave RSO Unsuccessful - RSO not in Database");
       error.statusCode = 403;
       throw error;
     }
+
+    if (!isUniRSO) {
+      const error = new Error(
+        "Leave RSO Unsuccessful - RSO is not part of given university"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
     // Checks to see If User is a member of the RSO
     if (!isMember) {
       const error = new Error(
