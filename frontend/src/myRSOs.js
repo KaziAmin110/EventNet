@@ -44,6 +44,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   if (homeNavLink) {
     homeNavLink.href = "home.html";
   }
+
+  // Toggle create RSO form visibility
+const toggleBtn = document.getElementById("toggle-create-rso");
+const formCard = document.getElementById("create-rso-container");
+
+toggleBtn.addEventListener("click", (e) => {
+  e.stopPropagation(); // prevent it from triggering the close
+  formCard.classList.toggle("hidden");
+});
+
+// Clicking outside the form hides it
+document.addEventListener("click", (e) => {
+  if (!formCard.contains(e.target) && !toggleBtn.contains(e.target)) {
+    formCard.classList.add("hidden");
+  }
+});
+
+
+
 });
 
 async function getUniversityRSOs(uniId) {

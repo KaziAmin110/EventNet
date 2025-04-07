@@ -39,7 +39,6 @@
   
 
   <main>
-    <!-- ✅ Prompt for university selection if not joined yet -->
     <section id="university-prompt" style="display: none; text-align: center; margin-top: 2rem;">
       <h2>Please select your university to continue</h2>
       <a href="universities.html">
@@ -55,6 +54,21 @@
     <section>
       <h2>Available RSOs</h2>
       <div id="available-rsos" class="rso-list-container"></div>
+    </section>
+
+    <section>
+      <button id="toggle-create-rso" class="btn">Create a New RSO</button>
+      <div id="create-rso-container" class="rso-card create-rso-card hidden">
+        <form id="create-rso-form">
+          <input
+            type="text"
+            id="new-rso-name"
+            placeholder="Enter RSO name"
+            required
+          />
+          <button type="submit" class="btn">Create RSO</button>
+        </form>
+      </div>
     </section>
     
   </main>
