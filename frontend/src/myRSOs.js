@@ -2,14 +2,16 @@ import api from "./api/axiosInstance.js";
 import { getUserInfo } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
+  let uniId; // 👈 Define this at top so it's accessible everywhere
+
   try {
     // Step 1: Get user info and university ID
     const userResponse = await getUserInfo();
     const currentUser = userResponse.data;
     console.log("Current user:", currentUser);
 
-    // TEMP: Prompt for university ID (until it's included in user object)
-    let uniId = prompt("Enter your university ID:");
+    // TEMP: Prompt for university ID (until backend returns it)
+    uniId = prompt("Enter your university ID:");
     if (!uniId) {
       alert("University ID is required to fetch RSOs.");
       return;
@@ -39,31 +41,62 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("Error loading RSOs:", err);
   }
 
-  // Fix for Home button
+  // Home nav fix
   const homeNavLink = document.querySelector('nav.taskbar a[href="#"]');
   if (homeNavLink) {
     homeNavLink.href = "home.html";
   }
 
-  // Toggle create RSO form visibility
-const toggleBtn = document.getElementById("toggle-create-rso");
-const formCard = document.getElementById("create-rso-container");
+  // 🔄 Toggle create RSO form
+  const toggleBtn = document.getElementById("toggle-create-rso");
+  const formCard = document.getElementById("create-rso-container");
 
-toggleBtn.addEventListener("click", (e) => {
-  e.stopPropagation(); // prevent it from triggering the close
-  formCard.classList.toggle("hidden");
-});
+  toggleBtn.addEventListener("click", (e) => {
+    e.stopPropagation(); // prevent close when clicking button
+    formCard.classList.toggle("hidden");
+  });
 
-// Clicking outside the form hides it
-document.addEventListener("click", (e) => {
-  if (!formCard.contains(e.target) && !toggleBtn.contains(e.target)) {
-    formCard.classList.add("hidden");
+  // 🧼 Hide form when clicking outside
+  document.addEventListener("click", (e) => {
+    if (!formCard.contains(e.target) && !toggleBtn.contains(e.target)) {
+      formCard.classList.add("hidden");
+    }
+  });
+
+  // Create RSO Form Submission
+  const createForm = document.getElementById("create-rso-form");
+
+  if (createForm) {
+    createForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      const rsoName = document.getElementById("new-rso-name").value.trim();
+      if (!rsoName) {
+        alert("Please enter an RSO name.");
+        return;
+      }
+
+      try {
+        await api.post(`/universities/${uniId}/rsos/`, {
+          rso_name: rsoName,
+        });
+
+        alert(`RSO "${rsoName}" created successfully!`);
+        location.reload(); // or call render functions if smoother UX needed
+      } catch (err) {
+        console.error("Create RSO error:", err);
+        alert("Failed to create RSO.");
+      }
+      console.log("Posting RSO to:", `/universities/${uniId}/rsos/`);
+      console.log("Request body:", { rso_name: rsoName });
+
+    });
   }
 });
 
-
-
-});
+// ===============================
+// UTILITY + ACTION FUNCTIONS
+// ===============================
 
 async function getUniversityRSOs(uniId) {
   const response = await api.get(`/universities/${uniId}/rsos`);
