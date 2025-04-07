@@ -405,7 +405,7 @@ export const getRSOInvites = async (req, res) => {
   }
 };
 
-// Allows a RSO Member to Leave an RSO
+// Logic for RSO Member Leaving an RSO
 export const leaveRSO = async (req, res) => {
   try {
     // Get user_id from refresh token

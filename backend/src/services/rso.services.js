@@ -409,7 +409,23 @@ export const getRSOMembers = async (admin_id, rso_id) => {
 // Retrieves New RSO Admin Based on Earliest Join to RSO
 export const getNewRsoAdmin = async (rso_id) => {
   try {
-  } catch (error) {}
+    const { data, error } = await supabase
+      .from("joins_rso")
+      .select("user_id")
+      .eq("rso_id", rso_id)
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    return data.user_id;
+  } catch (error) {
+    return {
+      status: error.statusCode,
+      message: error.message,
+    };
+  }
 };
 
 // // Retrieves RSO Invites Data from the Invites_RSO Table
