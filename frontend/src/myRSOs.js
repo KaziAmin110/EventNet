@@ -1,167 +1,89 @@
-import api from "./api/axiosInstance.js";
-import { getUserInfo } from "./auth.js";
+const universityList = document.getElementById("university-list");
 
-document.addEventListener("DOMContentLoaded", async () => {
-  let uniId; // 👈 Define this at top so it's accessible everywhere
+async function fetchUniversities() {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    alert("You must log in before selecting a university.");
+    window.location.href = "index.html";
+    return;
+  }
+
+  if (localStorage.getItem("universityId")) {
+    window.location.href = "home.html";
+    return;
+  }
 
   try {
-    // Step 1: Get user info and university ID
-    const userResponse = await getUserInfo();
-    const currentUser = userResponse.data;
-    console.log("Current user:", currentUser);
-
-    // TEMP: Prompt for university ID (until backend returns it)
-    uniId = prompt("Enter your university ID:");
-    if (!uniId) {
-      alert("University ID is required to fetch RSOs.");
-      return;
-    }
-
-    // Step 2: Get RSOs at this university
-    const allRSOs = await getUniversityRSOs(uniId);
-    console.log("All RSOs at university:", allRSOs);
-
-    // Step 3: Divide RSOs into ones the user is an admin of, and available ones
-    const yourRSOs = [];
-    const availableRSOs = [];
-
-    for (const rso of allRSOs) {
-      if (rso.admin_user_id === currentUser.user_id) {
-        yourRSOs.push({ ...rso, role: "admin" });
-      } else {
-        availableRSOs.push(rso);
+    const res = await fetch("http://localhost:5500/api/universities/joinable?page=1", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       }
-    }
-
-    // Step 4: Render to the page
-    renderYourRSOs(yourRSOs);
-    renderAvailableRSOs(availableRSOs);
-
-  } catch (err) {
-    console.error("Error loading RSOs:", err);
-  }
-
-  // Home nav fix
-  const homeNavLink = document.querySelector('nav.taskbar a[href="#"]');
-  if (homeNavLink) {
-    homeNavLink.href = "home.html";
-  }
-
-  // 🔄 Toggle create RSO form
-  const toggleBtn = document.getElementById("toggle-create-rso");
-  const formCard = document.getElementById("create-rso-container");
-
-  toggleBtn.addEventListener("click", (e) => {
-    e.stopPropagation(); // prevent close when clicking button
-    formCard.classList.toggle("hidden");
-  });
-
-  // 🧼 Hide form when clicking outside
-  document.addEventListener("click", (e) => {
-    if (!formCard.contains(e.target) && !toggleBtn.contains(e.target)) {
-      formCard.classList.add("hidden");
-    }
-  });
-
-  // Create RSO Form Submission
-  const createForm = document.getElementById("create-rso-form");
-
-  if (createForm) {
-    createForm.addEventListener("submit", async (e) => {
-      e.preventDefault();
-
-      const rsoName = document.getElementById("new-rso-name").value.trim();
-      if (!rsoName) {
-        alert("Please enter an RSO name.");
-        return;
-      }
-
-      try {
-        await api.post(`/universities/${uniId}/rsos/`, {
-          rso_name: rsoName,
-        });
-
-        alert(`RSO "${rsoName}" created successfully!`);
-        location.reload(); // or call render functions if smoother UX needed
-      } catch (err) {
-        console.error("Create RSO error:", err);
-        alert("Failed to create RSO.");
-      }
-      console.log("Posting RSO to:", `/universities/${uniId}/rsos/`);
-      console.log("Request body:", { rso_name: rsoName });
-
     });
+
+    const result = await res.json();
+    console.log("Universities API response:", result);
+
+    const universities = result.data;
+
+    if (!Array.isArray(universities)) {
+      throw new Error("Expected an array of universities, got: " + JSON.stringify(universities));
+    }
+
+    universities.forEach((uni) => {
+      const li = document.createElement("li");
+      li.classList.add("university-item");
+      li.innerHTML = `
+        <span>${uni.uni_name}</span>
+        <button class="join-btn" data-id="${uni.uni_id}">Join</button>
+      `;
+      universityList.appendChild(li);
+    });
+
+    document.querySelectorAll(".join-btn").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        const button = e.currentTarget;
+        const uniId = button.dataset.id;
+
+        console.log("Attempting to join university ID:", uniId);
+        console.log("Using token:", token);
+
+        try {
+          const joinRes = await fetch(`http://localhost:5500/api/universities/rsos/me`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${token}`
+            }
+          });
+
+          if (!joinRes.ok) {
+            const errorText = await joinRes.text();
+            throw new Error(`Join request failed with status ${joinRes.status}: ${errorText}`);
+          }
+
+          const joinData = await joinRes.json();
+
+          if (joinData.success) {
+            localStorage.setItem("universityId", uniId);
+            localStorage.setItem("universityName", button.previousElementSibling.textContent);
+            alert("Joined university successfully. Proceeding to home...");
+            window.location.href = "home.html";
+          } else {
+            alert(joinData.message || "Failed to join university.");
+          }
+        } catch (err) {
+          console.error("Join failed:", err);
+          alert("Error joining university: " + err.message);
+        }
+      });
+    });
+  } catch (err) {
+    console.error("Error loading universities:", err);
+    universityList.innerHTML = "<li>Failed to load universities.</li>";
   }
-});
-
-// ===============================
-// UTILITY + ACTION FUNCTIONS
-// ===============================
-
-async function getUniversityRSOs(uniId) {
-  const response = await api.get(`/universities/${uniId}/rsos`);
-  return response.data.data;
 }
 
-function renderYourRSOs(rsos) {
-  const container = document.getElementById("your-rsos");
-  if (!rsos.length) {
-    container.innerHTML = "<p>You are not part of any RSOs yet.</p>";
-    return;
-  }
-
-  container.innerHTML = rsos.map(rso => `
-    <div class="rso-card">
-      <h3>${rso.rso_name}</h3>
-      <button class="btn" onclick="inviteMember(${rso.rso_id})">Invite by Email</button>
-      <button class="btn" onclick="leaveRSO(${rso.rso_id})">Leave RSO</button>
-    </div>
-  `).join("");
-}
-
-function renderAvailableRSOs(rsos) {
-  const container = document.getElementById("available-rsos");
-  if (!rsos.length) {
-    container.innerHTML = "<p>No RSOs available to join.</p>";
-    return;
-  }
-
-  container.innerHTML = rsos.map(rso => `
-    <div class="rso-card">
-      <h3>${rso.rso_name}</h3>
-      <button class="btn" onclick="joinRSO(${rso.rso_id})">Join</button>
-    </div>
-  `).join("");
-}
-
-window.inviteMember = async function (rsoId) {
-  const email = prompt("Enter email to invite:");
-  if (!email) return;
-
-  try {
-    await api.post(`/rsos/${rsoId}/invite`, { email });
-    alert("Invitation sent!");
-  } catch (err) {
-    alert("Failed to send invite.");
-  }
-};
-
-window.leaveRSO = async function (rsoId) {
-  if (!confirm("Are you sure you want to leave this RSO?")) return;
-
-  try {
-    await api.post(`/rsos/${rsoId}/leave`);
-    window.location.reload();
-  } catch (err) {
-    alert("Could not leave RSO.");
-  }
-};
-
-window.joinRSO = async function (rsoId) {
-  try {
-    await api.post(`/rsos/${rsoId}/join`);
-    window.location.reload();
-  } catch (err) {
-    alert("Could not join RSO.");
-  }
-};
+fetchUniversities();
