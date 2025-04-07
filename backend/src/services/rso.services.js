@@ -539,7 +539,9 @@ export const isUserAlreadyInvited = async (user_id, rso_id) => {
       throw error;
     }
 
-    return !!data;
+    if (data && data.length > 0) return true;
+
+    return false;
   } catch (error) {
     return {
       status: error.statusCode,
@@ -566,5 +568,24 @@ export const isUniversityRSO = async (uni_id, rso_id) => {
       status: error.statusCode,
       message: error.message,
     };
+  }
+};
+
+// Removes the Invite Status of an RSO
+export const removeInviteStatus = async (rso_id, user_id, status) => {
+  try {
+    const { data, error } = await supabase
+      .from("invites_rso")
+      .delete()
+      .eq("rso_id", rso_id)
+      .eq("user_id", user_id);
+
+    if (!error) {
+      if (status === "accepted") {
+        await redisClient.del(`user_rsos:${user_id}`);
+      }
+    }
+  } catch (error) {
+    throw new Error(error.message);
   }
 };

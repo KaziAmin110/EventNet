@@ -13,7 +13,6 @@ import {
   updateRsoStatus,
   updateInviteStatus,
   getUserRsoDB,
-  getRSOMembers,
   getAllRSOMembers,
   getNewRsoAdmin,
   updateRsoAdmin,
@@ -22,6 +21,7 @@ import {
   isRSOAdmin,
   isUserAlreadyInvited,
   isUniversityRSO,
+  removeInviteStatus,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -62,7 +62,6 @@ export const createRSO = async (req, res) => {
       ]);
 
     admin = adminResult; // Assign the resolved value to admin
-
     // Checks whether uni_id is valid
     if (!university) {
       const error = new Error("Create RSO Failed - University not in Database");
@@ -125,10 +124,9 @@ export const inviteToRSO = async (req, res) => {
     const { rso_id, uni_id } = req.params;
     const { inviteeEmail } = req.body;
 
-    const [invitee, rso, isAlreadyInvited] = await Promise.all([
+    const [invitee, rso] = await Promise.all([
       getStudentByAttribute(inviteeEmail, uni_id),
       getRsoByAttribute("rso_id", rso_id),
-      isUserAlreadyInvited(user_id, rso_id),
     ]);
 
     if (!invitee) {
@@ -149,6 +147,12 @@ export const inviteToRSO = async (req, res) => {
       throw error;
     }
 
+    // Checks to see if User is already part of the rso
+    const [isAlreadyInvited, isMember] = await Promise.all([
+      isUserAlreadyInvited(invitee.user_id, rso_id),
+      isRSOMember(invitee.user_id, rso_id),
+    ]);
+
     // Checks to See if User Has Already Been Invited
     if (isAlreadyInvited) {
       const error = new Error(
@@ -158,8 +162,6 @@ export const inviteToRSO = async (req, res) => {
       throw error;
     }
 
-    // Checks to see if User is already part of the rso
-    const isMember = await isRSOMember(invitee.user_id, rso_id);
     if (isMember) {
       const error = new Error("Invitee is already part of the RSO");
       error.statusCode = 400;
@@ -478,7 +480,7 @@ export const leaveRSO = async (req, res) => {
     const [__, newMemberCount, _] = await Promise.all([
       leaveRsoDB(user_id, rso_id),
       updateRsoMembers(rso_id, rso.num_members, "decrement"),
-      updateInviteStatus(rso_id, user_id, "pending"),
+      removeInviteStatus(rso_id, user_id),
     ]);
 
     // Deletes RSO and RSO Event Fields If New Member Count is Zero
