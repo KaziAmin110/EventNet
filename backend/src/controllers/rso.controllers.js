@@ -20,6 +20,7 @@ import {
   updateRsoEventsAdmin,
   getRsoInvitesData,
   isRSOAdmin,
+  isUserAlreadyInvited,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -123,9 +124,10 @@ export const inviteToRSO = async (req, res) => {
     const { rso_id, uni_id } = req.params;
     const { inviteeEmail } = req.body;
 
-    const [invitee, rso] = await Promise.all([
+    const [invitee, rso, isAlreadyInvited] = await Promise.all([
       getStudentByAttribute(inviteeEmail, uni_id),
       getRsoByAttribute("rso_id", rso_id),
+      isUserAlreadyInvited(user_id, rso_id),
     ]);
 
     if (!invitee) {
@@ -143,6 +145,15 @@ export const inviteToRSO = async (req, res) => {
     if (user_id !== rso.admin_user_id) {
       const error = new Error("User is not RSO admin");
       error.statusCode = 403;
+      throw error;
+    }
+
+    // Checks to See if User Has Already Been Invited
+    if (isAlreadyInvited) {
+      const error = new Error(
+        "Invite to RSO Failed: User Invite Already Pending."
+      );
+      error.statusCode = 400;
       throw error;
     }
 

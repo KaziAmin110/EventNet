@@ -525,3 +525,25 @@ export const isRSOAdmin = async (user_id, rso_id) => {
     throw new Error(err.message);
   }
 };
+
+// Checks If a User Is Already Invited to Join an RSO
+export const isUserAlreadyInvited = async (user_id, rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("invites_rso")
+      .select("invite_id")
+      .eq("user_id", user_id)
+      .eq("rso_id", rso_id);
+
+    if (error) {
+      throw error;
+    }
+
+    return !!data;
+  } catch (error) {
+    return {
+      status: error.statusCode,
+      message: error.message,
+    };
+  }
+};
