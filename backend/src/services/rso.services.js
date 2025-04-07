@@ -272,7 +272,7 @@ export const getUserRsoDB = async (user_id) => {
   }
 };
 
-// Retrieves RSO Entity Based on Attribute
+// Retrieves RSO Entity From RSO Table Based on Attribute
 export const getRsoByAttribute = async (attribute, value) => {
   try {
     // Generate cache key based on attribute (e.g., "rso:name:RSO Name")
@@ -295,7 +295,6 @@ export const getRsoByAttribute = async (attribute, value) => {
       .single();
 
     if (data) {
-      // Store the RSO data in Redis with expiration (e.g., 5 minutes)
       const rsoData = new RSO_Class(
         data.rso_id,
         data.rso_name,
@@ -392,5 +391,27 @@ export const isRSOAdmin = async (user_id, rso_id) => {
     return false;
   } catch (err) {
     throw new Error(err.message);
+  }
+};
+
+// Retrieves Members of a RSO Excluding Admin
+export const getRSOMembers = async (admin_id, rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("joins_rso")
+      .select("user_id")
+      .eq("rso_id", rso_id)
+      .neq("user_id", admin_id);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    return {
+      status: error.statusCode,
+      message: error.message,
+    };
   }
 };

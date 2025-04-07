@@ -375,6 +375,7 @@
   /* =============================
      UNIVERSITIES PAGE STYLES
   ============================= */
+
   #universities-page {
     display: flex;
     flex-direction: column;
@@ -440,15 +441,124 @@
   .join-btn:hover {
     background-color: #005f87;
   }
+  /* =============================
+      RSO EVENTS PAGE STYLES
+  ============================= */
 
-  .rso-list-container {
+  .rso-card {
+    width: 90%;
+    max-width: 600px;
+    background-color: #f3eb12;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
     display: flex;
     flex-direction: column;
-    justify-content: center;  
-    align-items: center;      
-    height: 50%;    
+    align-items: flex-start;
+    gap: 0.75rem;
+    transition: transform 0.2s ease;
   }
 
+  /* Force centering of the create RSO form */
+  .create-rso-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 500px;
+    margin: 1rem auto;
+  }
 
   
+  
+  .rso-card:hover {
+    transform: translateY(-2px);
+  }
+  
+  .rso-card h3 {
+    font-size: 1.4rem;
+    color: black;
+    margin-bottom: 0.5rem;
+  }
+  
+  .rso-card .btn {
+    background-color: black;
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-right: 10px;
+  }
+  
+  .rso-card .btn:hover {
+    background-color: #3633df;
+    color: white;
+  }
+  
+  .rso-card .btn:last-child {
+    margin-right: 0;
+  }
+  
+  .rso-list-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  #create-rso-container {
+    position: relative;
+    z-index: 100;
+  }
+  
+  #create-rso-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    gap: 1rem;
+  }
+  
+  #create-rso-form input {
+    padding: 10px;
+    font-size: 1rem;
+    width: 100%;
+    max-width: 400px;
+    border-radius: 6px;
+    border: 1px solid #ccc;
+  }
+  
+  #toggle-create-rso {
+    background-color: black;
+    color: white;
+    font-size: 1.1rem;
+    padding: 12px 24px;
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    margin: 2rem auto;
+    display: block;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  #toggle-create-rso:hover {
+    background-color: #3633df;
+    transform: translateY(-1px);
+  }
   

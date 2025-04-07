@@ -10,7 +10,8 @@ class RSO_Class {
     num_members,
     uni_id,
     rso_status,
-    admin_user_id
+    admin_user_id,
+    members
   ) {
     (this.rso_id = rso_id),
       (this.rso_name = rso_name),
@@ -18,7 +19,8 @@ class RSO_Class {
       (this.num_members = num_members),
       (this.uni_id = uni_id),
       (this.rso_status = rso_status),
-      (this.admin_user_id = admin_user_id);
+      (this.admin_user_id = admin_user_id),
+      (this.members = members);
   }
 }
 
