@@ -407,7 +407,6 @@ export const getRSOMembers = async (admin_id, rso_id) => {
       throw error;
     }
 
-    console.log(data);
     return data;
   } catch (error) {
     return {
