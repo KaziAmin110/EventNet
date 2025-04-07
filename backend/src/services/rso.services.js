@@ -190,6 +190,52 @@ export const updateRsoStatus = async (rso_id, status) => {
   }
 };
 
+// Updates the Admin of an RSO
+export const updateRsoAdmin = async (
+  new_admin_id,
+  old_admin_id,
+  new_admin_user_id
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("rso")
+      .update({ admin_id: new_admin_id, admin_user_id: new_admin_user_id })
+      .eq("admin_id", old_admin_id);
+
+    if (!error) {
+      await redisClient.del(`rso:rso_id:${rso_id}`);
+    }
+
+    return {
+      success: true,
+      message: "Updated RSO Table Admin Data Successfully",
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
+// Updates the Admin of an RSO
+export const updateRsoEventsAdmin = async (old_admin_id, new_admin_user_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("rso_events")
+      .update({ admin_id: new_admin_user_id })
+      .eq("admin_id", old_admin_id);
+
+    if (!error) {
+      await redisClient.del(`rso:rso_id:${rso_id}`);
+    }
+
+    return {
+      success: true,
+      message: "Updated RSO Events Table Admin Data Successfully",
+    };
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 // Updates the Invite Status of an RSO
 export const updateInviteStatus = async (rso_id, user_id, status) => {
   try {
@@ -317,6 +363,76 @@ export const getRsoByAttribute = async (attribute, value) => {
   }
 };
 
+// Retrieves All Members of a RSO
+export const getAllRSOMembers = async (rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("joins_rso")
+      .select("user_id")
+      .eq("rso_id", rso_id);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    return {
+      status: error.statusCode,
+      message: error.message,
+    };
+  }
+};
+
+// Retrieves Members of a RSO Excluding Admin
+export const getRSOMembers = async (admin_id, rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("joins_rso")
+      .select("user_id")
+      .eq("rso_id", rso_id)
+      .neq("user_id", admin_id);
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    return {
+      status: error.statusCode,
+      message: error.message,
+    };
+  }
+};
+
+// Retrieves New RSO Admin Based on Earliest Join to RSO
+export const getNewRsoAdmin = async (rso_id) => {
+  try {
+  } catch (error) {}
+};
+
+// // Retrieves RSO Invites Data from the Invites_RSO Table
+export const getRsoInvitesData = async (rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("invites_rso")
+      .select("user_id, invite_status, created_at")
+      .eq("rso_id", rso_id);
+
+    if (error) {
+      throw error;
+    }
+
+    return data || [];
+  } catch (error) {
+    return {
+      status: error.statusCode,
+      message: error.message,
+    };
+  }
+};
+
 // Checks to see if a given Rso already exists
 export const isRSOAlreadyPending = async (rso_name, uni_id) => {
   try {
@@ -391,27 +507,5 @@ export const isRSOAdmin = async (user_id, rso_id) => {
     return false;
   } catch (err) {
     throw new Error(err.message);
-  }
-};
-
-// Retrieves Members of a RSO Excluding Admin
-export const getRSOMembers = async (admin_id, rso_id) => {
-  try {
-    const { data, error } = await supabase
-      .from("joins_rso")
-      .select("user_id")
-      .eq("rso_id", rso_id)
-      .neq("user_id", admin_id);
-
-    if (error) {
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    return {
-      status: error.statusCode,
-      message: error.message,
-    };
   }
 };

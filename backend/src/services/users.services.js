@@ -188,7 +188,36 @@ export const createAdmin = async (user_id, name, email, uni_id) => {
     await redisClient.del(`role:super_admin:${user_id}`);
     await redisClient.del(`role:student:${user_id}`);
 
-    return data;
+    return data.admin_id;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
+// Removes Admin From Admin Table
+export const deleteAdmin = async (user_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("admin") // Table name
+      .delete()
+      .eq("user_id", user_id);
+
+    if (error) {
+      return { error: error.message, status: 500 };
+    }
+
+    // Invalidates Cache if they exist
+    await redisClient.del(`role:super_admin:${user_id}`);
+    await redisClient.del(`role:student:${user_id}`);
+    await redisClient.del(`role:admin:${user_id}`);
+
+    return {
+      success: true,
+      message: "Admin Removed Successfully",
+    };
   } catch (error) {
     return {
       error: error.message,

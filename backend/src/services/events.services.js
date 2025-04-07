@@ -62,7 +62,8 @@ export const createUniversityEventDB = async (event_id, admin_id, uni_id) => {
           admin_id,
           event_id,
         },
-      ]).select();
+      ])
+      .select();
 
     if (!data || data.length == 0) {
       const err = new Error("Public Event Not Found");
@@ -124,7 +125,8 @@ export const createPublicEventRequestDB = async (admin_id, event_id) => {
           admin_id,
           event_id,
         },
-      ]).select();
+      ])
+      .select();
 
     if (!data || data.length == 0) {
       const err = new Error("Public Event Not Found");
@@ -354,7 +356,7 @@ export const isEventConflict = async (location, start_date, end_date) => {
     if (error) {
       throw error;
     }
-    
+
     const newEventStart = new Date(start_date);
     const newEventEnd = new Date(end_date);
 
@@ -640,6 +642,48 @@ export const deleteEventCommentDB = async (comment_id) => {
     return {
       error: err.message,
       status: err.statusCode || 500,
+    };
+  }
+};
+
+// Removes All RSO Events From RSO_Events Table
+export const deleteRSOEventsFromDB = async (rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("rso_events")
+      .delete()
+      .select("event_id")
+      .eq("rso_id", rso_id);
+
+    return {
+      message: "Rso Event Removed from Database Successfully",
+      data,
+      status: 200,
+    };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
+    };
+  }
+};
+
+// Removes Events with the Given Event_id
+export const deleteEventFromDB = async (event_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("events")
+      .delete()
+      .eq("event_id", event_id);
+
+    return {
+      message: "Event Removed from Database Successfully",
+      status: 200,
+    };
+  } catch (error) {
+    return {
+      error: error.message,
+      status: 500,
     };
   }
 };

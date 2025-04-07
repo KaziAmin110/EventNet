@@ -17,6 +17,7 @@ import {
   joinRSO,
   getUserRSOs,
   getRSOInfo,
+  getRSOInvites,
 } from "../controllers/rso.controllers.js";
 
 import {
@@ -45,6 +46,7 @@ uniRouter.post("/rsos/join_rso", joinRSO);
 uniRouter.get("/:uni_id/rsos", authenticateUser, getAllRSOs);
 uniRouter.get("/:uni_id/rsos/:rso_id", authenticateUser, getRSOInfo);
 uniRouter.get("/rsos/me", authenticateUser, getUserRSOs);
+uniRouter.get("/:uni_id/rsos/invites", authenticateUser, getRSOInvites);
 uniRouter.delete("/:uni_id/rsos/:rso_id/leave", authenticateUser, leaveRSO);
 
 // RSO Events Endpoints
