@@ -463,9 +463,7 @@ export const leaveRSO = async (req, res) => {
         deleteRSOEventsFromDB(rso_id),
       ]);
 
-      const removed_events = removed_events_result
-        ? removed_events_result.data
-        : [];
+      const removed_events = removed_events_result;
 
       // Removes Each Removed Event from Rso_Events from Events Table
       const deleteEventPromises = removed_events.map(async (removed_event) => {

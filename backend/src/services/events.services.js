@@ -385,6 +385,7 @@ export const isEventConflict = async (location, start_date, end_date) => {
   }
 };
 
+// Checks if Two Event Time's Overlap
 export const isTimeConflict = async (start1, end1, start2, end2) => {
   return start1 < end2 && end1 > start2;
 };
@@ -657,7 +658,7 @@ export const deleteRSOEventsFromDB = async (rso_id) => {
 
     return {
       message: "Rso Event Removed from Database Successfully",
-      data,
+      data: data.event_id,
       status: 200,
     };
   } catch (error) {
