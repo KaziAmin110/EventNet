@@ -13,6 +13,7 @@ import {
   getJoinableUniversitiesDB,
   leaveUniRsosDB,
   checkUniversityExistence,
+  getUniversityByAttribute,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
@@ -96,7 +97,7 @@ export const joinUniversity = async (req, res) => {
 
     const [user, university, isStudent] = await Promise.all([
       getUserByAttribute("id", user_id),
-      isValidUniversity(uni_id),
+      getUniversityByAttribute("uni_id", uni_id),
       isUniversityStudent(user_id, uni_id),
     ]);
 
@@ -136,7 +137,6 @@ export const joinUniversity = async (req, res) => {
       joinUniversityDB(user_id, uni_id, user.name, user.email),
       updateUniversityStudents(
         uni_id,
-        university.name,
         university.num_students,
         "increment"
       ),
@@ -304,7 +304,7 @@ export const leaveUniversity = async (req, res) => {
 
     const [user, university, isStudent] = await Promise.all([
       getUserByAttribute("id", user_id),
-      isValidUniversity(uni_id),
+      getUniversityByAttribute("uni_id", uni_id),
       isUniversityStudent(user_id, uni_id),
     ]);
 

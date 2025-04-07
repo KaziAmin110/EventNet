@@ -407,6 +407,26 @@ export const getStudentByAttribute = async (email, uni_id) => {
   }
 };
 
+// Retrieves University Data Based on Attribute
+export const getUniversityByAttribute = async (attribute, value) => {
+  try {
+    const { data, error } = await supabase
+      .from("university")
+      .select("uni_name, num_students")
+      .eq(attribute, value)
+      .single();
+
+    if (data) {
+      return data;
+    }
+
+    // No User Associated with Given Attribute
+    return false;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 // Queries all Universities that a User is a student of
 export const getUserUniversitiesDB = async (user_id, start, end) => {
   try {
