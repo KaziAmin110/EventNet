@@ -19,6 +19,7 @@ import {
   updateRsoAdmin,
   updateRsoEventsAdmin,
   getRsoInvitesData,
+  isRSOAdmin,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -369,12 +370,14 @@ export const getRSOInfo = async (req, res) => {
 // Gets RSO Info Based on the provided rso_id
 export const getRSOInvites = async (req, res) => {
   try {
-    const { uni_id } = req.params;
+    const user_id = req.user;
+    const { uni_id, rso_id } = req.params;
 
     // Check if RSO is valid and can be accessed by User
-    const [university, rso] = await Promise.all([
+    const [university, rso, isAdmin] = await Promise.all([
       isValidUniversity(uni_id),
       getRsoByAttribute("rso_id", rso_id),
+      isRSOAdmin(user_id, rso_id),
     ]);
 
     if (!university) {
@@ -386,6 +389,14 @@ export const getRSOInvites = async (req, res) => {
     }
     if (!rso) {
       const error = new Error("RSO with Given ID Doesnt Exist in the DB");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (!isAdmin) {
+      const error = new Error(
+        "User Does Not have Permission to Access RSO Invites"
+      );
       error.statusCode = 404;
       throw error;
     }
