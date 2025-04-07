@@ -244,7 +244,7 @@ export const getUserUniversities = async (req, res) => {
       pagination: {
         totalRecords: uni_data.count,
         totalPages: Math.ceil(uni_data.count / pageSize),
-        currentPage: page,
+        currentPage: uni_data.count == 0 ? 0 : page,
         pageSize,
       },
       message: "User Joined Universities Returned Successfully",
@@ -283,7 +283,7 @@ export const getJoinableUniversities = async (req, res) => {
       pagination: {
         totalRecords: uni_data.count,
         totalPages: Math.ceil(uni_data.count / pageSize),
-        currentPage: page,
+        currentPage: uni_data.count == 0 ? 0 : page,
         pageSize,
       },
       message: "User Joinable Universities Returned Successfully",

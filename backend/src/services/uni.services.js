@@ -457,23 +457,21 @@ export const getJoinableUniversitiesDB = async (
     // Generate cache key based on user_id
     const cacheKey = `joinable_unis:${user_id}`;
 
-    // Check if the user RSO data is cached in Redis
+    // // Check if the user RSO data is cached in Redis
     const cachedRsos = await redisClient.get(cacheKey);
     if (cachedRsos !== null) {
       return JSON.parse(cachedRsos); // Return cached data
     }
 
     // Fetch data from Supabase if not found in cache
-    const { data, error, count } = await supabase
-      .rpc(
-        "get_joinable_universities",
-        {
-          user_id_input: user_id,
-          user_domain_input: user_email.split("@")[1],
-        },
-        { count: "exact" }
-      )
-      .range(start, end);
+    const { data, error, count } = await supabase.rpc(
+      "get_joinable_universities",
+      {
+        user_id_input: user_id,
+        user_domain_input: user_email.split("@")[1],
+      },
+      { count: "exact" }
+    );
 
     if (error) {
       throw new Error(error.message);
