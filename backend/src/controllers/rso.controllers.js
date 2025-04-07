@@ -13,6 +13,7 @@ import {
   updateRsoStatus,
   updateInviteStatus,
   getUserRsoDB,
+  getRSOMembers,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -40,7 +41,7 @@ export const createRSO = async (req, res, next) => {
 
     const [university, isStudent, isPending, user, adminResult] =
       await Promise.all([
-        isValidUniversity("uni_id", uni_id),
+        isValidUniversity(uni_id),
         isUniversityStudent(user_id, uni_id),
         isRSOAlreadyPending(rso_name, uni_id),
         getUserByAttribute("id", user_id),
@@ -293,6 +294,9 @@ export const getUserRSOs = async (req, res, next) => {
         const rso_id = rso.rso_id;
         try {
           const rso_detail = await getRsoByAttribute("rso_id", rso_id);
+          const members = await getRSOMembers(user_id, rso_id);
+
+          rso_detail.members = members;
           if (rso_detail) {
             rso_details.push(rso_detail);
           }
@@ -317,7 +321,7 @@ export const getUserRSOs = async (req, res, next) => {
 export const getRSOInfo = async (req, res, next) => {
   try {
     const user_id = req.user;
-    const rso_id = req.params.rso_id;
+    const { uni_id, rso_id } = req.params;
 
     // Generate a unique cache key based on rso_id and user_id
     const cacheKey = `rso_info:user:${user_id}:rso:${rso_id}`;
