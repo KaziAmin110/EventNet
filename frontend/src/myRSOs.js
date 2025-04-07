@@ -1,41 +1,53 @@
-import api from "./axiosInstance.js";
+import api from "./api/axiosInstance.js";
 import { getUserInfo } from "./auth.js";
 
 document.addEventListener("DOMContentLoaded", async () => {
   try {
-    const currentUser = await getUserInfo();
-    const allRSOs = await getUniversityRSOs();
+    // Step 1: Get user info and university ID
+    const userResponse = await getUserInfo();
+    const currentUser = userResponse.data;
+    console.log("Current user:", currentUser);
 
+    // TEMP: Prompt for university ID (until it's included in user object)
+    let uniId = prompt("Enter your university ID:");
+    if (!uniId) {
+      alert("University ID is required to fetch RSOs.");
+      return;
+    }
+
+    // Step 2: Get RSOs at this university
+    const allRSOs = await getUniversityRSOs(uniId);
+    console.log("All RSOs at university:", allRSOs);
+
+    // Step 3: Divide RSOs into ones the user is an admin of, and available ones
     const yourRSOs = [];
     const availableRSOs = [];
 
     for (const rso of allRSOs) {
-      if (rso.admin_user_id === currentUser.id) {
+      if (rso.admin_user_id === currentUser.user_id) {
         yourRSOs.push({ ...rso, role: "admin" });
       } else {
-        // If API expands, check members list too — here just separating
         availableRSOs.push(rso);
       }
     }
 
+    // Step 4: Render to the page
     renderYourRSOs(yourRSOs);
     renderAvailableRSOs(availableRSOs);
+
   } catch (err) {
     console.error("Error loading RSOs:", err);
   }
 
-  // Home button routing fix
+  // Fix for Home button
   const homeNavLink = document.querySelector('nav.taskbar a[href="#"]');
   if (homeNavLink) {
-    homeNavLink.addEventListener("click", (e) => {
-      e.preventDefault();
-      window.location.href = "home.html";
-    });
+    homeNavLink.href = "home.html";
   }
 });
 
-async function getUniversityRSOs() {
-  const response = await api.get("/rsos/university"); // Adjust to match your actual endpoint path
+async function getUniversityRSOs(uniId) {
+  const response = await api.get(`/universities/${uniId}/rsos`);
   return response.data.data;
 }
 
