@@ -1,0 +1,454 @@
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+  }
+  
+  /* =============================
+     SIGN-IN / SIGN-UP PAGE STYLES
+  ============================= */
+  #index-page {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background-image: url(https://as2.ftcdn.net/v2/jpg/05/23/36/39/1000_F_523363994_yxxJYDpKFxeWPxPPNre4fwfVqqALwbbM.jpg);
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: cover;
+  }
+  
+  .auth-container {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(15px);
+    padding: 2.5rem;
+    border-radius: 20px;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.3);
+    max-width: 450px;
+    width: 95%;
+    margin: 2rem;
+    text-align: center;
+    transform: scale(1.3);
+  }
+  
+  .tab-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  
+  .tab {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    cursor: pointer;
+    background-color: #eee;
+    border-radius: 8px 8px 0 0;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+  }
+  
+  .tab.active {
+    background-color: #add8e6;
+    font-weight: bold;
+  }
+  
+  .auth-form {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .auth-form input {
+    margin: 12px 0;
+    padding: 12px;
+    border: 1px solid black;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    font-size: 1rem;
+  }
+  
+  .auth-form button.btn {
+    margin-top: 12px;
+    padding: 12px;
+    background-color: #ADD8E6;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background-color 0.3s ease;
+    font-size: 1rem;
+  }
+  
+  .auth-form button.btn:hover {
+    background-color: #90d8e6;
+  }
+  
+  .hidden {
+    display: none;
+  }
+  
+  .guest-btn {
+    margin-top: 1.5rem;
+    background: none;
+    border: none;
+  }
+  
+  .guest-btn a {
+    color: #0077cc;
+    text-decoration: underline;
+    font-size: 0.9rem;
+  }
+  
+  /* Top Bar */
+  #home .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    flex-wrap: nowrap;
+    background-color: black;
+    padding: 1rem;
+  }
+  
+  #home .top-bar h1 {
+    font-size: 1.8rem;
+    color: white;
+  }
+  
+  #search-bar {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+    max-width: 300px;
+    background-color: #f9f9f9;
+    margin-left: auto;
+    margin-right: 1rem;
+    flex-grow: 1;
+  }
+  
+  /* Profile Dropdown */
+  .profile-dropdown {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .profile-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+  }
+  
+  .profile-icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .dropdown-content {
+    display: none;
+    position: absolute;
+    top: 50px;
+    right: 0;
+    background-color: white;
+    min-width: 160px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1000;
+    border-radius: 8px;
+    padding: 0.5rem 0;
+  }
+  
+  .dropdown-content a,
+  .dropdown-content button {
+    display: block;
+    width: 100%;
+    padding: 10px 20px;
+    text-align: left;
+    background: none;
+    border: none;
+    color: #333;
+    font-size: 1.2rem;
+    text-decoration: none;
+    cursor: pointer;
+  }
+  
+  .dropdown-content a:hover,
+  .dropdown-content button:hover {
+    background-color: #f2f2f2;
+  }
+  
+  .show-dropdown {
+    display: block;
+  }
+  
+  /* Taskbar Navigation */
+  nav.taskbar {
+    background-color: #f3eb12;
+    padding: 15px;
+    text-align: center;
+    width: 100%;
+  }
+  
+  nav.taskbar a {
+    color: black;
+    text-decoration: none;
+    padding: 12px 40px;
+    margin: 0 10px;
+    font-size: 24px;
+    border-radius: 5px;
+    transition: background-color 0.3s, color 0.3s;
+    display: inline-block;
+  }
+  
+  nav.taskbar a:hover {
+    background-color: black;
+    color: white;
+  }
+  
+  @media screen and (max-width: 500px) {
+    #home .top-bar {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  
+    #search-bar {
+      margin: 0;
+      width: 100%;
+    }
+  
+    nav.taskbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+    }
+  
+    nav.taskbar a {
+      padding: 10px 20px;
+      font-size: 14px;
+    }
+  
+    .rsoEvents-event-card {
+        margin: 50%;
+        padding: 1rem;
+    }
+  
+    .dropdown-content {
+      top: 60px;
+      right: 0;
+      left: auto;
+    }
+  }
+  
+  @media screen and (max-width: 480px) {
+    nav.taskbar a {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+  }
+  
+  /* Global Reset */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+  }
+  
+  header {
+    background-color: black;
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+  }
+  
+  .profile-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+  
+  .profile-container section {
+    margin-bottom: 2rem;
+  }
+  
+  .profile-container h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #222;
+  }
+  
+  .profile-container p {
+    margin: 0.5rem 0;
+  }
+  
+  #superadmin-secret {
+    width: 100%;
+    padding: 10px;
+    margin-top: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 1rem;
+  }
+  
+  #superadmin-promote,
+  #logout-button {
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    transition: background-color 0.3s ease;
+  }
+  
+  #superadmin-promote:hover,
+  #logout-button:hover {
+    background-color: #005fa3;
+  }
+  
+  #superadmin-result {
+    margin-top: 0.5rem;
+    font-weight: bold;
+  }
+  
+  @media screen and (max-width: 600px) {
+    .profile-container {
+      padding: 1rem;
+    }
+  
+    header h1 {
+      font-size: 1.4rem;
+    }
+  
+    .profile-container h2 {
+      font-size: 1.2rem;
+    }
+  }
+  
+  /* Global Reset */
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Arial', sans-serif;
+    background-color: #f4f4f4;
+    color: #333;
+  }
+  
+  /* =============================
+     UNIVERSITIES PAGE STYLES
+  ============================= */
+  #universities-page {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    padding: 2rem;
+    background: linear-gradient(to right, #e0f7fa, #fff);
+  }
+  
+  .top-bar h1 {
+    font-size: 2rem;
+    color: #0077b6;
+    margin-bottom: 1rem;
+  }
+  
+  .profile-container p {
+    font-size: 1.1rem;
+    margin-bottom: 1rem;
+    color: #555;
+  }
+  
+  .university-list {
+    list-style: none;
+    padding: 0;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .university-item {
+    background-color: #ffffff;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: transform 0.2s ease;
+  }
+  
+  .university-item:hover {
+    transform: scale(1.02);
+  }
+  
+  .university-item span {
+    font-weight: 500;
+    font-size: 1.1rem;
+    color: #0077b6;
+  }
+  
+  .join-btn {
+    padding: 8px 16px;
+    background-color: #0077b6;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+  
+  .join-btn:hover {
+    background-color: #005f87;
+  }
+
+  .rso-list-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;  
+    align-items: center;      
+    height: 50%;    
+  }
+
+
+  
+  
