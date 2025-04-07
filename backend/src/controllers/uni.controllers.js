@@ -96,7 +96,7 @@ export const joinUniversity = async (req, res) => {
 
     const [user, university, isStudent] = await Promise.all([
       getUserByAttribute("id", user_id),
-      isValidUniversity("uni_id", uni_id),
+      isValidUniversity(uni_id),
       isUniversityStudent(user_id, uni_id),
     ]);
 
@@ -260,15 +260,32 @@ export const getUserUniversities = async (req, res) => {
 export const getJoinableUniversities = async (req, res) => {
   try {
     const user_id = req.user;
+
+    // Extract Page Number from request or default to 1
+    const page = parseInt(req.body.page) || 1;
+    const pageSize = 10;
+
+    // Calculation of Start and End Range for Pagination
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
     const user = await getUserByAttribute("id", user_id);
     const uni_data = await getJoinableUniversitiesDB(
       user_id,
       user.email,
+      start,
+      end
     );
 
     return res.status(200).json({
       success: true,
       data: uni_data.data || [],
+      pagination: {
+        totalRecords: uni_data.count,
+        totalPages: Math.ceil(uni_data.count / pageSize),
+        currentPage: page,
+        pageSize,
+      },
       message: "User Joinable Universities Returned Successfully",
     });
   } catch (err) {
@@ -287,7 +304,7 @@ export const leaveUniversity = async (req, res) => {
 
     const [user, university, isStudent] = await Promise.all([
       getUserByAttribute("id", user_id),
-      isValidUniversity("uni_id", uni_id),
+      isValidUniversity(uni_id),
       isUniversityStudent(user_id, uni_id),
     ]);
 
