@@ -1,23 +1,72 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Select Your University</title>
-  <link rel="stylesheet" href="src/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="src/style.css" />
+  <title>EventNet | Home</title>
 </head>
-<body id="universities-page">
+
+<body id="home">
+  <header>
+    <div class="top-bar">
+      <h1>EventNet</h1>
+
+      <input type="text" id="search-bar" placeholder="SEARCH" />
+
+      <div class="profile-dropdown">
+        <div class="profile-icon" id="profile-button">
+          <img src="images/profile-icon.jpg" alt="Profile" />
+        </div>
+        <div class="dropdown-content" id="profile-menu">
+            <a href="profile.html">Profile</a>
+          <a href="#">Notifications</a>
+          <a href="#">Messages</a>
+          <button class="sign_out_btn">Log Out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <nav class="taskbar">
+    <a href="home.html">Home</a>
+    <a href="#" onclick="window.location.href='/rsoEvents'; return false;">RSO Events</a>
+    <a href="#" onclick="window.location.href='/publicEvents'; return false;">Public Events</a>
+    <a href="#" onclick="window.location.href='/universities'; return false;">University</a>
+    <a href="#" onclick="window.location.href='/universityEvents'; return false;">University Events</a>
+    <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
+  </nav>
+  
+  <div class = "profile-container">
   <header class="top-bar">
     <h1>Select Your University</h1>
   </header>
 
-  <main class="profile-container">
+  <main class ="profile-container">
     <p>Please select your university before signing up:</p>
     <ul id="university-list" class="university-list">
-      <!-- Universities will be inserted here -->
     </ul>
+    </div>
+
+    <section>
+      <h2>Your RSOs</h2>
+      <div id="your-rsos" class="rso-list-container"></div>
+    </section>
+
+    <div id ="yourRSOContainer" class = "rso-list-container">
+      
+    </div>
+
+    
+
+
   </main>
+  
 
   <script type="module" src="src/universities.js"></script>
+
+
 </body>
+
 </html>
