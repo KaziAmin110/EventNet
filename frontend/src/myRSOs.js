@@ -159,6 +159,4 @@ profileButton?.addEventListener("click", () => {
   profileMenu.classList.toggle("show-dropdown");
 });
 
-  
-
 fetchUserRSOs();
