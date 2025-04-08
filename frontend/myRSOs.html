@@ -33,33 +33,35 @@
     <a href="home.html">Home</a>
     <a href="#" onclick="window.location.href='/rsoEvents'; return false;">RSO Events</a>
     <a href="#" onclick="window.location.href='/publicEvents'; return false;">Public Events</a>
-    <a href="#" onclick="window.location.href='/universities'; return false;">University</a>
     <a href="#" onclick="window.location.href='/universityEvents'; return false;">University Events</a>
+    <a href="#" onclick="window.location.href='/universities'; return false;">University</a>
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
   
 
   <main>
-    <section id="university-prompt" style="display: none; text-align: center; margin-top: 2rem;">
-      <h2>Please select your university to continue</h2>
-      <a href="universities.html">
-        <button style="padding: 10px 20px; font-size: 1rem;">Choose University</button>
-      </a>
-    </section>
-
+    <!-- RSOs the user has joined -->
     <section>
       <h2>Your RSOs</h2>
-      <div id="your-rsos" class="rso-list-container"></div>
+      <ul id="your-rsos" class="rso-list-container"></ul>
     </section>
-
-    <div id ="yourRSOContainer" class = "rso-list-container">
-       
-
-    </div>
-    
-
-
+  
+    <!-- RSOs at the user's university that can be joined -->
+    <section>
+      <h2>Available RSOs to Join</h2>
+      <ul id="available-rsos" class="rso-list-container"></ul>
+    </section>
+  
+    <!-- RSO creation form -->
+    <section>
+      <h2>Create a New RSO</h2>
+      <form id="create-rso-form">
+        <input type="text" id="rso-name" placeholder="RSO Name" required />
+        <button type="submit">Create RSO</button>
+      </form>
+    </section>
   </main>
+  
   
 
   <script type="module" src="src/myRSOs.js"></script>

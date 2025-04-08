@@ -1,5 +1,60 @@
-const universityList = document.getElementById("university-list");
+const universityList = document.getElementById("joinable-university-list");
+const joinedList = document.getElementById("joined-university-list");
 
+// Store multiple university IDs
+function storeUniversityId(uniId) {
+  const ids = JSON.parse(localStorage.getItem("universityIds")) || [];
+  if (!ids.includes(parseInt(uniId))) {
+    ids.push(parseInt(uniId));
+    localStorage.setItem("universityIds", JSON.stringify(ids));
+  }
+}
+
+// Display joined universities list
+async function displayJoinedUniversities() {
+  const token = localStorage.getItem("accessToken");
+
+  if (!token) {
+    joinedList.innerHTML = "<li>Please log in to see joined universities.</li>";
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5500/api/universities/me", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      }
+    });
+
+    const result = await res.json();
+
+    if (!res.ok || !result.success) {
+      throw new Error(result.message || "Failed to load joined universities");
+    }
+
+    const universities = result.data;
+    joinedList.innerHTML = "";
+
+    if (!universities.length) {
+      joinedList.innerHTML = "<li>No universities joined yet.</li>";
+      return;
+    }
+
+    universities.forEach((uni) => {
+      const li = document.createElement("li");
+      li.textContent = uni.uni_name;
+      joinedList.appendChild(li);
+    });
+  } catch (err) {
+    console.error("Error fetching joined universities:", err);
+    joinedList.innerHTML = "<li>Failed to load universities.</li>";
+  }
+}
+
+
+// Display joinable universities
 async function fetchUniversities() {
   const token = localStorage.getItem("accessToken");
 
@@ -9,13 +64,8 @@ async function fetchUniversities() {
     return;
   }
 
-  if (localStorage.getItem("universityId")) {
-    window.location.href = "home.html";
-    return;
-  }
-
   try {
-    const res = await fetch("http://localhost:5500/api/universities/joinable?page=1", {
+    const res = await fetch("http://localhost:5500/api/universities", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -32,6 +82,8 @@ async function fetchUniversities() {
       throw new Error("Expected an array of universities, got: " + JSON.stringify(universities));
     }
 
+    universityList.innerHTML = ""; // Clear previous list
+
     universities.forEach((uni) => {
       const li = document.createElement("li");
       li.classList.add("university-item");
@@ -47,9 +99,6 @@ async function fetchUniversities() {
         const button = e.currentTarget;
         const uniId = button.dataset.id;
 
-        console.log("Attempting to join university ID:", uniId);
-        console.log("Using token:", token);
-
         try {
           const joinRes = await fetch(`http://localhost:5500/api/universities/${uniId}/join`, {
             method: "POST",
@@ -59,21 +108,15 @@ async function fetchUniversities() {
             }
           });
 
-          if (!joinRes.ok) {
-            const errorText = await joinRes.text();
-            throw new Error(`Join request failed with status ${joinRes.status}: ${errorText}`);
-          }
-
           const joinData = await joinRes.json();
 
-          if (joinData.success) {
-            localStorage.setItem("universityId", uniId);
-            localStorage.setItem("universityName", button.previousElementSibling.textContent);
-            alert("Joined university successfully. Proceeding to home...");
-            window.location.href = "home.html";
-          } else {
-            alert(joinData.message || "Failed to join university.");
+          if (!joinRes.ok || !joinData.success) {
+            throw new Error(joinData.message || "Failed to join university.");
           }
+
+          storeUniversityId(uniId);
+          alert(`Joined "${button.previousElementSibling.textContent}" successfully!`);
+          displayJoinedUniversities(); // update the list
         } catch (err) {
           console.error("Join failed:", err);
           alert("Error joining university: " + err.message);
@@ -86,4 +129,13 @@ async function fetchUniversities() {
   }
 }
 
+// Profile dropdown toggle
+const profileButton = document.getElementById("profile-button");
+const profileMenu = document.getElementById("profile-menu");
+
+profileButton?.addEventListener("click", () => {
+  profileMenu.classList.toggle("show-dropdown");
+});
+
 fetchUniversities();
+displayJoinedUniversities();

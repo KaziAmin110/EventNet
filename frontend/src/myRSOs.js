@@ -1,154 +1,118 @@
-const universityList = document.getElementById("yourRSOContainer");
+const token = localStorage.getItem("accessToken");
+const joinedList = document.getElementById("your-rsos");
+const availableList = document.getElementById("available-rsos");
 
-async function fetchUserRSOs() {
-  const token = localStorage.getItem("accessToken");
-    console.log(token);
-  if (!token) {
-    alert("You must log in before selecting a university.");
-    window.location.href = "index.html";
+if (!token) {
+  alert("Please log in.");
+  window.location.href = "index.html";
+}
+
+async function getUserUniversities() {
+  const res = await fetch("http://localhost:5500/api/universities/me", {
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  const result = await res.json();
+  return result.data.map(u => u.uni_id); // return array of uni_ids
+}
+
+async function getJoinedRSOs() {
+  const res = await fetch("http://localhost:5500/api/universities/rsos/me", {
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  const result = await res.json();
+  return result.data || [];
+}
+
+async function getRSOsAtUniversity(uniId) {
+  const res = await fetch(`http://localhost:5500/api/universities/${uniId}/rsos`, {
+    headers: {
+      "Authorization": `Bearer ${token}`
+    }
+  });
+  const result = await res.json();
+  return result.data || [];
+}
+
+function renderRSOList(container, rsos, buttonLabel = null, clickHandler = null) {
+  container.innerHTML = "";
+
+  if (!rsos.length) {
+    const emptyMsg = document.createElement("p");
+    emptyMsg.textContent = "No RSOs to show.";
+    container.appendChild(emptyMsg);
     return;
   }
 
-  if (localStorage.getItem("universityId")) {
-    window.location.href = "home.html";
-    return;
-  }
+  rsos.forEach(rso => {
+    const li = document.createElement("li");
+    li.className = "rso-card"; // Apply your card style
 
-  try {
-    const res = await fetch("http://localhost:5500/api/universities/rsos/me", {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      }
-    });
+    // Card content
+    li.innerHTML = `
+      <h3>${rso.rso_name}</h3>
+      <p>Members: ${rso.num_members ?? 0}</p>
+      <p>Status: ${rso.rso_status ?? "unknown"}</p>
+    `;
 
-    const result = await res.json();
-    console.log("Universities API response:", result);
+    // Add action button if needed (e.g., Join)
+    if (buttonLabel && clickHandler) {
+      const btn = document.createElement("button");
+      btn.className = "btn";
+      btn.textContent = buttonLabel;
+      btn.addEventListener("click", () => clickHandler(rso));
+      li.appendChild(btn);
+    }
 
-    const universities = result.data;
-
-    // if (!Array.isArray(universities)) {
-    //   throw new Error("Expected an array of universities, got: " + JSON.stringify(universities));
-    // }
-    console.log(universities);
-    universities.forEach((uni) => {
-        const li = document.createElement("li");
-        const inviteButton = document.createElement("button");
-        li.classList.add("university-item");
-        li.innerHTML = `
-          ${uni.rso_name}
-        `;
-        
-        inviteButton.textContent = "Invite";
-        inviteButton.classList.add("invite-button");
-        universityList.appendChild(li);
-        universityList.appendChild(inviteButton);
-        const inputBox = document.createElement("input");
-        inputBox.type = "text";
-        inputBox.placeholder = "Enter invite email";
-        inputBox.style.display = "none"; // start hidden
-        inputBox.classList.add("invite-input");
-        const sendButton = document.createElement("button");
-        sendButton.textContent = "Send";
-        sendButton.classList.add("send-button");
-        sendButton.style.display = "none";
-        attachToggleInput(inviteButton, inputBox, sendButton);
-        sendInvite(sendButton, inputBox);
-        li.appendChild(inputBox);
-        li.appendChild(sendButton);
-
-      });
-
-    document.querySelectorAll(".join-btn").forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
-        const button = e.currentTarget;
-        const uniId = button.dataset.id;
-
-        console.log("Attempting to join university ID:", uniId);
-        console.log("Using token:", token);
-
-        try {
-          const joinRes = await fetch(`http://localhost:5500/api/universities/rsos/me`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
-            }
-          });
-
-          if (!joinRes.ok) {
-            const errorText = await joinRes.text();
-            throw new Error(`Join request failed with status ${joinRes.status}: ${errorText}`);
-          }
-
-          const joinData = await joinRes.json();
-
-          if (joinData.success) {
-            localStorage.setItem("universityId", uniId);
-            localStorage.setItem("universityName", button.previousElementSibling.textContent);
-            alert("Joined university successfully. Proceeding to home...");
-            window.location.href = "home.html";
-          } else {
-            alert(joinData.message || "Failed to join university.");
-          }
-        } catch (err) {
-          console.error("Join failed:", err);
-          alert("Error joining university: " + err.message);
-        }
-      });
-    });
-  } catch (err) {
-    console.error("Error loading universities:", err);
-    universityList.innerHTML = "<li>Failed to load universities.</li>";
-  }
+    container.appendChild(li);
+  });
 }
 
-function attachToggleInput(button, input, sendBtn) {
-    button.addEventListener("click", () => {
-      input.style.display = input.style.display === "none" ? "block" : "none";
-      sendBtn.style.display = sendBtn.style.display === "none" ? "block" : "none";
+async function initRSOPage() {
+  const universityIds = await getUserUniversities();
+  const joinedRSOs = await getJoinedRSOs();
+  const joinedRSOIds = new Set(joinedRSOs.map(rso => rso.rso_id));
 
-    });
+  renderRSOList(joinedList, joinedRSOs);
+
+  const allAvailable = [];
+
+  for (const uniId of universityIds) {
+    const rsos = await getRSOsAtUniversity(uniId);
+    const unjoined = rsos.filter(rso => !joinedRSOIds.has(rso.rso_id));
+    console.log(`University ${uniId} returned RSOs:`, rsos);
+    console.log("Unjoined RSOs:", unjoined);
+
+
+    
+    allAvailable.push(...unjoined);
+  }
+
+  renderRSOList(availableList, allAvailable, "Join", async (rso) => {
+    try {
+      const res = await fetch(`http://localhost:5500/api/universities/${rso.uni_id}/rsos/${rso.rso_id}/join`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        }
+      });
+
+      const result = await res.json();
+      if (res.ok && result.success) {
+        alert(`Joined ${rso.rso_name}`);
+        initRSOPage(); // Refresh list
+      } else {
+        alert(result.message || "Failed to join.");
+      }
+    } catch (err) {
+      console.error("Join failed:", err);
+      alert("Join request failed.");
+    }
+  });
 }
 
-function sendInvite(button, inputBox) {
-    button.addEventListener("click", async () => {
-      const email = inputBox.value.trim();
-  
-      if (!email) {
-        alert("Please enter an email.");
-        return;
-      }
-  
-      const token = localStorage.getItem("accessToken");
-      
-      try {
-        const res = await fetch("http://localhost:5500/api/universities/16/rsos/2120/invite", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-          },
-          body: JSON.stringify({
-            inviteEmail: email,
-          })
-        });
-  
-        const result = await res.json();
-  
-        if (res.ok && result.success) {
-          alert("Invite sent!");
-          inputBox.value = ""; // clear input after success
-        } else {
-          alert(result.message || "Failed to send invite.");
-        }
-      } catch (error) {
-        console.error("Invite error:", error);
-        alert("Error sending invite: " + error.message);
-      }
-    });
-  }
-  
-
-fetchUserRSOs();
+initRSOPage();
