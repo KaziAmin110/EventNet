@@ -15,7 +15,7 @@ import {
   getUserRsoDB,
   getAllRSOMembers,
   getNewRsoAdmin,
-  updateRsoAdmin,
+  updateRsosAdmin,
   updateRsoEventsAdmin,
   getRsoInvitesData,
   isRSOAdmin,
@@ -521,11 +521,7 @@ export const leaveRSO = async (req, res) => {
         await deleteAdmin(user_id);
 
         // Updates RSO Fields for New Admin
-        await updateRsoAdmin(
-          new_admin_id,
-          rso.admin_user_id,
-          new_admin_user_id
-        );
+        await updateRsosAdmin(new_admin_id, rso.admin_id, new_admin_user_id);
         await updateRsoEventsAdmin(rso.admin_user_id, new_admin_user_id);
       }
     }
