@@ -191,7 +191,7 @@ export const updateRsoStatus = async (rso_id, status) => {
 };
 
 // Updates the Admin of an RSO
-export const updateRsoAdmin = async (
+export const updateRsosAdmin = async (
   new_admin_id,
   old_admin_id,
   new_admin_user_id
@@ -407,12 +407,16 @@ export const getRSOMembers = async (admin_id, rso_id) => {
 };
 
 // Retrieves New RSO Admin Based on Earliest Join to RSO
-export const getNewRsoAdmin = async (rso_id) => {
+export const getNewRsoAdmin = async (rso_id, uni_id) => {
   try {
     const { data, error } = await supabase
       .from("joins_rso")
       .select("user_id")
       .eq("rso_id", rso_id)
+      .eq("uni_id", uni_id)
+      .order("created_at", {
+        ascending: true,
+      })
       .single();
 
     if (error) {
