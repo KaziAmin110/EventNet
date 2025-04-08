@@ -40,7 +40,6 @@
   
 
   <main>
-    <!-- ✅ Prompt for university selection if not joined yet -->
     <section id="university-prompt" style="display: none; text-align: center; margin-top: 2rem;">
       <h2>Please select your university to continue</h2>
       <a href="universities.html">
@@ -50,15 +49,22 @@
   
     <!-- Your event sections remain below -->
     <section>
+      <div class = "tab-buttons">
+      <button id = "publicEventsButton">Public Events</button>
+      <button id = "privateEventsButton">Private Events</button>
+      <button id = "rsoEventsButton">RSO Events</button>
+      </div>
       <h2>All RSO Events</h2>
-      <div class="rsoEvents-event-card"></div>
+      <div id = "publicEventsContainer" class="rsoEvents-event-card"></div>
+      <div id = "privateEventsContainer" class="rsoEvents-event-card"></div>
+      <div id = "rsoEventsContainer" class="rsoEvents-event-card"></div>
     </section>
-  
+    
     
   </main>
   
 
-  <script type="module" src="home.js"></script>
+  <script type="module" src="src/rsoEvents.js"></script>
 </body>
 
 </html>
