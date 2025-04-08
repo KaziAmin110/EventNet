@@ -38,30 +38,21 @@
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
   
-  <div class = "profile-container">
-  <header class="top-bar">
-    <h1>Select Your University</h1>
-  </header>
-
-  <main class ="profile-container">
+  <main class="profile-container">
     <p>Please select your university before signing up:</p>
-    <ul id="university-list" class="university-list">
-    </ul>
-    </div>
+<!-- Joinable universities list -->
+<ul id="joinable-university-list" class="university-list"></ul>
 
-    <section>
-      <h2>Your RSOs</h2>
-      <div id="your-rsos" class="rso-list-container"></div>
-    </section>
+<!-- Joined universities list -->
+<section>
+  <h2>Universities Joined</h2>
+  <ul id="joined-university-list" class="university-list-container"></ul>
+</section>
 
-    <div id ="yourRSOContainer" class = "rso-list-container">
-      
-    </div>
-
-    
-
-
+  
+    <div id="yourRSOContainer" class="rso-list-container"></div>
   </main>
+  
   
 
   <script type="module" src="src/universities.js"></script>

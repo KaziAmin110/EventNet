@@ -1,16 +1,4 @@
-// home.js
-const universityId = localStorage.getItem("universityId");
-
-// Instead of redirecting, show a prompt on the home page
-if (!universityId) {
-  const prompt = document.getElementById("university-prompt");
-  if (prompt) prompt.style.display = "block";
-} else {
-  // Continue loading home content as normal
-  console.log("User has joined university:", universityId);
-}
-
-
+// Profile dropdown toggle
 const profileButton = document.getElementById("profile-button");
 const profileMenu = document.getElementById("profile-menu");
 
@@ -22,11 +10,13 @@ profileButton?.addEventListener("click", () => {
 const userRole = localStorage.getItem("userRole");
 const superAdminPanel = document.getElementById("super-admin-panel");
 
-if (userRole === "super_admin") {
+if (userRole === "super_admin" && superAdminPanel) {
   superAdminPanel.style.display = "block";
 }
 
+// Handle super admin promotion form (if it exists)
 const superForm = document.getElementById("create-superadmin-form");
+
 superForm?.addEventListener("submit", async (e) => {
   e.preventDefault();
 
@@ -51,10 +41,12 @@ superForm?.addEventListener("submit", async (e) => {
   }
 });
 
-// Logout button
+// Logout button logic
 const logoutButton = document.querySelector(".sign_out_btn");
+
 logoutButton?.addEventListener("click", () => {
   localStorage.removeItem("accessToken");
   localStorage.removeItem("userRole");
+  localStorage.removeItem("universityIds");
   window.location.href = "index.html";
 });

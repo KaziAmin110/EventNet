@@ -150,6 +150,15 @@ function sendInvite(button, inputBox) {
     });
   }
   
+
+  // Profile dropdown toggle
+const profileButton = document.getElementById("profile-button");
+const profileMenu = document.getElementById("profile-menu");
+
+profileButton?.addEventListener("click", () => {
+  profileMenu.classList.toggle("show-dropdown");
+});
+
   
 
 fetchUserRSOs();
