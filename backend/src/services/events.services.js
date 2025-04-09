@@ -571,7 +571,7 @@ export const getUserEventCommentsDB = async (user_id, event_id) => {
     // Inner Join Query between University_events and student tables
     const { data } = await supabase
       .from("comments")
-      .select(`comment_id, text, created_at`)
+      .select(`comment_id, text, created_at, user_id`)
       .eq("user_id", user_id)
       .eq("event_id", event_id);
 
@@ -602,7 +602,7 @@ export const getNonUserEventCommentsDB = async (user_id, event_id) => {
     // Queries All Non User Based Comments
     const { data } = await supabase
       .from("comments")
-      .select("comment_id, text, created_at")
+      .select("comment_id, text, created_at, user_id")
       .neq("user_id", user_id)
       .eq("event_id", event_id);
 

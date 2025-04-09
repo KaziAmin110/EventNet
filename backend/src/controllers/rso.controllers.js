@@ -547,7 +547,7 @@ export const leaveRSO = async (req, res) => {
       }
 
       // Handles Logic for Reassiging Admin Role, If User is Admin
-      if (rso.admin_user_id === user_id) {
+      if (user_id === rso.admin_user_id) {
         // Admin Role Reassignment Logic
         const new_admin_user_id = getNewRsoAdmin(rso_id);
         const new_user = await getUserByAttribute("id", new_admin_user_id);
