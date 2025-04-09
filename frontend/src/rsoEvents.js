@@ -582,6 +582,15 @@ profileButton?.addEventListener("click", () => {
   profileMenu.classList.toggle("show-dropdown");
 });
 
-  
+// Logout button logic
+const logoutButton = document.querySelector(".sign_out_btn");
+
+logoutButton?.addEventListener("click", () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("universityIds");
+  window.location.href = "index.html";
+});  
+
 
 fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
