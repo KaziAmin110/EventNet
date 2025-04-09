@@ -31,9 +31,7 @@
 
   <nav class="taskbar">
     <a href="home.html">Home</a>
-    <a href="#" onclick="window.location.href='/rsoEvents'; return false;">RSO Events</a>
-    <a href="#" onclick="window.location.href='/publicEvents'; return false;">Public Events</a>
-    <a href="#" onclick="window.location.href='/universityEvents'; return false;">University Events</a>
+    <a href="#" onclick="window.location.href='/rsoEvents'; return false;">Events</a>
     <a href="#" onclick="window.location.href='/universities'; return false;">University</a>
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
@@ -54,7 +52,7 @@
       <button id = "privateEventsButton">Private Events</button>
       <button id = "rsoEventsButton">RSO Events</button>
       </div>
-      <h2>All RSO Events</h2>
+      <h2 id = tempHeader></h2>
       <div id = "publicEventsContainer" class="rsoEvents-event-card"></div>
       <div id = "privateEventsContainer" class="rsoEvents-event-card"></div>
       <div id = "rsoEventsContainer" class="rsoEvents-event-card"></div>
