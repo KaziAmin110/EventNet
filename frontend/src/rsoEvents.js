@@ -817,17 +817,13 @@ logoutButton?.addEventListener("click", () => {
   window.location.href = "index.html";
 });  
 
+console.log("✅ JS loaded");
 
-// 🔁 DOM & Auth Check
-document.addEventListener("DOMContentLoaded", () => {
-  console.log("✅ JS loaded");
-
-  const form = document.getElementById("public-event-form");
-  if (!form) {
-    console.warn("⚠️ public-event-form not found");
-    return;
-  }
-
+//public event creation
+const form = document.getElementById("public-event-form");
+if (!form) {
+  console.warn("public-event-form not found");
+} else {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     console.log("📤 Form submitted");
@@ -865,19 +861,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const resData = await res.json();
 
       if (!res.ok) {
-        throw new Error(resData.message || "❌ Failed to create event.");
+        throw new Error(resData.message || "Failed to create event.");
       }
 
-      document.getElementById("result-msg").textContent = "✅ Event created successfully!";
+      document.getElementById("result-msg").textContent = "Event created successfully!";
       console.log("✅ Response:", resData);
       form.reset();
     } catch (err) {
-      console.error("❌ Error creating event:", err.message);
-      document.getElementById("result-msg").textContent = "❌ Failed to create event.";
+      console.error("Error creating event:", err.message);
+      document.getElementById("result-msg").textContent = "Failed to create event.";
     }
   });
-});
-
+}
 
 
 fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
