@@ -234,8 +234,8 @@ async function createEventComment(sendButton, viewCommentsButton, inputBox, li) 
       });
   
       const res = await response.json();
-  
-      if (response.ok && res.success) {
+      console.log(res);
+      if (res.status) {
         alert("Comment posted!");
       
         const currentComments = li.nextElementSibling;
@@ -296,25 +296,141 @@ async function getEventComments(button, li) {
           li.innerHTML = "No comments yet.";
           comments.appendChild(li);
         } else {
-          fetchedComments.forEach(curComment => {
+          fetchedComments.forEach(async curComment => {
             const liComment = document.createElement("li");
-            liComment.innerHTML = curComment.text;
-            console.log(userInfo);
-            console.log(curComment);
+            const commentDiv = document.createElement("div");
+            commentDiv.classList.add("comment-div");
+            
+            const text = document.createElement("span");
+            text.innerHTML = curComment.text;
+            text.classList.add("comment-text");
+            commentDiv.appendChild(text);
+
             if (curComment.user_id === userInfo) {
-                console.log(userInfo);
+
+                const deleteButton = document.createElement("button");
+                deleteButton.textContent = "Delete";
+                deleteButton.classList.add("comment-button-edit");
+                deleteButton.style.display = "block";
+
+                deleteButton.addEventListener("click", async () => {
+                    const confirmed = confirm("Are you sure you want to delete this comment?");
+                    if (!confirmed) return;
+                  
+                    const token = localStorage.getItem("accessToken");
+                    if (!token) {
+                      alert("You must be logged in to delete a comment.");
+                      return;
+                    }
+                  
+                    try {
+                      const response = await fetch(`http://localhost:5500/api/events/${eventId}/comments/${curComment.comment_id}`, {
+                        method: "DELETE",
+                        headers: {
+                          "Authorization": `Bearer ${token}`
+                        }
+                      });
+                  
+                      const result = await response.json();
+                      console.log(result);
+                      if (result.status) {
+                        alert("Comment deleted.");
+                        button.click();
+                        button.click();
+                        commentDiv.parentElement.remove();
+                      } else {
+                        alert(result.message || "Failed to delete comment.");
+                      }
+                    } catch (error) {
+                      console.error("Error deleting comment:", error);
+                      alert("Something went wrong.");
+                    }
+                  });
+
                 const editButton = document.createElement("button");
                 editButton.textContent = "Edit";
-                editButton.classList.add("edit-button");
+                editButton.classList.add("comment-button-edit");
                 editButton.style.display = "block";
+                let removed = false;
+                let editInput = null;
+                let saveButton = null;
 
                 editButton.addEventListener("click", () => {
+                    if (commentDiv.querySelector(".comment-edit-input")) return;
                   
-                });
-            
-                liComment.appendChild(editButton);
-              }
+                    text.style.display = "none";
+                    editButton.style.display = "none";
+                    
+                    const editInput = document.createElement("input");
+                    editInput.type = "text";
+                    editInput.value = curComment.text;
+                    editInput.classList.add("comment-edit-input");
+                  
+                    const saveButton = document.createElement("button");
+                    saveButton.textContent = "Save";
+                    saveButton.classList.add("comment-button-edit");
+                  
+                    const cancelButton = document.createElement("button");
+                    cancelButton.textContent = "Cancel";
+                    cancelButton.classList.add("comment-button-edit");
+                  
+                    saveButton.addEventListener("click", async () => {
+                      const updatedText = editInput.value.trim();
+                      if (!updatedText) {
+                        alert("Comment can't be empty.");
+                        return;
+                      }
+                  
+                      try {
+                        const response = await fetch(`http://localhost:5500/api/events/${eventId}/comments/${curComment.comment_id}`, {
+                          method: "PATCH",
+                          headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": `Bearer ${token}`,
+                          },
+                          body: JSON.stringify({ text: updatedText }),
+                        });
+                  
+                        const result = await response.json();
 
+                        if (result.status) {
+                          let tempData = await getEventCommentsByEventId(button.dataset.eventId);
+                          console.log("hi");
+                          console.log(tempData);
+                          text.textContent = updatedText;
+                          text.style.display = "inline";
+                          editButton.style.display = "inline";
+                        } else {
+                          alert(result.message);
+                        }
+                      } catch (error) {
+                        console.error("Error updating comment:", error);
+                        alert("Something went wrong.");
+                      }
+                  
+                      editInput.remove();
+                      saveButton.remove();
+                      cancelButton.remove();
+                    });
+                  
+                    cancelButton.addEventListener("click", () => {
+                      text.style.display = "inline";
+                      editButton.style.display = "inline";
+                      editInput.remove();
+                      saveButton.remove();
+                      cancelButton.remove();
+                    });
+                  
+                    commentDiv.appendChild(editInput);
+                    commentDiv.appendChild(saveButton);
+                    commentDiv.appendChild(cancelButton);
+                  });
+                  
+                commentDiv.appendChild(deleteButton);  
+                commentDiv.appendChild(editButton);
+                
+            }
+            liComment.appendChild(commentDiv);
             comments.appendChild(liComment);
           });
         }
@@ -330,6 +446,37 @@ async function getEventComments(button, li) {
   
 });
 }
+
+async function getEventCommentsByEventId(eventId) {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("You must be logged in to view comments.");
+      return [];
+    }
+  
+    try {
+      const response = await fetch(`http://localhost:5500/api/events/${eventId}/comments`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`
+        }
+      });
+  
+      const result = await response.json();
+  
+      if (response.ok && result.success) {
+        return result.data;
+      } else {
+        alert(result.message || "Failed to fetch comments.");
+        return [];
+      }
+    } catch (error) {
+      console.error("Error fetching comments:", error);
+      alert("Something went wrong while retrieving comments.");
+      return [];
+    }
+  }
+  
 
 async function getEventCommentsRefresh(button, li) {
     const token = localStorage.getItem("accessToken");
@@ -516,6 +663,38 @@ async function getEventInfo(eventId) {
     return null;
   }
 }
+
+async function getCommentInfo(eventId, commentId) {
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("Log in to get the comment's info.");
+      return null;
+    }
+  
+    try {
+      const res = await fetch(`http://localhost:5500/api/events/${eventId}/comments/${commentId}`, {
+        method: "GET",
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        }
+      });
+  
+      const result = await res.json();
+  
+      if (res.ok && result.success) {
+        return result.data;
+      } else {
+        alert(result.message);
+        return null;
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Couldn't retrieve the comment info.");
+      return null;
+    }
+  }
+  
 
 async function getUserInfo() {
     const token = localStorage.getItem("accessToken");

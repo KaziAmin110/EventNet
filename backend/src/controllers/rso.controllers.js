@@ -554,6 +554,8 @@ export const leaveRSO = async (req, res) => {
         const new_user = await getUserByAttribute("id", new_admin_user_id);
 
         let new_admin = await getAdminByAttribute("user_id", new_user.id);
+
+        // Creates Admin If New Admin is not already an Admin
         if (!new_admin) {
           new_admin = await createAdmin(
             new_user.id,
@@ -564,11 +566,22 @@ export const leaveRSO = async (req, res) => {
         }
 
         // Updates RSO Fields for New Admin
-        await updateRsosAdmin(new_admin.admin_id, rso.admin_id, new_admin.user_id);
-        await updateRsoEventsAdmin(rso.admin_user_id, new_admin.user_id);
+        const [_, old_admin] = await Promise.all([
+          updateRsoEventsAdmin(rso.admin_user_id, new_admin.user_id, rso_id),
+          updateRsosAdmin(
+            new_admin.admin_id,
+            rso.admin_id,
+            new_admin.user_id,
+            rso_id
+          ),
+          getRsoByAttribute("admin_user_id", user_id),
+        ]);
 
-        // Removes Old Admin from Admins Table
-        await deleteAdmin(user_id);
+        // Removes Old Admin from Admins Table If Admin Doesnt Isnt a Part of Any RSOs
+        if (!old_admin) {
+          console.log(1);
+          await deleteAdmin(user_id);
+        }
       }
     }
 

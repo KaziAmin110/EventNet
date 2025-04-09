@@ -441,6 +441,42 @@
   .join-btn:hover {
     background-color: #005f87;
   }
+
+  .comment-div {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    justify-content: space-between; /* optional */
+  }
+  
+  .comment-text {
+    flex-grow: 1;
+  }
+  
+  .comment-button-edit {
+    padding: 4px 8px;
+    font-size: 12px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .comment-button-edit {
+    background-color: #ddd;
+  }
+
+  .comment-edit-input {
+    flex-grow: 1;
+    padding: 6px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    background-color: #f9f9f9;
+    outline: none;
+  }
+  
   
   :root {
     --primary-bg: #000000;
