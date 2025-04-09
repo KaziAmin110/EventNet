@@ -22,6 +22,7 @@ import {
   isUserAlreadyInvited,
   isUniversityRSO,
   removeInviteStatus,
+  deleteRSOFromDB,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
@@ -331,39 +332,15 @@ export const getAllRSOs = async (req, res) => {
   try {
     const { uni_id } = req.params;
 
-    // Extract Page Number from request or default to 1
-    const page = parseInt(req.body.page) || 1;
-    const pageSize = 10;
-
-    // Calculation of Start and End Range for Pagination
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize - 1;
-
-    // Generate cache key based on uni_id, page, and pagination range
-    const cacheKey = `rsos:uni:${uni_id}:page:${page}:start:${start}:end:${end}`;
-
-    // Check if the data is cached in Redis
-    const cachedRsos = await redisClient.get(cacheKey);
-    if (cachedRsos !== null) {
-      return res.status(200).json({
-        success: true,
-        data: JSON.parse(cachedRsos).data,
-        pagination: JSON.parse(cachedRsos).pagination,
-        message: "University RSOs Retrieved from Cache",
-      });
-    }
-
     // Fetch data from the database if not found in cache
-    const rsoInfo = await getAllRsosDB(uni_id, start, end, page, pageSize);
+    const rsoInfo = await getAllRsosDB(uni_id);
 
-    // Cache the result in Redis with 5 minutes expiration
-    await redisClient.set(cacheKey, JSON.stringify(rsoInfo), "EX", 300); // 5 minutes expiration
+    console.log(rsoInfo);
 
     // Return the fetched data in the response
     return res.status(200).json({
       success: true,
       data: rsoInfo.data,
-      pagination: rsoInfo.pagination,
       message: "University RSOs Returned Successfully",
     });
   } catch (err) {
@@ -552,12 +529,12 @@ export const leaveRSO = async (req, res) => {
     console.log(newMemberCount);
     // Deletes RSO and RSO Event Fields If New Member Count is Zero
     if (newMemberCount === 0) {
-      [_, removed_events_result] = await Promise.all([
+      const [_, removed_events_result] = await Promise.all([
         deleteRSOFromDB(rso_id),
         deleteRSOEventsFromDB(rso_id),
       ]);
 
-      const removed_events = removed_events_result;
+      let removed_events = removed_events_result;
       console.log(removed_events);
       // Removes Each Removed Event from Rso_Events from Events Table
       const deleteEventPromises = removed_events.map(async (removed_event) => {
