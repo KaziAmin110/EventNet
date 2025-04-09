@@ -6,23 +6,14 @@ import Admin from "../entities/admin.entities.js";
 // Retrieves User Entity Based on Attribute
 export const getUserByAttribute = async (attribute, value) => {
   try {
-    // Generate cache key based on attribute (Ex. "user:email:user@gmail.com")
-    const cacheKey = `user:${attribute}:${value}`;
-    const cachedUser = await redisClient.get(cacheKey);
-
-    // Checks if User already exists within Redis Cache
-    // if (cachedUser) {
-    //   const data = JSON.parse(cachedUser);
-    //   return new User(data.id, data.name, data.email);
-    // }
-
     const { data, error } = await supabase
       .from("users")
       .select("id, email, name")
       .eq(attribute, value)
       .single();
 
-    if (error) {
+    if (error && data) {
+      console.log(error);
       throw error;
     }
 

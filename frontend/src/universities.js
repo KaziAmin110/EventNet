@@ -45,6 +45,15 @@ async function displayJoinedUniversities() {
     universities.forEach((uni) => {
       const li = document.createElement("li");
       li.textContent = uni.uni_name;
+      const img = document.createElement("img");
+
+      if (uni.pictures) {
+        const pictureUrl = uni.pictures[0];
+        console.log(pictureUrl);
+        img.src = pictureUrl;
+      }
+
+      li.appendChild(img);
       joinedList.appendChild(li);
     });
 
