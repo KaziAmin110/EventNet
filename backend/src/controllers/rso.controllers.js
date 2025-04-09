@@ -282,7 +282,7 @@ export const joinRSOFromId = async (req, res) => {
 
     if (!isStudent) {
       const error = new Error(
-        "Join Unsuccessful - User is not a student at university"
+        "Join Unsuccessful - User is not a Student at Given university"
       );
       error.statusCode = 403;
       throw error;
