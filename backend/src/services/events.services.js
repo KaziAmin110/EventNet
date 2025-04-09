@@ -669,7 +669,7 @@ export const deleteEventCommentDB = async (comment_id) => {
   }
 };
 
-// Removes All RSO Events From RSO_Events Table
+// Removes All RSO Events With a Specific rso_id From RSO_Events Table
 export const deleteRSOEventsFromDB = async (rso_id) => {
   try {
     const { data, error } = await supabase

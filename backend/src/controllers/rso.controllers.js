@@ -579,7 +579,6 @@ export const leaveRSO = async (req, res) => {
 
         // Removes Old Admin from Admins Table If Admin Doesnt Isnt a Part of Any RSOs
         if (!old_admin) {
-          console.log(1);
           await deleteAdmin(user_id);
         }
       }

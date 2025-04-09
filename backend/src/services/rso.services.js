@@ -198,7 +198,6 @@ export const updateRsosAdmin = async (
   rso_id
 ) => {
   try {
-    console.log(new_admin_id, new_admin_user_id, old_admin_id, rso_id);
     const { data, error } = await supabase
       .from("rso")
       .update({ admin_id: new_admin_id, admin_user_id: new_admin_user_id })
