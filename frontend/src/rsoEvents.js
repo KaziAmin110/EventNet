@@ -15,7 +15,9 @@ let privateEventBool = false;
 let rsoEventsBool = false;
 
 let userInfo = await getUserInfo();
-userInfo = userInfo.user_id;
+
+localStorage.setItem("userId", userInfo.user_id); // ✅ just the number or string
+
 
 async function fetchAllUserRSOEvents(
   publicEventBool,
@@ -819,10 +821,9 @@ logoutButton?.addEventListener("click", () => {
 
 console.log("✅ JS loaded");
 
-//public event creation
 const form = document.getElementById("public-event-form");
 if (!form) {
-  console.warn("public-event-form not found");
+  console.warn("⚠️ public-event-form not found");
 } else {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -847,6 +848,9 @@ if (!form) {
     };
 
     console.log("📦 Sending data:", data);
+    console.log("Token:", token);
+    alert("Public Event Request Sent. Pending Approval: " );
+
 
     try {
       const res = await fetch("http://localhost:5500/api/events/public", {
@@ -861,18 +865,169 @@ if (!form) {
       const resData = await res.json();
 
       if (!res.ok) {
-        throw new Error(resData.message || "Failed to create event.");
+        throw new Error(resData.message || "❌ Failed to create event.");
       }
 
-      document.getElementById("result-msg").textContent = "Event created successfully!";
+      document.getElementById("result-msg").textContent = "✅ Event created successfully!";
       console.log("✅ Response:", resData);
       form.reset();
     } catch (err) {
-      console.error("Error creating event:", err.message);
-      document.getElementById("result-msg").textContent = "Failed to create event.";
+      console.error("❌ Error creating event:", err.message);
+      document.getElementById("result-msg").textContent = "❌ Failed to create event.";
+    }
+  });
+}
+
+
+//private event creation
+const privateForm = document.getElementById("private-event-form");
+if (privateForm) {
+  privateForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("accessToken");
+    
+    //hardcoded for testing purposes
+    const uniId = 1;
+
+
+    console.log("Token is " + token);
+    console.log("UNIID is " + uniId);
+
+    if (!uniId) {
+      alert("No university selected. Please choose one first.");
+      return;
+    }
+
+    const data = {
+      event_name: document.getElementById("private_event_name").value,
+      description: document.getElementById("private_description").value,
+      location: document.getElementById("private_location").value,
+      latitude: parseFloat(document.getElementById("private_latitude").value),
+      longitude: parseFloat(document.getElementById("private_longitude").value),
+      start_date: new Date(document.getElementById("private_start_date").value).toISOString(),
+      end_date: new Date(document.getElementById("private_end_date").value).toISOString(),
+      contact_phone: document.getElementById("private_contact_phone").value,
+      contact_email: document.getElementById("private_contact_email").value,
+    };
+
+    try {
+      const res = await fetch(`http://localhost:5500/api/universities/${uniId}/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message);
+
+      document.getElementById("private-result-msg").textContent = "✅ Private event created!";
+      privateForm.reset();
+    } catch (err) {
+      console.error("Error creating private event:", err);
+      document.getElementById("private-result-msg").textContent = "❌ Failed to create private event.";
+    }
+  });
+}
+
+
+//RSO event creation
+async function loadUserRSOsForAdmin() {
+  const token = localStorage.getItem("accessToken");
+  const currentUserId = localStorage.getItem("userId");
+
+  if (!token || !currentUserId) {
+    console.warn("No access token or user ID found.");
+    return;
+  }
+
+  try {
+    const res = await fetch("http://localhost:5500/api/universities/rsos/me", {
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const result = await res.json();
+    console.log("RSOs fetched:", result);
+
+    if (!res.ok || !result.success) throw new Error(result.message);
+
+    const rsoList = result.data;
+    const rsoSelect = document.getElementById("rso_select");
+
+    let isAdmin = false;
+
+    rsoList.forEach(rso => {
+      if (rso.admin_user_id == currentUserId) {
+        const option = document.createElement("option");
+        option.value = JSON.stringify({ uni_id: rso.uni_id, rso_id: rso.rso_id });
+        option.textContent = rso.rso_name;
+        rsoSelect.appendChild(option);
+        isAdmin = true;
+      }
+    });
+
+    if (isAdmin) {
+      console.log("✅ User is an admin. Showing RSO form.");
+      document.getElementById("rso-event-form-wrapper").style.display = "block";
+    } else {
+      console.log("ℹ️ User is not an RSO admin.");
+    }
+  } catch (err) {
+    console.error("❌ Error fetching RSOs:", err);
+  }
+}
+
+
+const rsoForm = document.getElementById("rso-event-form");
+
+if (rsoForm) {
+  rsoForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
+    const token = localStorage.getItem("accessToken");
+    const selected = JSON.parse(document.getElementById("rso_select").value);
+
+    const data = {
+      event_name: document.getElementById("rso_event_name").value,
+      description: document.getElementById("rso_description").value,
+      location: document.getElementById("rso_location").value,
+      latitude: parseFloat(document.getElementById("rso_latitude").value),
+      longitude: parseFloat(document.getElementById("rso_longitude").value),
+      start_date: new Date(document.getElementById("rso_start_date").value).toISOString(),
+      end_date: new Date(document.getElementById("rso_end_date").value).toISOString(),
+      contact_phone: document.getElementById("rso_contact_phone").value,
+      contact_email: document.getElementById("rso_contact_email").value,
+    };
+
+    try {
+      const res = await fetch(`http://localhost:5500/api/universities/${selected.uni_id}/rsos/${selected.rso_id}/events`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.message);
+
+      document.getElementById("rso-result-msg").textContent = "✅ RSO Event created!";
+      rsoForm.reset();
+    } catch (err) {
+      console.error("Error creating RSO event:", err.message);
+      document.getElementById("rso-result-msg").textContent = "❌ Failed to create RSO event.";
     }
   });
 }
 
 
 fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
+loadUserRSOsForAdmin();
+
