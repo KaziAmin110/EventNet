@@ -108,7 +108,7 @@
   }
   
   /* Top Bar */
-  #home .top-bar {
+  .top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -116,7 +116,9 @@
     flex-wrap: nowrap;
     background-color: var(--primary-bg);
     padding: 1rem;
+    width: 100%;
   }
+  
   
   #home .top-bar h1 {
     font-size: 1.8rem;
