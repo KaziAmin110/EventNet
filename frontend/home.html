@@ -36,8 +36,17 @@
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
 
-  <main>
-    <!-- ✅ Prompt for university selection if not joined yet -->
+  <div class="layout">
+    <!-- Left sticky column -->
+    <div class="sticky-column left-column">
+      <img src="images/knightro.jpg" alt="Left 1" />
+      <img src="images/gators.jpg" alt="Left 2" />
+      <img src="images/fsu.jpg" alt="Left 3" />
+    </div>
+  
+    <!-- Main content -->
+    <main>
+      <!-- ✅ Prompt for university selection if not joined yet -->
     <section id="university-prompt" style="display: none; text-align: center; margin-top: 2rem;">
       <h2>Please select your university to continue</h2>
       <a href="universities.html">
@@ -61,7 +70,16 @@
       <!-- Event Cards dynamically inserted here -->
     </section>
     
-  </main>
+    </main>
+  
+    <!-- Right sticky column -->
+    <div class="sticky-column right-column">
+      <img src="images/usfbull.jpg" alt="Right 1" />
+      <img src="images/fiu.jpg" alt="Right 2" />
+      <img src="images/bird.jpg" alt="Right 3" />
+    </div>
+  </div>
+  
   
 
   <script type="module" src="home.js"></script>
