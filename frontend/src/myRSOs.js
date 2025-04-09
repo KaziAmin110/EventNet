@@ -160,8 +160,6 @@ async function initRSOPage() {
   });
 }
 
-
-
 const profileButton = document.getElementById("profile-button");
 const profileMenu = document.getElementById("profile-menu");
 
@@ -223,3 +221,12 @@ document.getElementById("create-rso-form")?.addEventListener("submit", async (e)
   }
 });
 
+// Logout button logic
+const logoutButton = document.querySelector(".sign_out_btn");
+
+logoutButton?.addEventListener("click", () => {
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("userRole");
+  localStorage.removeItem("universityIds");
+  window.location.href = "index.html";
+});

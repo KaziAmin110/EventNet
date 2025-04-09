@@ -34,6 +34,7 @@ import {
   deleteAdmin,
   getAdminByAttribute,
   getUserByAttribute,
+  isUserRole,
 } from "../services/users.services.js";
 import jwt from "jsonwebtoken";
 import redisClient from "../../config/redis.config.js";
@@ -549,22 +550,25 @@ export const leaveRSO = async (req, res) => {
       // Handles Logic for Reassiging Admin Role, If User is Admin
       if (user_id === rso.admin_user_id) {
         // Admin Role Reassignment Logic
-        const new_admin_user_id = getNewRsoAdmin(rso_id);
+        const new_admin_user_id = await getNewRsoAdmin(rso_id, uni_id);
         const new_user = await getUserByAttribute("id", new_admin_user_id);
 
-        const new_admin_id = await createAdmin(
-          new_user.id,
-          new_user.name,
-          new_user.email,
-          uni_id
-        );
+        let new_admin = await getAdminByAttribute("user_id", new_user.id);
+        if (!new_admin) {
+          new_admin = await createAdmin(
+            new_user.id,
+            new_user.name,
+            new_user.email,
+            uni_id
+          );
+        }
+
+        // Updates RSO Fields for New Admin
+        await updateRsosAdmin(new_admin.admin_id, rso.admin_id, new_admin.user_id);
+        await updateRsoEventsAdmin(rso.admin_user_id, new_admin.user_id);
 
         // Removes Old Admin from Admins Table
         await deleteAdmin(user_id);
-
-        // Updates RSO Fields for New Admin
-        await updateRsosAdmin(new_admin_id, rso.admin_id, new_admin_user_id);
-        await updateRsoEventsAdmin(rso.admin_user_id, new_admin_user_id);
       }
     }
 

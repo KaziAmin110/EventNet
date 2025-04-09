@@ -202,8 +202,8 @@ export const updateRsosAdmin = async (
       .update({ admin_id: new_admin_id, admin_user_id: new_admin_user_id })
       .eq("admin_id", old_admin_id);
 
-    if (!error) {
-      await redisClient.del(`rso:rso_id:${rso_id}`);
+    if (error) {
+      throw error;
     }
 
     return {
@@ -223,8 +223,8 @@ export const updateRsoEventsAdmin = async (old_admin_id, new_admin_user_id) => {
       .update({ admin_id: new_admin_user_id })
       .eq("admin_id", old_admin_id);
 
-    if (!error) {
-      await redisClient.del(`rso:rso_id:${rso_id}`);
+    if (error) {
+      throw error;
     }
 
     return {
@@ -413,9 +413,11 @@ export const getNewRsoAdmin = async (rso_id, uni_id) => {
       .single();
 
     if (error) {
+      console.log(error);
       throw error;
     }
 
+    console.log(data);
     return data.user_id;
   } catch (error) {
     return {
@@ -554,12 +556,13 @@ export const isUniversityRSO = async (uni_id, rso_id) => {
       .from("rso")
       .select("rso_id")
       .eq("uni_id", uni_id)
-      .eq("rso_id", rso_id)
-      .single();
+      .eq("rso_id", rso_id);
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+    }
 
-    return !!data;
+    return data.length !== 0 ? true : false;
   } catch (error) {
     return {
       status: error.statusCode,

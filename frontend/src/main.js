@@ -22,7 +22,7 @@ if (signInForm) {
       if (result.error) {
         alert("Sign in error: " + result.error.message);
       } else {
-        window.location.href = "home.html";
+        window.location.href = "universities.html";
       }
     } catch (error) {
       console.error("Error during sign in:", error);

@@ -36,32 +36,29 @@
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
 
-  <main>
-    <!-- ✅ Prompt for university selection if not joined yet -->
-    <section id="university-prompt" style="display: none; text-align: center; margin-top: 2rem;">
-      <h2>Please select your university to continue</h2>
-      <a href="universities.html">
-        <button style="padding: 10px 20px; font-size: 1rem;">Choose University</button>
-      </a>
-    </section>
+  <div class="layout">
+    <!-- Left sticky column -->
+    <div class="sticky-column left-column">
+      <img src="images/knightro.jpg" alt="Left 1" />
+      <img src="images/gators.jpg" alt="Left 2" />
+      <img src="images/fsu.jpg" alt="Left 3" />
+    </div>
   
-    <!-- Your event sections remain below -->
-    <section>
-      <h2>Upcoming Public Events</h2>
-      <div class="event-card"></div>
-    </section>
+    <!-- Main content -->
+    <main>
+      <!-- ✅ Prompt for university selection if not joined yet -->
+      
   
-    <section>
-      <h2>Upcoming RSO Events</h2>
-      <!-- Event Cards dynamically inserted here -->
-    </section>
+    </main>
   
-    <section>
-      <h2>Upcoming University Events</h2>
-      <!-- Event Cards dynamically inserted here -->
-    </section>
-    
-  </main>
+    <!-- Right sticky column -->
+    <div class="sticky-column right-column">
+      <img src="images/usfbull.jpg" alt="Right 1" />
+      <img src="images/fiu.jpg" alt="Right 2" />
+      <img src="images/bird.jpg" alt="Right 3" />
+    </div>
+  </div>
+  
   
 
   <script type="module" src="home.js"></script>

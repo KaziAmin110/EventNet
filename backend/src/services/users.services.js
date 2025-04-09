@@ -11,10 +11,10 @@ export const getUserByAttribute = async (attribute, value) => {
     const cachedUser = await redisClient.get(cacheKey);
 
     // Checks if User already exists within Redis Cache
-    if (cachedUser) {
-      const data = JSON.parse(cachedUser);
-      return new User(data.id, data.name, data.email);
-    }
+    // if (cachedUser) {
+    //   const data = JSON.parse(cachedUser);
+    //   return new User(data.id, data.name, data.email);
+    // }
 
     const { data, error } = await supabase
       .from("users")
@@ -22,14 +22,11 @@ export const getUserByAttribute = async (attribute, value) => {
       .eq(attribute, value)
       .single();
 
-    if (data) {
-      // Store in Redis Cache with expiration (5 minutes)
-      await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
-      return new User(data.id, data.name, data.email);
+    if (error) {
+      throw error;
     }
 
-    // No User Associated with Given Attribute
-    return false;
+    return data;
   } catch (error) {
     throw new Error(error.message);
   }
@@ -84,6 +81,7 @@ export const getAdminByAttribute = async (attribute, value) => {
     if (data) {
       // Store in Redis Cache with expiration (5 minutes)
       await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
+      return data;
     }
 
     // No User Associated with Given Attribute
@@ -183,12 +181,11 @@ export const createAdmin = async (user_id, name, email, uni_id) => {
     if (error) {
       return { error: error.message, status: 500 };
     }
-
     // Invalidates Cache if they exist
     await redisClient.del(`role:super_admin:${user_id}`);
     await redisClient.del(`role:student:${user_id}`);
 
-    return data.admin_id;
+    return data;
   } catch (error) {
     return {
       error: error.message,
@@ -206,7 +203,7 @@ export const deleteAdmin = async (user_id) => {
       .eq("user_id", user_id);
 
     if (error) {
-      return { error: error.message, status: 500 };
+      console.log(error);
     }
 
     // Invalidates Cache if they exist
