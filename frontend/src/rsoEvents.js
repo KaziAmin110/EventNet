@@ -19,6 +19,20 @@ let userInfo = await getUserInfo();
 localStorage.setItem("userId", userInfo.user_id); // ✅ just the number or string
 
 
+function showOnlyEventForm(type) {
+  const publicForm = document.getElementById("publicEventFormWrapper");
+  const privateForm = document.getElementById("privateEventFormWrapper");
+  const rsoForm = document.getElementById("rso-event-form-wrapper");
+
+  publicForm.style.display = type === "public" ? "block" : "none";
+  privateForm.style.display = type === "private" ? "block" : "none";
+
+  // Only show RSO form if it already has options (user is an admin)
+  const rsoHasOptions = document.getElementById("rso_select").options.length > 1;
+  rsoForm.style.display = (type === "rso" && rsoHasOptions) ? "block" : "none";
+}
+
+
 async function fetchAllUserRSOEvents(
   publicEventBool,
   privateEventBool,
@@ -783,6 +797,7 @@ publicEventsButton.addEventListener("click", () => {
   rsoEventsBool = false;
   tempHeader.innerHTML = "Public Events";
   fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
+  showOnlyEventForm("public");
 });
 
 privateEventsButton.addEventListener("click", () => {
@@ -791,6 +806,7 @@ privateEventsButton.addEventListener("click", () => {
   rsoEventsBool = false;
   tempHeader.innerHTML = "Private Events";
   fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
+  showOnlyEventForm("private");
 });
 
 rsoEventsButton.addEventListener("click", () => {
@@ -799,7 +815,9 @@ rsoEventsButton.addEventListener("click", () => {
   rsoEventsBool = true;
   tempHeader.innerHTML = "RSO Events";
   fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
+  showOnlyEventForm("rso");
 });
+
 
 // Profile dropdown toggle
 const profileButton = document.getElementById("profile-button");
@@ -973,9 +991,10 @@ async function loadUserRSOsForAdmin() {
     });
 
     if (isAdmin) {
-      console.log("✅ User is an admin. Showing RSO form.");
-      document.getElementById("rso-event-form-wrapper").style.display = "block";
-    } else {
+      console.log("✅ User is an RSO admin.");
+      document.getElementById("rso-event-form-wrapper").dataset.visible = "block";
+    }
+     else {
       console.log("ℹ️ User is not an RSO admin.");
     }
   } catch (err) {
@@ -1026,6 +1045,8 @@ if (rsoForm) {
     }
   });
 }
+
+showOnlyEventForm(""); // hides all on initial load
 
 
 fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
