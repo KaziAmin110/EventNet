@@ -1,5 +1,7 @@
 const universityList = document.getElementById("joinable-university-list");
 const joinedList = document.getElementById("joined-university-list");
+//import { GOOGLE_PLACES_API_KEY } from "../../backend/config/env";
+//const key = GOOGLE_PLACES_API_KEY;
 
 // Store multiple university IDs
 function storeUniversityId(uniId) {
@@ -44,6 +46,16 @@ async function displayJoinedUniversities() {
 
     universities.forEach((uni) => {
       const li = document.createElement("li");
+      if (Array.isArray(uni.pictures)) {
+        uni.pictures.forEach((pictureUrl) => {
+          console.log(typeof pictureUrl);
+          const img = document.createElement("img");
+          const withKey = `${pictureUrl}&key=${apiKey}`;
+          img.src = withKey;
+          li.appendChild(img);
+          joinedList.appendChild(li);
+        });
+      }
       li.textContent = uni.uni_name;
       joinedList.appendChild(li);
     });
@@ -116,7 +128,7 @@ async function fetchUniversities() {
 
           storeUniversityId(uniId);
           alert(`Joined "${button.previousElementSibling.textContent}" successfully!`);
-          displayJoinedUniversities(); // update the list
+          displayJoinedUniversities();
         } catch (err) {
           console.error("Join failed:", err);
           alert("Error joining university: " + err.message);
