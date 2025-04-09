@@ -526,7 +526,6 @@ export const leaveRSO = async (req, res) => {
       removeInviteStatus(rso_id, user_id),
     ]);
 
-    console.log(newMemberCount);
     // Deletes RSO and RSO Event Fields If New Member Count is Zero
     if (newMemberCount === 0) {
       const [_, removed_events_result] = await Promise.all([
@@ -534,13 +533,12 @@ export const leaveRSO = async (req, res) => {
         deleteRSOEventsFromDB(rso_id),
       ]);
 
-      let removed_events = removed_events_result;
-      console.log(removed_events);
+      let removed_events = removed_events_result.data;
+
       // Removes Each Removed Event from Rso_Events from Events Table
       const deleteEventPromises = removed_events.map(async (removed_event) => {
         return deleteEventFromDB(removed_event.event_id);
       });
-      console.log(deleteEventPromises);
       await Promise.all(deleteEventPromises);
     } else {
       // Updates RSO Status If RSO is now invalid
