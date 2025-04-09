@@ -91,7 +91,7 @@ async function initRSOPage() {
     allAvailable.push(...unjoined);
   }
 
-  renderRSOList(availableList, allAvailable, "Join", async (rso) => {
+  renderRSOList(availableList, allAvailable, "JOIN", async (rso) => {
     try {
       const res = await fetch(`http://localhost:5500/api/universities/${rso.uni_id}/rsos/${rso.rso_id}/join`, {
         method: "POST",
@@ -115,4 +115,65 @@ async function initRSOPage() {
   });
 }
 
+
+const profileButton = document.getElementById("profile-button");
+const profileMenu = document.getElementById("profile-menu");
+
+profileButton?.addEventListener("click", () => {
+  profileMenu.classList.toggle("show-dropdown");
+});
+
 initRSOPage();
+
+
+document.getElementById("create-rso-form")?.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const token = localStorage.getItem("accessToken");
+  const rsoName = document.getElementById("rso-name").value.trim();
+
+  if (!rsoName) {
+    alert("Please enter an RSO name.");
+    return;
+  }
+
+  try {
+    // Get the user's first university
+    const uniRes = await fetch("http://localhost:5500/api/universities/me", {
+      headers: {
+        "Authorization": `Bearer ${token}`
+      }
+    });
+    const uniData = await uniRes.json();
+    const uniId = uniData.data?.[0]?.uni_id;
+
+    if (!uniId) {
+      alert("Could not determine your university.");
+      return;
+    }
+
+    const createRes = await fetch(`http://localhost:5500/api/universities/${uniId}/rsos/`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+      },
+      body: JSON.stringify({ rso_name: rsoName })
+    });
+
+    const createResult = await createRes.json();
+
+    if (createRes.ok && createResult.success) {
+      alert("RSO creation submitted. Approval pending until there are 5 total memebers.");
+      document.getElementById("rso-name").value = "";
+      initRSOPage(); // Refresh lists
+    } else {
+      alert(createResult.message || "Failed to create RSO.");
+    }
+
+  } catch (err) {
+    console.error("Create RSO error:", err);
+    alert("An error occurred while creating the RSO.");
+  }
+});
+

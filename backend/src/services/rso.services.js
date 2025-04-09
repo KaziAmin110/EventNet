@@ -19,7 +19,7 @@ export const sendInvitationEmail = async (
       },
     });
 
-    const acceptLink = `http://127.0.0.1/rso/accept-invite?token=${inviteToken}`;
+    const acceptLink = `http://localhost:5173/accept-invite.html?token=${inviteToken}`;
 
     const mailOptions = {
       from: EVENTS_EMAIL,

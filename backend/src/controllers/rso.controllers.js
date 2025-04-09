@@ -194,7 +194,7 @@ export const inviteToRSO = async (req, res) => {
 };
 
 // Allows a Student to Join an RSO using an RSO accept-token
-export const joinRSO = async (req, res) => {
+export const joinRSOFromInvite = async (req, res) => {
   try {
     const { accept_token } = req.body;
 
@@ -241,6 +241,72 @@ export const joinRSO = async (req, res) => {
     const [, , newMemberCount] = await Promise.all([
       joinRsoDB(inviteeId, rso_id, rso.uni_id),
       updateInviteStatus(rso_id, inviteeId, "accepted"),
+      updateRsoMembers(rso_id, rso.num_members, "increment"),
+    ]);
+
+    // Update RSO Status If RSO is now valid
+    if (newMemberCount === VALID_MEMBER_NUMBER) {
+      await updateRsoStatus(rso_id, "valid");
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Joined RSO Successfully",
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Allows a Student to Join an RSO using an RSO accept-token
+export const joinRSOFromId = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { uni_id, rso_id } = req.params;
+
+    const [isUniversity, isStudent, rso, isMember] = await Promise.all([
+      isValidUniversity(uni_id),
+      isUniversityStudent(user_id, uni_id),
+      getRsoByAttribute("rso_id", rso_id),
+      isRSOMember(user_id, rso_id),
+    ]);
+
+    // Checks whether uni_id is valid and rso_id
+    if (!isUniversity) {
+      const error = new Error("Join Unsuccessful - University not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (!isStudent) {
+      const error = new Error(
+        "Join Unsuccessful - User is not a Student at Given university"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (!rso) {
+      const error = new Error("Join Unsuccessful - RSO not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Checks to see if User is already a member of the RSO
+    if (isMember) {
+      const error = new Error(
+        "Join Unsuccesful - User is already a member of the RSO"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Join Uni by adding entry in student table
+    const [, , newMemberCount] = await Promise.all([
+      joinRsoDB(user_id, rso_id, uni_id),
+      updateInviteStatus(rso_id, user_id, "accepted"),
       updateRsoMembers(rso_id, rso.num_members, "increment"),
     ]);
 
@@ -483,6 +549,7 @@ export const leaveRSO = async (req, res) => {
       removeInviteStatus(rso_id, user_id),
     ]);
 
+    console.log(newMemberCount);
     // Deletes RSO and RSO Event Fields If New Member Count is Zero
     if (newMemberCount === 0) {
       [_, removed_events_result] = await Promise.all([
@@ -491,12 +558,12 @@ export const leaveRSO = async (req, res) => {
       ]);
 
       const removed_events = removed_events_result;
-
+      console.log(removed_events);
       // Removes Each Removed Event from Rso_Events from Events Table
       const deleteEventPromises = removed_events.map(async (removed_event) => {
         return deleteEventFromDB(removed_event.event_id);
       });
-
+      console.log(deleteEventPromises);
       await Promise.all(deleteEventPromises);
     } else {
       // Updates RSO Status If RSO is now invalid
