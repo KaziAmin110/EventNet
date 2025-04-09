@@ -17,7 +17,7 @@
           <img src="images/profile-icon.jpg" alt="Profile" />
         </div>
         <div class="dropdown-content" id="profile-menu">
-            <a href="profile.html">Profile</a>
+          <a href="profile.html">Profile</a>
           <a href="#">Notifications</a>
           <a href="#">Messages</a>
           <button class="sign_out_btn">Log Out</button>
@@ -32,7 +32,7 @@
     <a href="#" onclick="window.location.href='/universities'; return false;">University</a>
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
-  
+
 
   <main>
     <section id="university-prompt" style="display: none; text-align: center; margin-top: 2rem;">
@@ -41,23 +41,24 @@
         <button style="padding: 10px 20px; font-size: 1rem;">Choose University</button>
       </a>
     </section>
-  
+
     <!-- Your event sections remain below -->
     <section>
-      <div class = "tab-buttons">
-      <button id = "publicEventsButton">Public Events</button>
-      <button id = "privateEventsButton">Private Events</button>
-      <button id = "rsoEventsButton">RSO Events</button>
+      <h1 class="event-header">Event Type</h1>
+      <div class="tab-buttons">
+        <button id="publicEventsButton">Public Events</button>
+        <button id="privateEventsButton">Private Events</button>
+        <button id="rsoEventsButton">RSO Events</button>
       </div>
-      <h2 id = tempHeader></h2>
-      <div id = "publicEventsContainer" class="rsoEvents-event-card"></div>
-      <div id = "privateEventsContainer" class="rsoEvents-event-card"></div>
-      <div id = "rsoEventsContainer" class="rsoEvents-event-card"></div>
+      <h2 id=tempHeader></h2>
+      <div id="publicEventsContainer" class="rsoEvents-event-card"></div>
+      <div id="privateEventsContainer" class="rsoEvents-event-card"></div>
+      <div id="rsoEventsContainer" class="rsoEvents-event-card"></div>
     </section>
-    
-    
+
+
   </main>
-  
+
   <script>
     window.addEventListener('DOMContentLoaded', () => {
       const savedTheme = localStorage.getItem('theme');
