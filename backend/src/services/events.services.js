@@ -545,7 +545,7 @@ export const getEventCommentsDB = async (event_id) => {
     // Inner Join Query between University_events and student tables
     const { data } = await supabase
       .from("comments")
-      .select(`text`)
+      .select("text, user_id")
       .eq("event_id", event_id);
 
     if (!data) {
@@ -571,7 +571,7 @@ export const getUserEventCommentsDB = async (user_id, event_id) => {
     // Inner Join Query between University_events and student tables
     const { data } = await supabase
       .from("comments")
-      .select(`comment_id, text, created_at`)
+      .select(`comment_id, text, created_at, user_id`)
       .eq("user_id", user_id)
       .eq("event_id", event_id);
 
@@ -602,7 +602,7 @@ export const getNonUserEventCommentsDB = async (user_id, event_id) => {
     // Queries All Non User Based Comments
     const { data } = await supabase
       .from("comments")
-      .select("comment_id, text, created_at")
+      .select("comment_id, text, created_at, user_id")
       .neq("user_id", user_id)
       .eq("event_id", event_id);
 
@@ -677,10 +677,10 @@ export const deleteRSOEventsFromDB = async (rso_id) => {
       .delete()
       .select("event_id")
       .eq("rso_id", rso_id);
-    console.log(data);
+
     return {
       message: "Rso Event Removed from Database Successfully",
-      data: data.length .event_id,
+      data: data.length !== 0 ? data.event_id : [],
       status: 200,
     };
   } catch (error) {
