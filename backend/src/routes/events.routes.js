@@ -6,6 +6,7 @@ import {
   createEventRating,
   getPendingPublicEvents,
   getEventInfo,
+  getCommentInfo,
   getUserEventComments,
   getEventComments,
   updateEventComment,
@@ -28,6 +29,11 @@ eventsRouter.get("/public/pending", authenticateUser, getPendingPublicEvents);
 // Comments Endpoints
 eventsRouter.post("/:event_id/comments", authenticateUser, createEventComment);
 eventsRouter.get("/:event_id/comments", authenticateUser, getEventComments);
+eventsRouter.get(
+  "/:event_id/comments/:comment_id",
+  authenticateUser,
+  getCommentInfo
+);
 eventsRouter.get(
   "/:event_id/comments/me",
   authenticateUser,

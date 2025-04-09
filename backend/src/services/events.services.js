@@ -517,6 +517,28 @@ export const getEventInfoDB = async (event_id) => {
   }
 };
 
+// Gets Comment Info From DB
+export const getCommentInfoDB = async (comment_id) => {
+  try {
+    const { data, err } = await supabase
+      .from("comments")
+      .select("text, user_id, created_at")
+      .eq("comment_id", comment_id)
+      .single();
+
+    if (err) {
+      throw err;
+    }
+
+    return data;
+  } catch (error) {
+    return {
+      error: error.message,
+      status: error.statusCode || 500,
+    };
+  }
+};
+
 // Gells all Comments from the Comments Table for a specific event
 export const getEventCommentsDB = async (event_id) => {
   try {
