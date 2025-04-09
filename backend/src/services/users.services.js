@@ -56,22 +56,6 @@ export const getSignInInfoDB = async (attribute, value) => {
 // Retrieves User Entity Based on Attribute
 export const getAdminByAttribute = async (attribute, value) => {
   try {
-    // Generate cache key based on attribute (Ex. "admin:email:admin@gmail.com")
-    const cacheKey = `admin:${attribute}:${value}`;
-    const cachedUser = await redisClient.get(cacheKey);
-
-    // Checks if User already exists within Redis Cache
-    if (cachedUser) {
-      const data = JSON.parse(cachedUser);
-      return new Admin(
-        data.admin_id,
-        data.name,
-        data.email,
-        data.uni_id,
-        data.user_id
-      );
-    }
-
     const { data, error } = await supabase
       .from("admin")
       .select("admin_id, name, email, uni_id, user_id")
@@ -79,8 +63,6 @@ export const getAdminByAttribute = async (attribute, value) => {
       .single();
 
     if (data) {
-      // Store in Redis Cache with expiration (5 minutes)
-      await redisClient.set(cacheKey, JSON.stringify(data), "EX", 300);
       return data;
     }
 
