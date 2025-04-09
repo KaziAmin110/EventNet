@@ -4,8 +4,8 @@
 */
 class University {
   constructor(
-    id,
-    name,
+    uni_id,
+    uni_name,
     longitude,
     latitude,
     description,
@@ -13,8 +13,8 @@ class University {
     pictures,
     domain
   ) {
-    this.id = id;
-    this.name = name;
+    this.uni_id = uni_id;
+    this.uni_name = uni_name;
     this.longitude = longitude;
     this.latitude = latitude;
     this.description = description;

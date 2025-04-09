@@ -13,32 +13,57 @@ import {
   updateRsoStatus,
   updateInviteStatus,
   getUserRsoDB,
+  getAllRSOMembers,
+  getNewRsoAdmin,
+  updateRsosAdmin,
+  updateRsoEventsAdmin,
+  getRsoInvitesData,
+  isRSOAdmin,
+  isUserAlreadyInvited,
+  isUniversityRSO,
+  removeInviteStatus,
+  deleteRSOFromDB,
 } from "../services/rso.services.js";
 import {
   isUniversityStudent,
-  getUniByAttribute,
+  isValidUniversity,
   getStudentByAttribute,
 } from "../services/uni.services.js";
 import {
   createAdmin,
+  deleteAdmin,
   getAdminByAttribute,
   getUserByAttribute,
+  isUserRole,
 } from "../services/users.services.js";
 import jwt from "jsonwebtoken";
+import redisClient from "../../config/redis.config.js";
+import { emailQueue } from "../queues/email.queue.js";
+import {
+  deleteEventFromDB,
+  deleteRSOEventsFromDB,
+} from "../services/events.services.js";
+
+const VALID_MEMBER_NUMBER = 5;
 
 // Allows Student to create a pending RSO
-export const createRSO = async (req, res, next) => {
+export const createRSO = async (req, res) => {
   try {
     const user_id = req.user;
     const { uni_id } = req.params;
     const { rso_name } = req.body;
+    let admin;
 
-    const university = await getUniByAttribute("uni_id", uni_id);
-    const isStudent = await isUniversityStudent(user_id, uni_id);
-    const isPending = await isRSOAlreadyPending(rso_name, uni_id);
-    const user = await getUserByAttribute("id", user_id);
-    let admin = await getAdminByAttribute("user_id", user_id);
+    const [university, isStudent, isPending, user, adminResult] =
+      await Promise.all([
+        isValidUniversity(uni_id),
+        isUniversityStudent(user_id, uni_id),
+        isRSOAlreadyPending(rso_name, uni_id),
+        getUserByAttribute("id", user_id),
+        getAdminByAttribute("user_id", user_id),
+      ]);
 
+    admin = adminResult; // Assign the resolved value to admin
     // Checks whether uni_id is valid
     if (!university) {
       const error = new Error("Create RSO Failed - University not in Database");
@@ -57,7 +82,7 @@ export const createRSO = async (req, res, next) => {
     // Checks if RSO Creation Request is Already Pending
     if (isPending) {
       const error = new Error(
-        "Create RSO Failed - RSO Request already pending"
+        "Create RSO Failed - RSO Request Is Already Pending"
       );
       error.statusCode = 400;
       throw error;
@@ -68,8 +93,19 @@ export const createRSO = async (req, res, next) => {
       admin = await createAdmin(user_id, user.name, user.email, uni_id);
     }
 
-    const data = await addRsoAsPendingDB(admin.admin_id, uni_id, rso_name);
-    await joinRsoDB(user_id, data.rso_id);
+    // **Check if admin.admin_id exists before using it**
+    if (!admin || !admin.admin_id) {
+      throw new Error("Create RSO Failed - Admin Value Null (Backend Issue)");
+    }
+
+    const data = await addRsoAsPendingDB(
+      admin.admin_id,
+      uni_id,
+      rso_name,
+      user_id
+    );
+
+    await joinRsoDB(user_id, data.rso_id, uni_id);
 
     return res.status(201).json({
       success: true,
@@ -83,72 +119,70 @@ export const createRSO = async (req, res, next) => {
   }
 };
 
-// Invites a User to join a RSO through an accept-token sent to the User's Email
-export const inviteToRSO = async (req, res, next) => {
+// Invites a User to join a RSO by sending an accept-token to the User's Email
+export const inviteToRSO = async (req, res) => {
   try {
     const user_id = req.user;
     const { rso_id, uni_id } = req.params;
     const { inviteeEmail } = req.body;
 
-    const invitee = await getStudentByAttribute("email", inviteeEmail);
-    const rso = await getRsoByAttribute("rso_id", rso_id);
-    const admin = await getAdminByAttribute("user_id", user_id);
+    const [invitee, rso] = await Promise.all([
+      getStudentByAttribute(inviteeEmail, uni_id),
+      getRsoByAttribute("rso_id", rso_id),
+    ]);
 
     if (!invitee) {
-      const error = new Error(
-        "Invitation Error - Invitee is not associated with a university"
-      );
-      error.statusCode = 400;
+      const error = new Error("Invitee does not attend RSO host university");
+      error.statusCode = 403;
       throw error;
     }
 
     // Check Existence of RSO and Invitee
     if (!rso) {
-      const error = new Error("Invitation Error - Not a valid RSO");
+      const error = new Error("Invalid RSO");
     }
 
-    if (!admin) {
-      const error = new Error("Invitation Error - User is not an admin");
+    // Checks if User is an admin of the rso
+    if (user_id !== rso.admin_user_id) {
+      const error = new Error("User is not RSO admin");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Checks to see if User is already part of the rso
+    const [isAlreadyInvited, isMember] = await Promise.all([
+      isUserAlreadyInvited(invitee.user_id, rso_id),
+      isRSOMember(invitee.user_id, rso_id),
+    ]);
+
+    // Checks to See if User Has Already Been Invited
+    if (isAlreadyInvited) {
+      const error = new Error(
+        "Invite to RSO Failed: User Invite Already Pending."
+      );
       error.statusCode = 400;
       throw error;
     }
 
-    // Checks if User is an admin of the rso
-    if (admin.admin_id !== rso.admin_id) {
-      const error = new Error(
-        "Invitation Error - User does not have admin access for the RSO"
-      );
-      error.statusCode = 403;
+    if (isMember) {
+      const error = new Error("Invitee is already part of the RSO");
+      error.statusCode = 400;
       throw error;
     }
 
-    // Checks if invitee attends the same university as rso
-    if (uni_id != invitee.uni_id) {
-      const error = new Error(
-        "Invitation Error - Invitee does not attend RSO host university"
-      );
-      error.statusCode = 403;
-      throw error;
-    }
-
-    // Create Invite Token and Expire Date (7 Days)
-    const expire_date = new Date();
-    expire_date.setDate(expire_date.getDate() + 7);
-
-    const inviteeId = invitee.user_id;
-    const inviteToken = jwt.sign({ inviteeId, rso_id }, RSO_SECRET, {
-      expiresIn: "7d", // Token Expires in 7 Days
-    });
-
-    // Sending Accept Link Logic
-    await addRSOInviteDB(invitee.user_id, rso_id, "pending");
-    await sendInvitationEmail(
-      inviteeEmail,
-      rso.rso_name,
-      invitee.user_id,
-      rso_id,
-      inviteToken
+    // Generate Invite Token
+    const inviteToken = jwt.sign(
+      { inviteeId: invitee.user_id, rso_id },
+      RSO_SECRET,
+      {
+        expiresIn: "7d", // Token Expires in 7 Days
+      }
     );
+    // Save to DB & Send Email in Parallel
+    await Promise.all([
+      addRSOInviteDB(invitee.user_id, rso_id, "pending"),
+      sendInvitationEmail(inviteeEmail, rso.rso_name, inviteToken),
+    ]);
 
     return res.status(200).json({
       success: true,
@@ -162,7 +196,7 @@ export const inviteToRSO = async (req, res, next) => {
 };
 
 // Allows a Student to Join an RSO using an RSO accept-token
-export const joinRSO = async (req, res, next) => {
+export const joinRSOFromInvite = async (req, res) => {
   try {
     const { accept_token } = req.body;
 
@@ -177,9 +211,11 @@ export const joinRSO = async (req, res, next) => {
     const decoded = jwt.verify(accept_token, RSO_SECRET);
     const { inviteeId, rso_id } = decoded;
 
-    const user = await getUserByAttribute("id", inviteeId);
-    const rso = await getRsoByAttribute("rso_id", rso_id);
-    const isMember = await isRSOMember(inviteeId, rso_id);
+    const [user, rso, isMember] = await Promise.all([
+      getUserByAttribute("id", inviteeId),
+      getRsoByAttribute("rso_id", rso_id),
+      isRSOMember(inviteeId, rso_id),
+    ]);
 
     // Checks whether user_id is valid
     if (!user) {
@@ -204,16 +240,80 @@ export const joinRSO = async (req, res, next) => {
     }
 
     // Join Uni by adding entry in student table
-    await joinRsoDB(inviteeId, rso_id);
-    await updateInviteStatus(rso_id, inviteeId, "accepted");
-    rso.num_members = await updateRsoMembers(
-      rso_id,
-      rso.num_members,
-      "increment"
-    );
+    const [, , newMemberCount] = await Promise.all([
+      joinRsoDB(inviteeId, rso_id, rso.uni_id),
+      updateInviteStatus(rso_id, inviteeId, "accepted"),
+      updateRsoMembers(rso_id, rso.num_members, "increment"),
+    ]);
 
-    // Update RSO Status If RSO is now valid (4 Members)
-    if (rso.num_members === 4) {
+    // Update RSO Status If RSO is now valid
+    if (newMemberCount === VALID_MEMBER_NUMBER) {
+      await updateRsoStatus(rso_id, "valid");
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Joined RSO Successfully",
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Allows a Student to Join an RSO using an RSO accept-token
+export const joinRSOFromId = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { uni_id, rso_id } = req.params;
+
+    const [isUniversity, isStudent, rso, isMember] = await Promise.all([
+      isValidUniversity(uni_id),
+      isUniversityStudent(user_id, uni_id),
+      getRsoByAttribute("rso_id", rso_id),
+      isRSOMember(user_id, rso_id),
+    ]);
+
+    // Checks whether uni_id is valid and rso_id
+    if (!isUniversity) {
+      const error = new Error("Join Unsuccessful - University not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (!isStudent) {
+      const error = new Error(
+        "Join Unsuccessful - User is not a Student at Given university"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    if (!rso) {
+      const error = new Error("Join Unsuccessful - RSO not in Database");
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Checks to see if User is already a member of the RSO
+    if (isMember) {
+      const error = new Error(
+        "Join Unsuccesful - User is already a member of the RSO"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Join Uni by adding entry in student table
+    const [, , newMemberCount] = await Promise.all([
+      joinRsoDB(user_id, rso_id, uni_id),
+      updateInviteStatus(rso_id, user_id, "accepted"),
+      updateRsoMembers(rso_id, rso.num_members, "increment"),
+    ]);
+
+    // Update RSO Status If RSO is now valid
+    if (newMemberCount === VALID_MEMBER_NUMBER) {
       await updateRsoStatus(rso_id, "valid");
     }
 
@@ -229,23 +329,19 @@ export const joinRSO = async (req, res, next) => {
 };
 
 // Gets ALL RSO's at a Given University
-export const getAllRSOs = async (req, res, next) => {
+export const getAllRSOs = async (req, res) => {
   try {
     const { uni_id } = req.params;
 
-    // Extract Page Number from request or default to 1
-    const page = parseInt(req.body.page) || 1;
-    const pageSize = 10;
+    // Fetch data from the database if not found in cache
+    const rsoInfo = await getAllRsosDB(uni_id);
 
-    // Calculation of Start and End Range for Pagination
-    const start = (page - 1) * pageSize;
-    const end = start + pageSize - 1;
-    const rsoInfo = await getAllRsosDB(uni_id, start, end, page, pageSize);
+    console.log(rsoInfo);
 
+    // Return the fetched data in the response
     return res.status(200).json({
       success: true,
       data: rsoInfo.data,
-      pagination: rsoInfo.pagination,
       message: "University RSOs Returned Successfully",
     });
   } catch (err) {
@@ -256,7 +352,7 @@ export const getAllRSOs = async (req, res, next) => {
 };
 
 // Gets All RSOs that a User is a member of
-export const getUserRSOs = async (req, res, next) => {
+export const getUserRSOs = async (req, res) => {
   try {
     const user_id = req.user;
     const rso_data = await getUserRsoDB(user_id);
@@ -267,6 +363,9 @@ export const getUserRSOs = async (req, res, next) => {
         const rso_id = rso.rso_id;
         try {
           const rso_detail = await getRsoByAttribute("rso_id", rso_id);
+          const members = await getAllRSOMembers(rso_id);
+
+          rso_detail.members = members;
           if (rso_detail) {
             rso_details.push(rso_detail);
           }
@@ -288,38 +387,36 @@ export const getUserRSOs = async (req, res, next) => {
 };
 
 // Gets RSO Info Based on the provided rso_id
-export const getRSOInfo = async (req, res, next) => {
+export const getRSOInfo = async (req, res) => {
   try {
-    const user_id = req.user;
-    const rso_id = req.params.rso_id;
-    const rso = await getRsoByAttribute("rso_id", rso_id);
-    const isMember = await isRSOMember(user_id, rso_id);
+    const { uni_id, rso_id } = req.params;
 
+    // Check if RSO is valid and can be accessed by User
+    const [university, rso] = await Promise.all([
+      isValidUniversity(uni_id),
+      getRsoByAttribute("rso_id", rso_id),
+    ]);
+
+    if (!university) {
+      const error = new Error(
+        "Get RSO Info Failed - University not in Database"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
     if (!rso) {
       const error = new Error("RSO with Given ID Doesnt Exist in the DB");
       error.statusCode = 404;
       throw error;
     }
 
-    if (!isMember) {
-      const error = new Error(
-        "Get RSO Info Failed - User is not a member of the RSO"
-      );
-      error.statusCode = 404;
-      throw error;
-    }
+    // Prepare the RSO info object to return
+    rso.members = await getAllRSOMembers(rso_id);
 
     return res.status(200).json({
       success: true,
       message: "RSO Info Gathered Successfully",
-      data: {
-        rso_id: rso.rso_id,
-        rso_name: rso.rso_name,
-        admin_id: rso.admin_id,
-        num_members: rso.num_members,
-        uni_id: rso.uni_id,
-        status: rso.rso_status,
-      },
+      data: rso,
     });
   } catch (err) {
     return res
@@ -328,42 +425,152 @@ export const getRSOInfo = async (req, res, next) => {
   }
 };
 
-// Allows a RSO Member to Leave an RSO
-export const leaveRSO = async (req, res, next) => {
+// Gets RSO Info Based on the provided rso_id
+export const getRSOInvites = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { uni_id, rso_id } = req.params;
+
+    // Check if RSO is valid and can be accessed by User
+    const [university, rso, isAdmin] = await Promise.all([
+      isValidUniversity(uni_id),
+      getRsoByAttribute("rso_id", rso_id),
+      isRSOAdmin(user_id, rso_id),
+    ]);
+
+    if (!university) {
+      const error = new Error(
+        "Get RSO Invites Failed - University not in Database"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+    if (!rso) {
+      const error = new Error("RSO with Given ID Doesnt Exist in the DB");
+      error.statusCode = 404;
+      throw error;
+    }
+
+    if (!isAdmin) {
+      const error = new Error(
+        "User Does Not have Permission to Access RSO Invites"
+      );
+      error.statusCode = 404;
+      throw error;
+    }
+
+    // Prepare the RSO info object to return
+    const result = await getRsoInvitesData(rso_id);
+
+    return res.status(200).json({
+      success: true,
+      message: "RSO Invites Gathered Successfully",
+      data: result,
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Logic for RSO Member Leaving an RSO
+export const leaveRSO = async (req, res) => {
   try {
     // Get user_id from refresh token
     const user_id = req.user;
-    const { rso_id } = req.params;
+    const { uni_id, rso_id } = req.params;
 
-    const user = await getUserByAttribute("id", user_id);
-    const rso = await getRsoByAttribute("rso_id", rso_id);
-    const isMember = await isRSOMember(user_id, rso_id);
+    const [isStudent, rso, isUniRSO, isMember] = await Promise.all([
+      isUniversityStudent(user_id, uni_id),
+      getRsoByAttribute("rso_id", rso_id),
+      isUniversityRSO(uni_id, rso_id),
+      isRSOMember(user_id, rso_id),
+    ]);
 
-    // Checks whether user_id is valid
-    if (!user) {
-      const error = new Error("Join Unsuccessful - User not in Database");
+    // Checks whether RSO Request Data is Valid
+    if (!isStudent) {
+      const error = new Error(
+        "Leave RSO Unsuccessful - University not in Database"
+      );
       error.statusCode = 403;
       throw error;
     }
-    // Checks whether uni_id is valid
+
     if (!rso) {
-      const error = new Error("Join Unsuccessful - RSO not in Database");
+      const error = new Error("Leave RSO Unsuccessful - RSO not in Database");
       error.statusCode = 403;
       throw error;
     }
-    // Checks to see if User is already a student at that University
+
+    if (!isUniRSO) {
+      const error = new Error(
+        "Leave RSO Unsuccessful - RSO is not part of given university"
+      );
+      error.statusCode = 403;
+      throw error;
+    }
+
+    // Checks to see If User is a member of the RSO
     if (!isMember) {
       const error = new Error(
-        "Leave Unsuccesful - User is not a member of the given RSO"
+        "Leave RSO Unsuccesful - User is not a member of the given RSO"
       );
       error.statusCode = 400;
       throw error;
     }
 
-    // Leave Uni by removing entry from student table
-    await leaveRsoDB(user_id, rso_id);
-    await updateRsoMembers(rso_id, rso.num_members, "decrement");
-    await updateInviteStatus(rso_id, user_id, "pending");
+    // Removes User from joins_rso, rso member_count is decremented, Invites_rso Status Updated
+    const [__, newMemberCount, _] = await Promise.all([
+      leaveRsoDB(user_id, rso_id),
+      updateRsoMembers(rso_id, rso.num_members, "decrement"),
+      removeInviteStatus(rso_id, user_id),
+    ]);
+
+    // Deletes RSO and RSO Event Fields If New Member Count is Zero
+    if (newMemberCount === 0) {
+      const [_, removed_events_result] = await Promise.all([
+        deleteRSOFromDB(rso_id),
+        deleteRSOEventsFromDB(rso_id),
+      ]);
+
+      let removed_events = removed_events_result.data;
+
+      // Removes Each Removed Event from Rso_Events from Events Table
+      const deleteEventPromises = removed_events.map(async (removed_event) => {
+        return deleteEventFromDB(removed_event.event_id);
+      });
+      await Promise.all(deleteEventPromises);
+    } else {
+      // Updates RSO Status If RSO is now invalid
+      if (newMemberCount < VALID_MEMBER_NUMBER) {
+        await updateRsoStatus(rso_id, "pending");
+      }
+
+      // Handles Logic for Reassiging Admin Role, If User is Admin
+      if (user_id === rso.admin_user_id) {
+        // Admin Role Reassignment Logic
+        const new_admin_user_id = await getNewRsoAdmin(rso_id, uni_id);
+        const new_user = await getUserByAttribute("id", new_admin_user_id);
+
+        let new_admin = await getAdminByAttribute("user_id", new_user.id);
+        if (!new_admin) {
+          new_admin = await createAdmin(
+            new_user.id,
+            new_user.name,
+            new_user.email,
+            uni_id
+          );
+        }
+
+        // Updates RSO Fields for New Admin
+        await updateRsosAdmin(new_admin.admin_id, rso.admin_id, new_admin.user_id);
+        await updateRsoEventsAdmin(rso.admin_user_id, new_admin.user_id);
+
+        // Removes Old Admin from Admins Table
+        await deleteAdmin(user_id);
+      }
+    }
 
     return res.status(200).json({
       success: true,

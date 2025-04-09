@@ -7,7 +7,11 @@ import {
 } from "../../config/env.js";
 import nodemailer from "nodemailer";
 import jwt from "jsonwebtoken";
-import { getUserByAttribute, createUser } from "../services/users.services.js";
+import {
+  getUserByAttribute,
+  createUser,
+  getSignInInfoDB,
+} from "../services/users.services.js";
 import {
   updateUserPassword,
   updateRefreshToken,
@@ -16,7 +20,11 @@ import {
   updatePasswordResetDB,
   removePasswordResetTokenDB,
   getResetTokenByAttribute,
+  deleteResetTokenByAttribute,
+  isValidEmailFormat,
+  isValidPassword,
 } from "../services/auth.services.js";
+import redisClient from "../../config/redis.config.js";
 
 // Allows for the Creation of a New User in the Supabase DB
 export const signUp = async (req, res) => {
@@ -28,7 +36,25 @@ export const signUp = async (req, res) => {
       error.statusCode = 400;
       throw error;
     }
-    // Querying the database to see if the given email exists
+
+    // Check Wheter Email and Password Criterias are met
+    if (!isValidEmailFormat(email)) {
+      const error = new Error(
+        "Emai must be in the format <string@string.string>"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    if (!isValidPassword(password)) {
+      const error = new Error(
+        `Password must meet the following requirements: Atleast 8 characters : Atleast One Special Character : Atleast One Alphanumeric Character`
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
+    // Querying the database to see if the given email exists in the database
     const existingUser = await getUserByAttribute("email", email);
 
     if (existingUser) {
@@ -36,26 +62,30 @@ export const signUp = async (req, res) => {
       error.statusCode = 409;
       throw error;
     }
-    // Hashing our password via the User entity
-    const hashedPassword = await User.hashPassword(password);
+
     // Create new user within the database
-    await createUser(name, email, hashedPassword);
+    const newUser = await createUser(name, email, password);
 
-    // Retreiving the newly added user by their email
-    const newUser = await getUserByAttribute("email", email);
-
-    // Getting the JWT token via the user entity
+    // Sends User Access Token in Response and Refresh Token in Cookies
     const accessToken = newUser.generateAccessToken();
+    const refreshToken = newUser.generateRefreshToken();
+    const refreshTokenAge = 24 * 60 * 60 * 1000;
 
-    res.status(201).json({
+    await updateRefreshToken(newUser.id, refreshToken);
+
+    res.cookie("jwt", refreshToken, {
+      httpOnly: true,
+      secure: NODE_ENV === "production",
+      maxAge: refreshTokenAge,
+    });
+
+    return res.status(201).json({
       success: true,
       message: "User Created Successfully",
-      data: {
-        accessToken,
-      },
+      accessToken,
     });
   } catch (error) {
-    res.status(error.statusCode || 500).json({
+    return res.status(error.statusCode || 500).json({
       success: false,
       message: error.message || "Server Error",
     });
@@ -73,7 +103,7 @@ export const signIn = async (req, res, next) => {
       throw error;
     }
 
-    const user = await getUserByAttribute("email", email);
+    const [user, hashedPasswordFromDB] = await getSignInInfoDB("email", email);
 
     if (!user) {
       const error = new Error("User not found");
@@ -81,8 +111,17 @@ export const signIn = async (req, res, next) => {
       throw error;
     }
 
+    if (!hashedPasswordFromDB) {
+      const error = new Error("User does not exist in the database");
+      error.statusCode = 404;
+      throw error;
+    }
+
     // Checking if the given password matches the hashed password
-    const isPasswordValid = await user.comparePassword(password);
+    const isPasswordValid = await user.comparePassword(
+      password,
+      hashedPasswordFromDB
+    );
 
     if (!isPasswordValid) {
       const error = new Error("Invalid Password");
@@ -102,22 +141,39 @@ export const signIn = async (req, res, next) => {
       maxAge: refreshTokenAge,
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "User Signed In Successfully",
-      data: {
-        accessToken,
-      },
+      accessToken,
     });
   } catch (error) {
-    res
+    return res
       .status(error.statusCode || 500)
       .json({ success: false, message: error.message || "Server Error" });
   }
 };
 
 // Allows User to Sign Out -- Clears JWT Token from Cookies
-export const signOut = async (req, res, next) => {};
+export const signOut = async (req, res, next) => {
+  try {
+    // Deletes Refresh Token in DB associated with user_id
+    const user_id = req.user;
+    await deleteResetTokenByAttribute("id", user_id);
+
+    // Clears Refresh Token from HTTP-Only Cookie and Flushes Cache
+    res.clearCookie("jwt");
+    await redisClient.flushAll();
+
+    return res.status(201).json({
+      success: true,
+      message: "User logged out successfully.",
+    });
+  } catch (error) {
+    return res
+      .status(error.statusCode || 500)
+      .json({ success: false, message: error.message || "Server Error" });
+  }
+};
 
 // Sends Email to User with a Password Reset Token
 export const forgotPassword = async (req, res, next) => {
@@ -169,14 +225,14 @@ export const forgotPassword = async (req, res, next) => {
         console.log(error);
         throw error;
       } else {
-        res.status(200).json({
+        return res.status(200).json({
           success: true,
           message: "Reset Email Sent Succesfully",
         });
       }
     });
   } catch (err) {
-    res
+    return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
   }
@@ -199,6 +255,14 @@ export const resetPassword = async (req, res, next) => {
       throw error;
     }
 
+    if (!isValidPassword(password)) {
+      const error = new Error(
+        "Password must meet the following requirements: 8 characters : Atleast One Special Character : Atleast One Alphanumeric Character"
+      );
+      error.statusCode = 400;
+      throw error;
+    }
+
     const data = await getResetTokenByAttribute("reset_token", reset_token);
     const isValidToken = verifyPasswordResetToken(data);
 
@@ -206,7 +270,7 @@ export const resetPassword = async (req, res, next) => {
       const hashedPassword = await User.hashPassword(password);
       await updateUserPassword("email", data.email, hashedPassword);
       await removePasswordResetTokenDB("email", data.email);
-      res.status(200).json({
+      return res.status(200).json({
         success: true,
         message: "Password Updated Successfully",
       });
@@ -216,7 +280,7 @@ export const resetPassword = async (req, res, next) => {
       throw error;
     }
   } catch (err) {
-    res
+    return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
   }
@@ -257,15 +321,13 @@ export const refreshAccess = async (req, res, next) => {
     });
     const accessToken = user.generateAccessToken();
 
-    res.status(200).json({
+    return res.status(200).json({
       success: true,
       message: "JWT Refresh Successful",
-      data: {
-        accessToken,
-      },
+      accessToken,
     });
   } catch (err) {
-    res
+    return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
   }

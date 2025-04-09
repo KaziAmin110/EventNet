@@ -1,49 +1,95 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" >
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet" href="src/style.css">
-    <title>College Events</title>
-  </head>
-  <body id="index-page">
-    <div class="wrapper">
-      
-      <!-- Sign in form-->
-      <div class="sign-in">
-        <form action="">
-          <h1>Sign In</h1>
-          <div class="input-box">
-            <input type="email" placeholder="E-mail" required>
-        
-          </div>
-          <div class="input-box">
-            <input type="password" placeholder="Password" required>
-          </div>
-          <button type="submit" class="btn">Login</button>
-        </form>
-      </div> 
-       <p>or</p>
 
-       <!-- Sign up form-->
-      <div class="register">
-        <form action="">
-          <h1>Sign Up</h1>
-          <div class="input-box">
-            <input type="email" placeholder="E-mail" required>
-        
-          </div>
-          <div class="input-box">
-            <input type="password" placeholder="Password" required>
-          </div>
-          <button type="submit" class="btn">Register</button>
-        </form>
-      </div>
-    
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="src/style.css" />
+  <title>EventNet | Sign In</title>
+</head>
+
+<body id="index-page">
+  <div class="auth-container">
+    <div class="tab-buttons">
+      <button id="signInTab" class="tab active">Sign In</button>
+      <button id="signUpTab" class="tab">Sign Up</button>
     </div>
-    
-    <!-- TEMP -->
-    <Button><a href="home.html"> Home</a></Button>
-  
-  </body>
+
+    <!-- Sign In Form -->
+    <div class="sign-in">
+      <form id="signInForm" class="auth-form">
+        <h2>Welcome Back</h2>
+        <div class="input-box">
+          <input type="email" name="email" placeholder="E-mail" required />
+        </div>
+        <div class="input-box">
+          <input type="password" name="password" placeholder="Password" required />
+        </div>
+        <button type="submit" class="btn">Login</button>
+      </form>
+    </div>
+
+    <!-- Sign Up Form -->
+    <div class="register hidden">
+      <form id="signUpForm" class="auth-form">
+        <h2>Create Account</h2>
+        <div class="input-box">
+          <input type="text" name="name" placeholder="Full Name" required />
+          <p class="error-msg" id="name-error" style="display: none; color: red; font-size: 0.8rem;"></p>
+        </div>
+        <div class="input-box">
+          <input type="email" name="email" placeholder="E-mail" required />
+          <p class="error-msg" id="email-error" style="display: none; color: red; font-size: 0.8rem;"></p>
+        </div>
+        <div class="input-box">
+          <input type="password" name="password" placeholder="Password" required />
+          <p class="error-msg" id="password-error" style="display: none; color: red; font-size: 0.8rem;"></p>
+        </div>
+        <button type="submit" class="btn">Register</button>
+      </form>
+    </div>
+
+    <button class="guest-btn">
+      <a href="home.html">Continue as Guest</a>
+    </button>
+  </div>
+
+  <script type="module" src="src/main.js"></script>
+  <script>
+    // Toggle Forms
+    const signInTab = document.getElementById("signInTab");
+    const signUpTab = document.getElementById("signUpTab");
+    const signInFormBox = document.querySelector(".sign-in");
+    const signUpFormBox = document.querySelector(".register");
+
+    console.log("Page loaded. Initializing tab functionality...");
+
+    signInTab.onclick = () => {
+      console.log("Switched to Sign In tab");
+      signInTab.classList.add("active");
+      signUpTab.classList.remove("active");
+      signInFormBox.classList.remove("hidden");
+      signUpFormBox.classList.add("hidden");
+    };
+
+    signUpTab.onclick = () => {
+      console.log("Switched to Sign Up tab");
+      signUpTab.classList.add("active");
+      signInTab.classList.remove("active");
+      signUpFormBox.classList.remove("hidden");
+      signInFormBox.classList.add("hidden");
+    };
+    // Clear session every time index loads, just in case
+    localStorage.clear();
+
+    // Clear again if user returns via back/forward
+    window.addEventListener("pageshow", function (event) {
+    if (event.persisted || performance.getEntriesByType("navigation")[0].type === "back_forward") {
+    console.log("Back navigation to login detected — clearing session.");
+    localStorage.clear();
+      }
+    });
+  </script>
+</body>
+
 </html>

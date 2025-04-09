@@ -1,20 +1,26 @@
 import { supabase } from "../database/db.js";
 import {
   createUniversityDB,
-  getUniByAttribute,
+  isValidUniversity,
+  getUniAllInfo,
   joinUniversityDB,
   getUniPhotoUrl,
   getUniversityDetails,
   isUniversityStudent,
   updateUniversityStudents,
   leaveUniversityDB,
+  getUserUniversitiesDB,
+  getJoinableUniversitiesDB,
+  leaveUniRsosDB,
+  checkUniversityExistence,
+  getUniversityByAttribute,
 } from "../services/uni.services.js";
 import { getUserByAttribute, isUserRole } from "../services/users.services.js";
 
 // Allows SuperAdmin to Create a new University Profile using the uni_name
-export const createUniversityProfile = async (req, res, next) => {
+export const createUniversityProfile = async (req, res) => {
   try {
-    // Get User-Id through refresh Token from Bearer
+    // Get User-Id From Access Token Using Bearer
     const user_id = req.user;
     const { uni_name, description, domain } = req.body;
 
@@ -26,8 +32,12 @@ export const createUniversityProfile = async (req, res, next) => {
       error.statusCode = 403;
       throw error;
     }
-    // Verify SuperAdmin Status
-    const isSuperAdmin = await isUserRole("super_admin", user_id);
+
+    const [isSuperAdmin, existingEntry, uniData] = await Promise.all([
+      isUserRole("super_admin", user_id),
+      checkUniversityExistence(uni_name.trim().toLowerCase()),
+      getUniversityDetails(uni_name),
+    ]);
 
     if (!isSuperAdmin) {
       const error = new Error("User does not have SuperAdmin Status");
@@ -35,19 +45,11 @@ export const createUniversityProfile = async (req, res, next) => {
       throw error;
     }
 
-    // Check to See if University Already Exists in Database
-    const existingEntry = await getUniByAttribute(
-      "uni_name",
-      uni_name.toLowerCase()
-    );
-
     if (existingEntry) {
       const error = new Error("University Already Exists in DB");
       error.statusCode = 400;
       throw error;
     }
-
-    const uniData = await getUniversityDetails(uni_name);
 
     if (!uniData) {
       const error = new Error(
@@ -56,6 +58,7 @@ export const createUniversityProfile = async (req, res, next) => {
       error.statusCode = 403;
       throw error;
     }
+
     const photoUrls = [];
 
     for (const reference of uniData.photos) {
@@ -86,57 +89,58 @@ export const createUniversityProfile = async (req, res, next) => {
 };
 
 // Allows User to join a University
-export const joinUniversity = async (req, res, next) => {
+export const joinUniversity = async (req, res) => {
   try {
     // Get user_id from refresh token
     const user_id = req.user;
     const { uni_id } = req.params;
 
-    const user = await getUserByAttribute("id", user_id);
-    const university = await getUniByAttribute("uni_id", uni_id);
-    const isStudent = await isUniversityStudent(user_id, uni_id);
+    const [user, university, isStudent] = await Promise.all([
+      getUserByAttribute("id", user_id),
+      getUniversityByAttribute("uni_id", uni_id),
+      isUniversityStudent(user_id, uni_id),
+    ]);
 
     // Checks whether user_id is valid
     if (!user) {
-      const error = new Error("Join Unsuccessful - User not in Database");
-      error.statusCode = 403;
-      throw error;
+      const err = new Error("Join Unsuccessful - User not in Database");
+      err.statusCode = 403;
+      throw err;
     }
     // Checks whether uni_id is valid
     if (!university) {
-      const error = new Error("Join Unsuccessful - University not in Database");
-      error.statusCode = 403;
-      throw error;
-    }
-
-    // Checks if User matches the email domain restriction of the university
-    if (
-      university.domain !== null &&
-      university.domain !== user.email.split("@")[1]
-    ) {
-      const error = new Error(
-        "Join Unsuccesful - User Email Doesn't Match University Domain Restriction"
-      );
-      error.statusCode = 400;
-      throw error;
+      const err = new Error("Join Unsuccessful - University not in Database");
+      err.statusCode = 403;
+      throw err;
     }
 
     // Checks to see if User is already a student at that University
     if (isStudent) {
-      const error = new Error(
+      const err = new Error(
         "Join Unsuccesful - User is already a student at the university"
       );
-      error.statusCode = 400;
-      throw error;
+      err.statusCode = 400;
+      throw err;
+    }
+
+    // Checks if User matches the email domain restriction of the university
+    if (university.domain && university.domain !== user.email.split("@")[1]) {
+      const err = new Error(
+        "Join Unsuccesful - User Email Doesn't Match University Domain Restriction"
+      );
+      err.statusCode = 400;
+      throw err;
     }
 
     // Join Uni by adding entry in student table
-    await joinUniversityDB(user_id, uni_id, user.name, user.email);
-    await updateUniversityStudents(
-      uni_id,
-      university.num_students,
-      "increment"
-    );
+    await Promise.all([
+      joinUniversityDB(user_id, uni_id, user.name, user.email),
+      updateUniversityStudents(
+        uni_id,
+        university.num_students,
+        "increment"
+      ),
+    ]);
 
     return res.status(201).json({
       success: true,
@@ -150,7 +154,7 @@ export const joinUniversity = async (req, res, next) => {
 };
 
 // Returns a list of all universities. has optional page parameter
-export const getAllUniversities = async (req, res, next) => {
+export const getAllUniversities = async (req, res) => {
   try {
     // Extract Page Number from request or default to 1
     const page = parseInt(req.body.page) || 1;
@@ -187,10 +191,10 @@ export const getAllUniversities = async (req, res, next) => {
 };
 
 // Returns information regarding one university
-export const getUniversityInfo = async (req, res, next) => {
+export const getUniversityInfo = async (req, res) => {
   try {
     const uni_id = req.params.uni_id;
-    const university = await getUniByAttribute("uni_id", uni_id);
+    const university = await getUniAllInfo("uni_id", uni_id);
 
     if (!university) {
       const error = new Error("University with Given ID Doesnt Exist");
@@ -219,16 +223,90 @@ export const getUniversityInfo = async (req, res, next) => {
   }
 };
 
+// Gets All Universities that a User is a student of
+export const getUserUniversities = async (req, res) => {
+  try {
+    const user_id = req.user;
+
+    // Extract Page Number from request or default to 1
+    const page = parseInt(req.body.page) || 1;
+    const pageSize = 10;
+
+    // Calculation of Start and End Range for Pagination
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    const uni_data = await getUserUniversitiesDB(user_id, start, end);
+
+    return res.status(200).json({
+      success: true,
+      data: uni_data.data || [],
+      pagination: {
+        totalRecords: uni_data.count,
+        totalPages: Math.ceil(uni_data.count / pageSize),
+        currentPage: uni_data.count == 0 ? 0 : page,
+        pageSize,
+      },
+      message: "User Joined Universities Returned Successfully",
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Gets All Universities that a User can Join
+export const getJoinableUniversities = async (req, res) => {
+  try {
+    const user_id = req.user;
+
+    // Extract Page Number from request or default to 1
+    const page = parseInt(req.body.page) || 1;
+    const pageSize = 10;
+
+    // Calculation of Start and End Range for Pagination
+    const start = (page - 1) * pageSize;
+    const end = start + pageSize - 1;
+
+    const user = await getUserByAttribute("id", user_id);
+    const uni_data = await getJoinableUniversitiesDB(
+      user_id,
+      user.email,
+      start,
+      end
+    );
+
+    return res.status(200).json({
+      success: true,
+      data: uni_data.data || [],
+      pagination: {
+        totalRecords: uni_data.count,
+        totalPages: Math.ceil(uni_data.count / pageSize),
+        currentPage: uni_data.count == 0 ? 0 : page,
+        pageSize,
+      },
+      message: "User Joinable Universities Returned Successfully",
+    });
+  } catch (err) {
+    return res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
 // Allows User to leave a University and makes the necessary changes
-export const leaveUniversity = async (req, res, next) => {
+export const leaveUniversity = async (req, res) => {
   try {
     // Get user_id from refresh token
     const user_id = req.user;
     const { uni_id } = req.params;
 
-    const user = await getUserByAttribute("id", user_id);
-    const university = await getUniByAttribute("uni_id", uni_id);
-    const isStudent = await isUniversityStudent(user_id, uni_id);
+    const [user, university, isStudent] = await Promise.all([
+      getUserByAttribute("id", user_id),
+      getUniversityByAttribute("uni_id", uni_id),
+      isUniversityStudent(user_id, uni_id),
+    ]);
 
     // Checks whether user_id is valid
     if (!user) {
@@ -251,13 +329,12 @@ export const leaveUniversity = async (req, res, next) => {
       throw error;
     }
 
-    // Leave Uni by removing entry from student table
-    await leaveUniversityDB(user_id, uni_id);
-    await updateUniversityStudents(
-      uni_id,
-      university.num_students,
-      "decrement"
-    );
+    // Updates Necessary Tables for Leave University Operation
+    await Promise.all([
+      leaveUniversityDB(user_id, uni_id),
+      updateUniversityStudents(uni_id, university.num_students, "decrement"),
+      leaveUniRsosDB(user_id, uni_id),
+    ]);
 
     return res.status(200).json({
       success: true,

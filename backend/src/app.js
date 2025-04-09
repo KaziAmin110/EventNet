@@ -1,9 +1,12 @@
 import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import { PORT } from "../config/env.js";
 import authRouter from "./routes/auth.routes.js";
 import usersRouter from "./routes/users.routes.js";
 import uniRouter from "./routes/uni.routes.js";
+import eventsRouter from "./routes/events.routes.js";
 // import errorMiddleware from "./middlewares/error.middleware.js";
 import cookieParser from "cookie-parser";
 
@@ -12,7 +15,11 @@ const app = express();
 // // Middlewares
 app.use(
   cors({
-    origin: [`http://127.0.0.1:5501`, "https://hoppscotch.io"],
+    origin: [
+      `http://127.0.0.1:5501`,
+      "https://hoppscotch.io",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );
@@ -24,6 +31,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/universities", uniRouter);
+app.use("/api/events", eventsRouter);
 
 // Test Route
 app.get("/", (req, res) => res.send("Backend is running"));

@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="src/style.css" />
+  <link rel="stylesheet" href="src/myRSOs.css" />
   <title>EventNet | Home</title>
 </head>
 
@@ -35,33 +35,34 @@
     <a href="#" onclick="window.location.href='/universities'; return false;">University</a>
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
-
-  <div class="layout">
-    <!-- Left sticky column -->
-    <div class="sticky-column left-column">
-      <img src="images/knightro.jpg" alt="Left 1" />
-      <img src="images/gators.jpg" alt="Left 2" />
-      <img src="images/fsu.jpg" alt="Left 3" />
-    </div>
   
-    <!-- Main content -->
-    <main>
-      <!-- ✅ Prompt for university selection if not joined yet -->
+
+  <main>
+    <section class="create-rso-section">
+      <h2>Create a New RSO</h2>
+      <form id="create-rso-form" class="create-rso-form">
+        <input type="text" id="rso-name" placeholder="RSO Name" required />
+        <button type="submit" class="btn">Create RSO</button>
+      </form>
+    </section> 
+
+    <!-- RSOs the user has joined -->
+    <section>
+      <h2>Your RSOs</h2>
+      <ul id="your-rsos" class="rso-list-container"></ul>
+    </section>
+  
+    <!-- RSOs at the user's university that can be joined -->
+    <section>
+      <h2>Available RSOs to Join</h2>
+      <ul id="available-rsos" class="rso-list-container"></ul>
+    </section>
+
       
+    </section>
+  </main>
   
-    </main>
-  
-    <!-- Right sticky column -->
-    <div class="sticky-column right-column">
-      <img src="images/usfbull.jpg" alt="Right 1" />
-      <img src="images/fiu.jpg" alt="Right 2" />
-      <img src="images/bird.jpg" alt="Right 3" />
-    </div>
-  </div>
-  
-  
-
-  <script type="module" src="home.js"></script>
+  <script type="module" src="src/myRSOs.js"></script>
 </body>
 
 </html>

@@ -1,5 +1,10 @@
 import { SUPERADMIN_SECRET } from "../../config/env.js";
 import {
+  getUniversityEventsDB,
+  getPublicEventsWithStatusDB,
+  getRSOEventsDB,
+} from "../services/events.services.js";
+import {
   getUserByAttribute,
   createSuperAdmin,
   isUserRole,
@@ -75,5 +80,31 @@ export const getUserInfo = async (req, res, next) => {
     return res
       .status(err.statusCode || 500)
       .json({ success: false, message: err.message || "Server Error" });
+  }
+};
+
+// Logic for Getting All Events Which are Visible to the Logged in User
+export const getUserEvents = async (req, res) => {
+  try {
+    const user_id = req.user;
+
+    // Get Valid Public Events, University Events, and RSO Events visible to the User
+    const [public_events, university_events, rso_events] = await Promise.all([
+      getPublicEventsWithStatusDB("valid"),
+      getUniversityEventsDB(user_id),
+      getRSOEventsDB(user_id),
+    ]);
+
+    const allEvents = [...public_events, ...university_events, ...rso_events];
+    return res.status(200).json({
+      success: true,
+      message: "User Info gathered Successfully",
+      data: allEvents,
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
   }
 };
