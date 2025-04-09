@@ -11,6 +11,7 @@ function storeUniversityId(uniId) {
 }
 
 // Display joined universities list
+// Display joined universities list
 async function displayJoinedUniversities() {
   const token = localStorage.getItem("accessToken");
 
@@ -44,19 +45,51 @@ async function displayJoinedUniversities() {
 
     universities.forEach((uni) => {
       const li = document.createElement("li");
-      li.textContent = uni.uni_name;
-      const img = document.createElement("img");
+      li.classList.add("university-item");
 
-      if (uni.pictures) {
-        const pictureUrl = uni.pictures[0];
-        console.log(pictureUrl);
-        img.src = pictureUrl;
+      // Create a container for name and "Joined" button
+      const infoContainer = document.createElement("div");
+
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = uni.uni_name;
+
+      const joinedBtn = document.createElement("button");
+      joinedBtn.classList.add("join-btn");
+      joinedBtn.textContent = "Joined";
+      joinedBtn.disabled = true; // Make it non-clickable
+
+      infoContainer.appendChild(nameSpan);
+      infoContainer.appendChild(joinedBtn);
+
+      // Create image container
+      const imageContainer = document.createElement("div");
+      imageContainer.classList.add("university-images");
+
+      const img = document.createElement("img");
+      img.style.maxWidth = "200px";
+      img.style.maxHeight = "200px";
+
+      if (uni.pictures && uni.pictures[0]) {
+        img.src = uni.pictures[0];
+      } else {
+        img.src =
+          "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
       }
 
-      li.appendChild(img);
+      img.alt = "University Image";
+      img.onerror = () => {
+        img.src =
+          "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+      };
+
+      imageContainer.appendChild(img);
+
+      // Append everything in order
+      li.appendChild(infoContainer); // name + joined button
+      li.appendChild(imageContainer); // image below
+
       joinedList.appendChild(li);
     });
-
   } catch (err) {
     console.error("Error fetching joined universities:", err);
     joinedList.innerHTML = "<li>Failed to load universities.</li>";
@@ -99,45 +132,47 @@ async function fetchUniversities() {
     universities.forEach((uni) => {
       const li = document.createElement("li");
       li.classList.add("university-item");
-    
+
       // Create a container for name and button
       const infoContainer = document.createElement("div");
       const nameSpan = document.createElement("span");
       nameSpan.textContent = uni.uni_name;
-    
+
       const joinBtn = document.createElement("button");
       joinBtn.classList.add("join-btn");
       joinBtn.dataset.id = uni.uni_id;
       joinBtn.textContent = "Join";
-    
+
       infoContainer.appendChild(nameSpan);
       infoContainer.appendChild(joinBtn);
-    
+
       // Create image container
       const imageContainer = document.createElement("div");
       imageContainer.classList.add("university-images");
-    
+
       const img = document.createElement("img");
       img.style.maxWidth = "200px";
       img.style.maxHeight = "200px";
-    
+
       if (uni.pictures && uni.pictures[0]) {
         img.src = uni.pictures[0];
       } else {
-        img.src = "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+        img.src =
+          "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
       }
-    
+
       img.alt = "University Image";
       img.onerror = () => {
-        img.src = "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+        img.src =
+          "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
       };
-    
+
       imageContainer.appendChild(img);
-    
+
       // Append everything in order
-      li.appendChild(infoContainer);      // text + join
-      li.appendChild(imageContainer);     // image below
-    
+      li.appendChild(infoContainer); // text + join
+      li.appendChild(imageContainer); // image below
+
       universityList.appendChild(li);
     });
 
