@@ -19,6 +19,7 @@ import {
   updateCommentsInEventsDB,
   updateEventCommentDB,
   deleteEventCommentDB,
+  getCommentInfoDB,
 } from "../services/events.services.js";
 import { isUniversityAdmin } from "../services/uni.services.js";
 import { isUserRole } from "../services/users.services.js";
@@ -513,6 +514,53 @@ export const getEventInfo = async (req, res) => {
       success: true,
       data: result,
       message: "Gathered Event Info Successfully",
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      success: false,
+      message: error.message || "Server Error",
+    });
+  }
+};
+
+// Logic for Getting Individual Event Info
+export const getCommentInfo = async (req, res) => {
+  try {
+    const user_id = req.user;
+    const { event_id, comment_id } = req.params;
+
+    // Checks if User has Permission to View Event
+    const [isUserEvent, isUserComment] = await Promise.all([
+      isValidUserEvent(user_id, event_id),
+      isValidUserComment(user_id, comment_id),
+    ]);
+
+    // Checks If User has permission to access comment info
+    if (!isUserEvent) {
+      const err = new Error("User does not have permission to view event");
+      err.statusCode = 403;
+      throw err;
+    }
+
+    if (!isUserComment) {
+      const err = new Error("User does not have permission to view comment");
+      err.statusCode = 403;
+      throw err;
+    }
+
+    // Get Comment Info From DB
+    const result = await getCommentInfoDB(comment_id);
+    if (result.error) {
+      return res
+        .status(result.status)
+        .json({ success: false, message: result.error });
+    }
+
+    // Success Response
+    return res.status(200).json({
+      success: true,
+      data: result,
+      message: "Gathered Comment Info Successfully",
     });
   } catch (error) {
     return res.status(error.statusCode || 500).json({
