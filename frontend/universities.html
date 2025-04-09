@@ -36,21 +36,38 @@
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
   
-  <main class="profile-container">
-    <p>Please select your university before signing up:</p>
-<!-- Joinable universities list -->
-<ul id="joinable-university-list" class="university-list"></ul>
-
-<!-- Joined universities list -->
-<section>
-  <h2>Universities Joined</h2>
-  <ul id="joined-university-list" class="university-list-container"></ul>
-</section>
-
   
-    <div id="yourRSOContainer" class="rso-list-container"></div>
-  </main>
+  <div class="layout">
+    <!-- Left sticky column -->
+    <div class="sticky-column left-column">
+      <img src="images/knightro.jpg" alt="Left 1" />
+      <img src="images/gators.jpg" alt="Left 2" />
+      <img src="images/fsu.jpg" alt="Left 3" />
+    </div>
   
+    <!-- Main content -->
+    <main class="profile-container">
+      <p>Please select your university before signing up:</p>
+  <!-- Joinable universities list -->
+  <ul id="joinable-university-list" class="university-list"></ul>
+  
+  <!-- Joined universities list -->
+  <section>
+    <h2>Universities Joined</h2>
+    <ul id="joined-university-list" class="university-list-container"></ul>
+  </section>
+  
+    
+      <div id="yourRSOContainer" class="rso-list-container"></div>
+    </main>
+  
+    <!-- Right sticky column -->
+    <div class="sticky-column right-column">
+      <img src="images/usfbull.jpg" alt="Right 1" />
+      <img src="images/fiu.jpg" alt="Right 2" />
+      <img src="images/bird.jpg" alt="Right 3" />
+    </div>
+  </div>
   
 
   <script type="module" src="src/universities.js"></script>
