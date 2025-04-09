@@ -818,4 +818,66 @@ logoutButton?.addEventListener("click", () => {
 });  
 
 
+// 🔁 DOM & Auth Check
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("✅ JS loaded");
+
+  const form = document.getElementById("public-event-form");
+  if (!form) {
+    console.warn("⚠️ public-event-form not found");
+    return;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    console.log("📤 Form submitted");
+
+    const token = localStorage.getItem("accessToken");
+    if (!token) {
+      alert("You must be logged in to create events.");
+      return;
+    }
+
+    const data = {
+      event_name: document.getElementById("event_name").value,
+      description: document.getElementById("description").value,
+      location: document.getElementById("location").value,
+      latitude: parseFloat(document.getElementById("latitude").value),
+      longitude: parseFloat(document.getElementById("longitude").value),
+      start_date: new Date(document.getElementById("start_date").value).toISOString(),
+      end_date: new Date(document.getElementById("end_date").value).toISOString(),
+      contact_phone: document.getElementById("contact_phone").value,
+      contact_email: document.getElementById("contact_email").value,
+    };
+
+    console.log("📦 Sending data:", data);
+
+    try {
+      const res = await fetch("http://localhost:5500/api/events/public", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      const resData = await res.json();
+
+      if (!res.ok) {
+        throw new Error(resData.message || "❌ Failed to create event.");
+      }
+
+      document.getElementById("result-msg").textContent = "✅ Event created successfully!";
+      console.log("✅ Response:", resData);
+      form.reset();
+    } catch (err) {
+      console.error("❌ Error creating event:", err.message);
+      document.getElementById("result-msg").textContent = "❌ Failed to create event.";
+    }
+  });
+});
+
+
+
 fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
