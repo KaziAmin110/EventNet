@@ -114,13 +114,13 @@
     align-items: center;
     gap: 1rem;
     flex-wrap: nowrap;
-    background-color: black;
+    background-color: var(--primary-bg);
     padding: 1rem;
   }
   
   #home .top-bar h1 {
     font-size: 1.8rem;
-    color: white;
+    color: var(--primary-text);
   }
   
   #search-bar {
@@ -200,14 +200,14 @@
   
   /* Taskbar Navigation */
   nav.taskbar {
-    background-color: #f3eb12;
+    background-color: var(--accent-color);
     padding: 15px;
     text-align: center;
     width: 100%;
   }
   
   nav.taskbar a {
-    color: black;
+    color: var(--primary-bg);
     text-decoration: none;
     padding: 12px 40px;
     margin: 0 10px;
@@ -218,8 +218,8 @@
   }
   
   nav.taskbar a:hover {
-    background-color: black;
-    color: white;
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
   }
   
   @media screen and (max-width: 500px) {
@@ -278,7 +278,7 @@
   }
   
   header {
-    background-color: black;
+    background-color: var(--primary-bg);
     color: white;
     padding: 1rem 2rem;
     display: flex;
@@ -442,4 +442,27 @@
     background-color: #005f87;
   }
   
+  :root {
+    --primary-bg: #000000;
+    --primary-text: #ffffff;
+    --accent-color: #f3eb12;
+  }
+  
+  body.uf-theme {
+    --primary-bg: #Fa4616;
+    --primary-text: #ffffff;
+    --accent-color: #0021a5;
+  }
+  
+  body.usf-theme {
+    --primary-bg: #006747;
+    --primary-text: #ffffff;
+    --accent-color: #CFC493;
+  }
+  
+  body.fsu-theme {
+    --primary-bg: #000000;
+    --primary-text: #CEB888;
+    --accent-color: #782F40;
+  }
   

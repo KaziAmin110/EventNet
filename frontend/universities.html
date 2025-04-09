@@ -69,7 +69,15 @@
     </div>
   </div>
   
-
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.body.classList.add(savedTheme);
+      }
+    });
+  </script>
+  
   <script type="module" src="src/universities.js"></script>
 
 
