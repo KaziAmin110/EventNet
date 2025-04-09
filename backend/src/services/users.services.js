@@ -64,6 +64,30 @@ export const getAdminByAttribute = async (attribute, value) => {
   }
 };
 
+// Retrieves User Role
+export const getUserRole = async (user_id) => {
+  try {
+    const [isAdmin, isSuperAdmin, isStudent] = await Promise.all([
+      isUserRole("super_admin", user_id),
+      isUserRole("admin", user_id),
+      isUserRole("student", user_id),
+    ]);
+
+    if (isSuperAdmin) {
+      return "super_admin";
+    } else if (isAdmin) {
+      return "admin";
+    } else if (isStudent) {
+      return "student";
+    }
+
+    // No User Associated with Given Attribute
+    return false;
+  } catch (error) {
+    throw new Error(error.message);
+  }
+};
+
 // Checks If user_id exists in a role table
 export const isUserRole = async (role, user_id) => {
   try {

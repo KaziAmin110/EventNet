@@ -8,6 +8,7 @@ import {
   getUserByAttribute,
   createSuperAdmin,
   isUserRole,
+  getUserRole,
 } from "../services/users.services.js";
 
 // Grants a User SuperAdmin Role
@@ -67,6 +68,8 @@ export const getUserInfo = async (req, res, next) => {
       throw error;
     }
 
+    user.role = await getUserRole(user_id);
+
     return res.status(200).json({
       success: true,
       message: "User Info gathered Successfully",
@@ -74,6 +77,7 @@ export const getUserInfo = async (req, res, next) => {
         user_id: user.id,
         name: user.name,
         email: user.email,
+        role: user.role,
       },
     });
   } catch (err) {
