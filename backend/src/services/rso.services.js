@@ -554,12 +554,13 @@ export const isUniversityRSO = async (uni_id, rso_id) => {
       .from("rso")
       .select("rso_id")
       .eq("uni_id", uni_id)
-      .eq("rso_id", rso_id)
-      .single();
+      .eq("rso_id", rso_id);
 
-    if (error) throw error;
+    if (error) {
+      console.log(error);
+    }
 
-    return !!data;
+    return data.length !== 0 ? true : false;
   } catch (error) {
     return {
       status: error.statusCode,
