@@ -16,7 +16,7 @@ export const createEventDB = async (
   contact_email = null
 ) => {
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("events") // Table name
       .insert([
         {
@@ -36,6 +36,10 @@ export const createEventDB = async (
       .select("event_id")
       .single();
 
+    if (error) {
+      throw error;
+    }
+
     if (!data) {
       const err = new Error("Event Created Unsuccessfully");
       err.status = false;
@@ -43,6 +47,7 @@ export const createEventDB = async (
       throw err;
     }
 
+    console.log(data);
     return data.event_id;
   } catch (error) {
     return {

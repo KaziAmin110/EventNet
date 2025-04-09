@@ -52,22 +52,17 @@ async function displayJoinedUniversities() {
 
       const nameSpan = document.createElement("span");
       nameSpan.textContent = uni.uni_name;
-
-      const joinedBtn = document.createElement("button");
-      joinedBtn.classList.add("join-btn");
-      joinedBtn.textContent = "Joined";
-      joinedBtn.disabled = true; // Make it non-clickable
+      nameSpan.style.fontSize = "25px";
 
       infoContainer.appendChild(nameSpan);
-      infoContainer.appendChild(joinedBtn);
 
       // Create image container
       const imageContainer = document.createElement("div");
-      imageContainer.classList.add("university-images");
 
       const img = document.createElement("img");
-      img.style.maxWidth = "200px";
-      img.style.maxHeight = "200px";
+      img.style.maxWidth = "300px";
+      img.style.maxHeight = "300px";
+      img.style.borderRadius = "1.25rem";
 
       if (uni.pictures && uni.pictures[0]) {
         img.src = uni.pictures[0];
@@ -137,7 +132,7 @@ async function fetchUniversities() {
       const infoContainer = document.createElement("div");
       const nameSpan = document.createElement("span");
       nameSpan.textContent = uni.uni_name;
-
+      nameSpan.style.fontSize = "25px";
       const joinBtn = document.createElement("button");
       joinBtn.classList.add("join-btn");
       joinBtn.dataset.id = uni.uni_id;
@@ -151,8 +146,9 @@ async function fetchUniversities() {
       imageContainer.classList.add("university-images");
 
       const img = document.createElement("img");
-      img.style.maxWidth = "200px";
-      img.style.maxHeight = "200px";
+      img.style.maxWidth = "300px";
+      img.style.maxHeight = "300px";
+      img.style.borderRadius = "1.25rem";
 
       if (uni.pictures && uni.pictures[0]) {
         img.src = uni.pictures[0];

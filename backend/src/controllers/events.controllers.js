@@ -121,6 +121,9 @@ export const createUniversityEvent = async (req, res) => {
       contact_email
     );
 
+    if (event_id.error) {
+      throw event_id;
+    }
     await createUniversityEventDB(event_id, user_id, uni_id);
 
     return res.status(201).json({
@@ -745,13 +748,10 @@ export const deleteExpiredEvents = async (req, res) => {
 
     expiredEvents.map(async (expiredEvent) => {
       if (expiredEvent.event_type == "public") {
-
       } else if (expiredEvent.event_type == "university") {
-
       } else if (expiredEvent.event_type == "rso") {
-
       }
-      
+
       await removeEventFromEventsTable(expiredEvent.event_id);
     });
   } catch (error) {
