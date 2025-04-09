@@ -1,3 +1,5 @@
+import api from "./api/axiosInstance.js";
+
 const universityList = document.getElementById("publicEventsContainer");
 const universityList2 = document.getElementById("privateEventsContainer");
 const universityList3 = document.getElementById("rsoEventsContainer");
@@ -813,6 +815,7 @@ logoutButton?.addEventListener("click", () => {
   localStorage.removeItem("userRole");
   localStorage.removeItem("universityIds");
   window.location.href = "index.html";
-});
+});  
+
 
 fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);

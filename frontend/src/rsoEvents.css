@@ -537,3 +537,33 @@
     --accent-color: #782F40;
   }
   
+  #publicEventFormWrapper {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .event-form input,
+  .event-form button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 0.5rem 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  
+  .event-form button {
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .event-form button:hover {
+    background-color: #005fa3;
+  }
+  

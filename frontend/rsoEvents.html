@@ -50,10 +50,31 @@
         <button id="privateEventsButton">Private Events</button>
         <button id="rsoEventsButton">RSO Events</button>
       </div>
-      <h2 id=tempHeader></h2>
-      <div id="publicEventsContainer" class="rsoEvents-event-card"></div>
-      <div id="privateEventsContainer" class="rsoEvents-event-card"></div>
-      <div id="rsoEventsContainer" class="rsoEvents-event-card"></div>
+      <h2 id = tempHeader></h2>
+    <!-- Public Events Container -->
+        <div id="publicEventsContainer" class="rsoEvents-event-card"></div>
+
+    <!-- Public Event Creation Form -->
+    <div id="publicEventFormWrapper">
+      <h3>Create a Public Event</h3>
+      <form id="public-event-form" class="event-form">
+        <input type="text" id="event_name" placeholder="Event Name" required />
+        <input type="text" id="description" placeholder="Description" required />
+        <input type="text" id="location" placeholder="Location" required />
+        <input type="number" step="0.01" id="latitude" placeholder="Latitude" required />
+        <input type="number" step="0.01" id="longitude" placeholder="Longitude" required />
+        <input type="datetime-local" id="start_date" required />
+        <input type="datetime-local" id="end_date" required />
+        <input type="tel" id="contact_phone" placeholder="Phone Number" required />
+        <input type="email" id="contact_email" placeholder="Email" required />
+        <button class= "submitbtn" type ="submit">Submit Public Event</button>
+      </form>
+      <p id="result-msg"></p>
+    </div>
+    
+     
+      <div id = "privateEventsContainer" class="rsoEvents-event-card"></div>
+      <div id = "rsoEventsContainer" class="rsoEvents-event-card"></div>
     </section>
 
 
