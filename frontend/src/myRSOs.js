@@ -37,7 +37,7 @@ async function getRSOsAtUniversity(uniId) {
   return result.data || [];
 }
 
-function renderRSOList(container, rsos, buttonLabel = null, clickHandler = null) {
+function renderRSOList(container, rsos, buttonLabel = null, clickHandler = null, showLeave = false) {
   container.innerHTML = "";
 
   if (!rsos.length) {
@@ -49,16 +49,14 @@ function renderRSOList(container, rsos, buttonLabel = null, clickHandler = null)
 
   rsos.forEach(rso => {
     const li = document.createElement("li");
-    li.className = "rso-card"; // Apply your card style
+    li.className = "rso-card";
 
-    // Card content
     li.innerHTML = `
       <h3>${rso.rso_name}</h3>
       <p>Members: ${rso.num_members ?? 0}</p>
       <p>Status: ${rso.rso_status ?? "unknown"}</p>
     `;
 
-    // Add action button if needed (e.g., Join)
     if (buttonLabel && clickHandler) {
       const btn = document.createElement("button");
       btn.className = "btn";
@@ -67,30 +65,77 @@ function renderRSOList(container, rsos, buttonLabel = null, clickHandler = null)
       li.appendChild(btn);
     }
 
+    if (showLeave) {
+      const leaveBtn = document.createElement("button");
+      leaveBtn.className = "btn";
+      leaveBtn.textContent = "Leave";
+      leaveBtn.addEventListener("click", () => handleLeaveRSO(rso));
+      li.appendChild(leaveBtn);
+    }
+
     container.appendChild(li);
   });
 }
 
+async function handleLeaveRSO(rso) {
+  const token = localStorage.getItem("accessToken");
+
+  try {
+    const res = await fetch(`http://localhost:5500/api/universities/${rso.uni_id}/rsos/${rso.rso_id}/leave`, {
+      method: "DELETE",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      }
+    });
+
+    const result = await res.json();
+
+    if (res.ok && result.success) {
+      alert(`You have left ${rso.rso_name}.`);
+      initRSOPage(); // Refresh lists
+    } else {
+      alert(result.message || "Failed to leave RSO.");
+    }
+
+  } catch (err) {
+    console.error("Leave RSO failed:", err);
+    alert("Error leaving RSO.");
+  }
+}
+
+
+
 async function initRSOPage() {
-  const universityIds = await getUserUniversities();
+  const token = localStorage.getItem("accessToken");
+
+  // Step 1: Get all universities the user is part of
+  const universityRes = await fetch("http://localhost:5500/api/universities/me", {
+    headers: { Authorization: `Bearer ${token}` }
+  });
+  const universityData = await universityRes.json();
+  const universityIds = universityData.data.map(u => u.uni_id);
+
+  // Step 2: Get RSOs the user has joined
   const joinedRSOs = await getJoinedRSOs();
   const joinedRSOIds = new Set(joinedRSOs.map(rso => rso.rso_id));
 
-  renderRSOList(joinedList, joinedRSOs);
+  // Step 3: Render RSOs the user is already in
+  renderRSOList(joinedList, joinedRSOs, null, null, true);
 
+  // Step 4: Loop through user's universities and fetch available RSOs
   const allAvailable = [];
 
   for (const uniId of universityIds) {
     const rsos = await getRSOsAtUniversity(uniId);
     const unjoined = rsos.filter(rso => !joinedRSOIds.has(rso.rso_id));
-    console.log(`University ${uniId} returned RSOs:`, rsos);
-    console.log("Unjoined RSOs:", unjoined);
-
-
-    
+    unjoined.forEach(rso => {
+      rso.uni_id = uniId; // needed for the join call later
+    });
     allAvailable.push(...unjoined);
   }
 
+  // Step 5: Render available RSOs with Join button
   renderRSOList(availableList, allAvailable, "JOIN", async (rso) => {
     try {
       const res = await fetch(`http://localhost:5500/api/universities/${rso.uni_id}/rsos/${rso.rso_id}/join`, {
@@ -114,6 +159,7 @@ async function initRSOPage() {
     }
   });
 }
+
 
 
 const profileButton = document.getElementById("profile-button");
@@ -164,7 +210,7 @@ document.getElementById("create-rso-form")?.addEventListener("submit", async (e)
     const createResult = await createRes.json();
 
     if (createRes.ok && createResult.success) {
-      alert("RSO creation submitted. Approval pending until there are 5 total memebers.");
+      alert("RSO creation submitted. Approval pending until there are 5 total members.");
       document.getElementById("rso-name").value = "";
       initRSOPage(); // Refresh lists
     } else {
