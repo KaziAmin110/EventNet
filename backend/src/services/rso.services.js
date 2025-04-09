@@ -256,14 +256,13 @@ export const updateInviteStatus = async (rso_id, user_id, status) => {
 };
 
 // Get ALL RSOs at a Given University
-export const getAllRsosDB = async (uni_id, start, end, page, pageSize) => {
+export const getAllRsosDB = async (uni_id) => {
   try {
     // Fetch data from Supabase if not found in cache
     const { data, error, count } = await supabase
       .from("rso")
-      .select("*", { count: "exact" })
-      .eq("uni_id", uni_id)
-      .range(start, end);
+      .select("*")
+      .eq("uni_id", uni_id);
 
     if (error) {
       throw new Error(error.message);
@@ -273,12 +272,6 @@ export const getAllRsosDB = async (uni_id, start, end, page, pageSize) => {
     const result = {
       success: true,
       data,
-      pagination: {
-        totalRecords: count,
-        totalPages: Math.ceil(count / pageSize),
-        currentPage: page,
-        pageSize,
-      },
     };
 
     return result;
@@ -591,5 +584,29 @@ export const removeInviteStatus = async (rso_id, user_id, status) => {
     }
   } catch (error) {
     throw new Error(error.message);
+  }
+};
+
+// Deletes an RSO from the RSO Table
+export const deleteRSOFromDB = async (rso_id) => {
+  try {
+    const { data, error } = await supabase
+      .from("rso")
+      .delete()
+      .eq("rso_id", rso_id);
+
+    if (error) {
+      throw error;
+    }
+
+    return {
+      status: true,
+      message: "Removed RSO From Database Successfully.",
+    };
+  } catch (error) {
+    return {
+      status: error.statusCode || 500,
+      message: error.message || "Delete RSO From DB Service Error",
+    };
   }
 };
