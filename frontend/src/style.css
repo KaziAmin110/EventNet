@@ -515,3 +515,28 @@ body.fsu-theme {
   --primary-text: #CEB888;
   --accent-color: #782F40;
 }
+
+.university-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.university-images img {
+  display: block;
+  margin-top: 8px;
+  max-width: 100%;
+  height: auto;
+}
+
+.university-item > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.university-item .join-btn {
+  margin-left: 40px;
+}
+

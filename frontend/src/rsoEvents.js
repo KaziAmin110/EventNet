@@ -79,6 +79,7 @@ async function fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEvent
             li.appendChild(inputBox);
             li.appendChild(sendButton);
             li.appendChild(viewCommentsButton);
+            e.event_rating = Math.round(e.event_rating * 10) / 10;
             createRatingBar(li, e.event_rating, e.event_id);
             render = true;
         }
@@ -110,6 +111,7 @@ async function fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEvent
             li.appendChild(inputBox);
             li.appendChild(sendButton);
             li.appendChild(viewCommentsButton);
+            e.event_rating = Math.round(e.event_rating * 10) / 10;
             createRatingBar(li, e.event_rating, e.event_id);
             render = true;
         }
@@ -141,6 +143,7 @@ async function fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEvent
             li.appendChild(inputBox);
             li.appendChild(sendButton);
             li.appendChild(viewCommentsButton);
+            e.event_rating = Math.round(e.event_rating * 10) / 10;
             createRatingBar(li, e.event_rating, e.event_id);
             render = true;
         }
@@ -613,6 +616,9 @@ async function getEventCommentsRefresh(button, li) {
 
                 const updatedEvent = await getEventInfo(event_id);
                 if (updatedEvent) {
+
+                    updatedEvent.event_rating = Math.round(updatedEvent.event_rating * 10) / 10;
+
                   eventRatingText.textContent = `Average Event Rating: ${updatedEvent.event_rating}`;
                 }
 

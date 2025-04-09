@@ -1,7 +1,5 @@
 const universityList = document.getElementById("joinable-university-list");
 const joinedList = document.getElementById("joined-university-list");
-//import { GOOGLE_PLACES_API_KEY } from "../../backend/config/env";
-//const key = GOOGLE_PLACES_API_KEY;
 
 // Store multiple university IDs
 function storeUniversityId(uniId) {
@@ -26,8 +24,8 @@ async function displayJoinedUniversities() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const result = await res.json();
@@ -46,25 +44,15 @@ async function displayJoinedUniversities() {
 
     universities.forEach((uni) => {
       const li = document.createElement("li");
-      if (Array.isArray(uni.pictures)) {
-        uni.pictures.forEach((pictureUrl) => {
-          console.log(typeof pictureUrl);
-          const img = document.createElement("img");
-          const withKey = `${pictureUrl}&key=${apiKey}`;
-          img.src = withKey;
-          li.appendChild(img);
-          joinedList.appendChild(li);
-        });
-      }
       li.textContent = uni.uni_name;
       joinedList.appendChild(li);
     });
+
   } catch (err) {
     console.error("Error fetching joined universities:", err);
     joinedList.innerHTML = "<li>Failed to load universities.</li>";
   }
 }
-
 
 // Display joinable universities
 async function fetchUniversities() {
@@ -81,8 +69,8 @@ async function fetchUniversities() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const result = await res.json();
@@ -91,7 +79,10 @@ async function fetchUniversities() {
     const universities = result.data;
 
     if (!Array.isArray(universities)) {
-      throw new Error("Expected an array of universities, got: " + JSON.stringify(universities));
+      throw new Error(
+        "Expected an array of universities, got: " +
+          JSON.stringify(universities)
+      );
     }
 
     universityList.innerHTML = ""; // Clear previous list
@@ -99,10 +90,45 @@ async function fetchUniversities() {
     universities.forEach((uni) => {
       const li = document.createElement("li");
       li.classList.add("university-item");
-      li.innerHTML = `
-        <span>${uni.uni_name}</span>
-        <button class="join-btn" data-id="${uni.uni_id}">Join</button>
-      `;
+    
+      // Create a container for name and button
+      const infoContainer = document.createElement("div");
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = uni.uni_name;
+    
+      const joinBtn = document.createElement("button");
+      joinBtn.classList.add("join-btn");
+      joinBtn.dataset.id = uni.uni_id;
+      joinBtn.textContent = "Join";
+    
+      infoContainer.appendChild(nameSpan);
+      infoContainer.appendChild(joinBtn);
+    
+      // Create image container
+      const imageContainer = document.createElement("div");
+      imageContainer.classList.add("university-images");
+    
+      const img = document.createElement("img");
+      img.style.maxWidth = "200px";
+      img.style.maxHeight = "200px";
+    
+      if (uni.pictures && uni.pictures[0]) {
+        img.src = uni.pictures[0];
+      } else {
+        img.src = "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+      }
+    
+      img.alt = "University Image";
+      img.onerror = () => {
+        img.src = "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+      };
+    
+      imageContainer.appendChild(img);
+    
+      // Append everything in order
+      li.appendChild(infoContainer);      // text + join
+      li.appendChild(imageContainer);     // image below
+    
       universityList.appendChild(li);
     });
 
@@ -112,13 +138,16 @@ async function fetchUniversities() {
         const uniId = button.dataset.id;
 
         try {
-          const joinRes = await fetch(`http://localhost:5500/api/universities/${uniId}/join`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
+          const joinRes = await fetch(
+            `http://localhost:5500/api/universities/${uniId}/join`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
             }
-          });
+          );
 
           const joinData = await joinRes.json();
 
@@ -127,7 +156,9 @@ async function fetchUniversities() {
           }
 
           storeUniversityId(uniId);
-          alert(`Joined "${button.previousElementSibling.textContent}" successfully!`);
+          alert(
+            `Joined "${button.previousElementSibling.textContent}" successfully!`
+          );
           displayJoinedUniversities();
         } catch (err) {
           console.error("Join failed:", err);
