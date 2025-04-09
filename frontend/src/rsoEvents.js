@@ -1,3 +1,5 @@
+import api from "./api/axiosInstance.js";
+
 const universityList = document.getElementById("publicEventsContainer");
 const universityList2 = document.getElementById("privateEventsContainer");
 const universityList3 = document.getElementById("rsoEventsContainer");
@@ -733,6 +735,7 @@ async function getUserInfo() {
       return null;
     }
   }
+
   
 publicEventsButton.addEventListener("click", () => {
     publicEventBool = true;
@@ -777,5 +780,63 @@ logoutButton?.addEventListener("click", () => {
   window.location.href = "index.html";
 });  
 
+const submit = document.getElementsByClassName("submitbtn");
+
+submit.addEventListener("click", () => {
+  console.log("JS loaded ✅");
+
+  const form = document.getElementById("public-event-form");
+
+  if (!form) {
+    console.warn("Form not found ❌");
+    return;
+  }
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    console.log("Form submitted 📨");
+
+    const token = localStorage.getItem("accessToken");
+
+    const data = {
+      event_name: document.getElementById("event_name").value,
+      description: document.getElementById("description").value,
+      location: document.getElementById("location").value,
+      latitude: parseFloat(document.getElementById("latitude").value),
+      longitude: parseFloat(document.getElementById("longitude").value),
+      start_date: new Date(document.getElementById("start_date").value).toISOString(),
+      end_date: new Date(document.getElementById("end_date").value).toISOString(),
+      contact_phone: document.getElementById("contact_phone").value,
+      contact_email: document.getElementById("contact_email").value,
+    };
+
+    console.log("Sending data:", data);
+
+    try {
+      const res = await fetch("http://localhost:5500/api/events/public", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify(data)
+      });
+
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to create event");
+      }
+
+      const responseData = await res.json();
+      console.log("✅ Event created:", responseData);
+
+      document.getElementById("result-msg").textContent = "✅ Event created successfully!";
+      form.reset();
+    } catch (err) {
+      console.error("❌ Failed to create event:", err.message);
+      document.getElementById("result-msg").textContent = "❌ Failed to create event.";
+    }
+  });
+});
 
 fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
