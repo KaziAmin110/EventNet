@@ -1,4 +1,6 @@
 import express from "express";
+import path from "path";
+import { fileURLToPath } from "url";
 import cors from "cors";
 import { PORT } from "../config/env.js";
 import authRouter from "./routes/auth.routes.js";

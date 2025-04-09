@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Accepting Invite</title>
+</head>
+
+<body>
+    <h1>Processing Invite...</h1>
+    <p id="status">Please wait while we verify your invite.</p>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const token = params.get("token");
+        const statusText = document.getElementById("status");
+
+        if (!token) {
+            statusText.textContent = "No token found in URL.";
+        } else {
+            fetch("http://localhost:5500/api/universities/rsos/join_rso", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ "accept_token": token }),
+            })
+                .then(async (res) => {
+                    const data = await res.json();
+                    if (res.ok) {
+                        statusText.textContent = "✅ Joined RSO Successfully!";
+                    } else {
+                        statusText.textContent = `❌ Failed to join RSO: ${data.message || "Unknown error."}`;
+                    }
+                })
+                .catch((error) => {
+                    console.error("Error:", error);
+                    statusText.textContent = "❌ Something went wrong while joining the RSO.";
+                });
+        }
+    </script>
+</body>
+
+</html>
