@@ -683,9 +683,13 @@ export const deleteRSOEventsFromDB = async (rso_id) => {
       .select("event_id")
       .eq("rso_id", rso_id);
 
+    if (error) {
+      console.log(error);
+    }
+
     return {
       message: "Rso Event Removed from Database Successfully",
-      data: data.length !== 0 ? data.event_id : [],
+      data: data.length !== 0 ? data : [],
       status: 200,
     };
   } catch (error) {

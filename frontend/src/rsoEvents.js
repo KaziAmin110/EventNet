@@ -18,7 +18,6 @@ let userInfo = await getUserInfo();
 
 localStorage.setItem("userId", userInfo.user_id); // ✅ just the number or string
 
-
 function showOnlyEventForm(type) {
   const publicForm = document.getElementById("publicEventFormWrapper");
   const privateForm = document.getElementById("privateEventFormWrapper");
@@ -28,10 +27,10 @@ function showOnlyEventForm(type) {
   privateForm.style.display = type === "private" ? "block" : "none";
 
   // Only show RSO form if it already has options (user is an admin)
-  const rsoHasOptions = document.getElementById("rso_select").options.length > 1;
-  rsoForm.style.display = (type === "rso" && rsoHasOptions) ? "block" : "none";
+  const rsoHasOptions =
+    document.getElementById("rso_select").options.length > 1;
+  rsoForm.style.display = type === "rso" && rsoHasOptions ? "block" : "none";
 }
-
 
 async function fetchAllUserRSOEvents(
   publicEventBool,
@@ -818,7 +817,6 @@ rsoEventsButton.addEventListener("click", () => {
   showOnlyEventForm("rso");
 });
 
-
 // Profile dropdown toggle
 const profileButton = document.getElementById("profile-button");
 const profileMenu = document.getElementById("profile-menu");
@@ -835,7 +833,7 @@ logoutButton?.addEventListener("click", () => {
   localStorage.removeItem("userRole");
   localStorage.removeItem("universityIds");
   window.location.href = "index.html";
-});  
+});
 
 console.log("✅ JS loaded");
 
@@ -859,23 +857,26 @@ if (!form) {
       location: document.getElementById("location").value,
       latitude: parseFloat(document.getElementById("latitude").value),
       longitude: parseFloat(document.getElementById("longitude").value),
-      start_date: new Date(document.getElementById("start_date").value).toISOString(),
-      end_date: new Date(document.getElementById("end_date").value).toISOString(),
+      start_date: new Date(
+        document.getElementById("start_date").value
+      ).toISOString(),
+      end_date: new Date(
+        document.getElementById("end_date").value
+      ).toISOString(),
       contact_phone: document.getElementById("contact_phone").value,
       contact_email: document.getElementById("contact_email").value,
     };
 
     console.log("📦 Sending data:", data);
     console.log("Token:", token);
-    alert("Public Event Request Sent. Pending Approval: " );
-
+    alert("Public Event Request Sent. Pending Approval: ");
 
     try {
       const res = await fetch("http://localhost:5500/api/events/public", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(data),
       });
@@ -886,16 +887,17 @@ if (!form) {
         throw new Error(resData.message || "❌ Failed to create event.");
       }
 
-      document.getElementById("result-msg").textContent = "✅ Event created successfully!";
+      document.getElementById("result-msg").textContent =
+        "✅ Event created successfully!";
       console.log("✅ Response:", resData);
       form.reset();
     } catch (err) {
       console.error("❌ Error creating event:", err.message);
-      document.getElementById("result-msg").textContent = "❌ Failed to create event.";
+      document.getElementById("result-msg").textContent =
+        "❌ Failed to create event.";
     }
   });
 }
-
 
 //private event creation
 const privateForm = document.getElementById("private-event-form");
@@ -904,10 +906,9 @@ if (privateForm) {
     e.preventDefault();
 
     const token = localStorage.getItem("accessToken");
-    
-    //hardcoded for testing purposes
-    const uniId = 1;
 
+    //hardcoded for testing purposes
+    const uniId = 19;
 
     console.log("Token is " + token);
     console.log("UNIID is " + uniId);
@@ -923,34 +924,42 @@ if (privateForm) {
       location: document.getElementById("private_location").value,
       latitude: parseFloat(document.getElementById("private_latitude").value),
       longitude: parseFloat(document.getElementById("private_longitude").value),
-      start_date: new Date(document.getElementById("private_start_date").value).toISOString(),
-      end_date: new Date(document.getElementById("private_end_date").value).toISOString(),
+      start_date: new Date(
+        document.getElementById("private_start_date").value
+      ).toISOString(),
+      end_date: new Date(
+        document.getElementById("private_end_date").value
+      ).toISOString(),
       contact_phone: document.getElementById("private_contact_phone").value,
       contact_email: document.getElementById("private_contact_email").value,
     };
 
     try {
-      const res = await fetch(`http://localhost:5500/api/universities/${uniId}/events`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        `http://localhost:5500/api/universities/${uniId}/events`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        }
+      );
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.message);
 
-      document.getElementById("private-result-msg").textContent = "✅ Private event created!";
+      document.getElementById("private-result-msg").textContent =
+        "✅ Private event created!";
       privateForm.reset();
     } catch (err) {
       console.error("Error creating private event:", err);
-      document.getElementById("private-result-msg").textContent = "❌ Failed to create private event.";
+      document.getElementById("private-result-msg").textContent =
+        "❌ Failed to create private event.";
     }
   });
 }
-
 
 //RSO event creation
 async function loadUserRSOsForAdmin() {
@@ -965,9 +974,9 @@ async function loadUserRSOsForAdmin() {
   try {
     const res = await fetch("http://localhost:5500/api/universities/rsos/me", {
       headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
-      }
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
 
     const result = await res.json();
@@ -980,10 +989,13 @@ async function loadUserRSOsForAdmin() {
 
     let isAdmin = false;
 
-    rsoList.forEach(rso => {
+    rsoList.forEach((rso) => {
       if (rso.admin_user_id == currentUserId) {
         const option = document.createElement("option");
-        option.value = JSON.stringify({ uni_id: rso.uni_id, rso_id: rso.rso_id });
+        option.value = JSON.stringify({
+          uni_id: rso.uni_id,
+          rso_id: rso.rso_id,
+        });
         option.textContent = rso.rso_name;
         rsoSelect.appendChild(option);
         isAdmin = true;
@@ -992,16 +1004,15 @@ async function loadUserRSOsForAdmin() {
 
     if (isAdmin) {
       console.log("✅ User is an RSO admin.");
-      document.getElementById("rso-event-form-wrapper").dataset.visible = "block";
-    }
-     else {
+      document.getElementById("rso-event-form-wrapper").dataset.visible =
+        "block";
+    } else {
       console.log("ℹ️ User is not an RSO admin.");
     }
   } catch (err) {
     console.error("❌ Error fetching RSOs:", err);
   }
 }
-
 
 const rsoForm = document.getElementById("rso-event-form");
 
@@ -1018,37 +1029,44 @@ if (rsoForm) {
       location: document.getElementById("rso_location").value,
       latitude: parseFloat(document.getElementById("rso_latitude").value),
       longitude: parseFloat(document.getElementById("rso_longitude").value),
-      start_date: new Date(document.getElementById("rso_start_date").value).toISOString(),
-      end_date: new Date(document.getElementById("rso_end_date").value).toISOString(),
+      start_date: new Date(
+        document.getElementById("rso_start_date").value
+      ).toISOString(),
+      end_date: new Date(
+        document.getElementById("rso_end_date").value
+      ).toISOString(),
       contact_phone: document.getElementById("rso_contact_phone").value,
       contact_email: document.getElementById("rso_contact_email").value,
     };
 
     try {
-      const res = await fetch(`http://localhost:5500/api/universities/${selected.uni_id}/rsos/${selected.rso_id}/events`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
+      const res = await fetch(
+        `http://localhost:5500/api/universities/${selected.uni_id}/rsos/${selected.rso_id}/events`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(data),
+        }
+      );
 
       const result = await res.json();
       if (!res.ok) throw new Error(result.message);
 
-      document.getElementById("rso-result-msg").textContent = "✅ RSO Event created!";
+      document.getElementById("rso-result-msg").textContent =
+        "✅ RSO Event created!";
       rsoForm.reset();
     } catch (err) {
       console.error("Error creating RSO event:", err.message);
-      document.getElementById("rso-result-msg").textContent = "❌ Failed to create RSO event.";
+      document.getElementById("rso-result-msg").textContent =
+        "❌ Failed to create RSO event.";
     }
   });
 }
 
 showOnlyEventForm(""); // hides all on initial load
 
-
 fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
 loadUserRSOsForAdmin();
-

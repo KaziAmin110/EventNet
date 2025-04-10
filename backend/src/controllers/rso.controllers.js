@@ -521,11 +521,14 @@ export const leaveRSO = async (req, res) => {
     }
 
     // Removes User from joins_rso, rso member_count is decremented, Invites_rso Status Updated
-    const [__, newMemberCount, _] = await Promise.all([
-      leaveRsoDB(user_id, rso_id),
-      updateRsoMembers(rso_id, rso.num_members, "decrement"),
-      removeInviteStatus(rso_id, user_id),
-    ]);
+    await leaveRsoDB(user_id, rso_id);
+
+    const newMemberCount = await updateRsoMembers(
+      rso_id,
+      rso.num_members,
+      "decrement"
+    );
+    await Promise.all([removeInviteStatus(rso_id, user_id)]);
 
     // Deletes RSO and RSO Event Fields If New Member Count is Zero
     if (newMemberCount === 0) {
@@ -533,7 +536,6 @@ export const leaveRSO = async (req, res) => {
         deleteRSOFromDB(rso_id),
         deleteRSOEventsFromDB(rso_id),
       ]);
-
       let removed_events = removed_events_result.data;
 
       // Removes Each Removed Event from Rso_Events from Events Table

@@ -91,25 +91,15 @@ export const getUserRole = async (user_id) => {
 // Checks If user_id exists in a role table
 export const isUserRole = async (role, user_id) => {
   try {
-    // Generate cache key based on role & user_id (e.g "role:admin:12345")
-    const cacheKey = `role:${role}:${user_id}`;
-
-    // Check if user role exists in Redis Cache
-    const cachedRole = await redisClient.get(cacheKey);
-    if (cachedRole != null) {
-      return JSON.parse(cachedRole);
-    }
-
     const { data, error } = await supabase
       .from(role)
       .select("user_id")
       .eq("user_id", user_id)
       .single();
 
+    console.log(data);
     const roleExists = !!data; // Converts data to boolean
 
-    // Store result in Redis with expiration (5 minutes)
-    await redisClient.set(cacheKey, JSON.stringify(roleExists), "EX", 300);
 
     return roleExists;
   } catch (error) {
