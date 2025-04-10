@@ -807,7 +807,7 @@ publicEventsButton.addEventListener("click", () => {
   rsoEventsBool = false;
   tempHeader.innerHTML = "Public Events";
   fetchAllUserRSOEvents(publicEventBool, privateEventBool, rsoEventsBool);
-  showOnlyEventForm("public");
+  showOnlyEventForm("");
 });
 
 privateEventsButton.addEventListener("click", () => {
