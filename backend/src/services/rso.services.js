@@ -194,13 +194,15 @@ export const updateRsoStatus = async (rso_id, status) => {
 export const updateRsosAdmin = async (
   new_admin_id,
   old_admin_id,
-  new_admin_user_id
+  new_admin_user_id,
+  rso_id
 ) => {
   try {
     const { data, error } = await supabase
       .from("rso")
       .update({ admin_id: new_admin_id, admin_user_id: new_admin_user_id })
-      .eq("admin_id", old_admin_id);
+      .eq("admin_id", old_admin_id)
+      .eq("rso_id", rso_id);
 
     if (error) {
       throw error;
@@ -215,13 +217,18 @@ export const updateRsosAdmin = async (
   }
 };
 
-// Updates the Admin of an RSO
-export const updateRsoEventsAdmin = async (old_admin_id, new_admin_user_id) => {
+// Updates the Admin of a RSO
+export const updateRsoEventsAdmin = async (
+  old_admin_id,
+  new_admin_user_id,
+  rso_id
+) => {
   try {
     const { data, error } = await supabase
       .from("rso_events")
       .update({ admin_id: new_admin_user_id })
-      .eq("admin_id", old_admin_id);
+      .eq("admin_id", old_admin_id)
+      .eq("rso_id", rso_id);
 
     if (error) {
       throw error;
@@ -314,16 +321,6 @@ export const getUserRsoDB = async (user_id) => {
 // Retrieves RSO Entity From RSO Table Based on Attribute
 export const getRsoByAttribute = async (attribute, value) => {
   try {
-    // Generate cache key based on attribute (e.g., "rso:name:RSO Name")
-    const cacheKey = `rso:${attribute}:${value}`;
-
-    // Check if RSO data exists in Redis cache
-    const cachedRso = await redisClient.get(cacheKey);
-
-    if (cachedRso) {
-      return JSON.parse(cachedRso);
-    }
-
     // Fetch RSO from Supabase if not found in cache
     const { data, error } = await supabase
       .from("rso")
@@ -343,8 +340,6 @@ export const getRsoByAttribute = async (attribute, value) => {
         data.rso_status,
         data.admin_user_id
       );
-
-      await redisClient.set(cacheKey, JSON.stringify(rsoData), "EX", 300);
 
       return rsoData;
     }

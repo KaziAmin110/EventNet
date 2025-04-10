@@ -12,15 +12,12 @@
   <header>
     <div class="top-bar">
       <h1>EventNet</h1>
-
-      <input type="text" id="search-bar" placeholder="SEARCH" />
-
       <div class="profile-dropdown">
         <div class="profile-icon" id="profile-button">
           <img src="images/profile-icon.jpg" alt="Profile" />
         </div>
         <div class="dropdown-content" id="profile-menu">
-            <a href="profile.html">Profile</a>
+          <a href="profile.html">Profile</a>
           <a href="#">Notifications</a>
           <a href="#">Messages</a>
           <button class="sign_out_btn">Log Out</button>
@@ -35,7 +32,7 @@
     <a href="#" onclick="window.location.href='/universities'; return false;">University</a>
     <a href="#" onclick="window.location.href='/myRSOs'; return false;">My RSOs</a>
   </nav>
-  
+
 
   <main>
     <section id="university-prompt" style="display: none; text-align: center; margin-top: 2rem;">
@@ -44,24 +41,90 @@
         <button style="padding: 10px 20px; font-size: 1rem;">Choose University</button>
       </a>
     </section>
-  
+
     <!-- Your event sections remain below -->
     <section>
-      <div class = "tab-buttons">
-      <button id = "publicEventsButton">Public Events</button>
-      <button id = "privateEventsButton">Private Events</button>
-      <button id = "rsoEventsButton">RSO Events</button>
+      <h1 class="event-header">Event Type</h1>
+      <div class="tab-buttons">
+        <button id="publicEventsButton">Public Events</button>
+        <button id="privateEventsButton">Private Events</button>
+        <button id="rsoEventsButton">RSO Events</button>
       </div>
       <h2 id = tempHeader></h2>
-      <div id = "publicEventsContainer" class="rsoEvents-event-card"></div>
+    <!-- Public Events Container -->
+        <div id="publicEventsContainer" class="rsoEvents-event-card"></div>
+    <div id="publicEventFormWrapper">
+      <h3>Create a Public Event</h3>
+      <form id="public-event-form" class="event-form">
+        <input type="text" id="event_name" placeholder="Event Name" required />
+        <input type="text" id="description" placeholder="Description" required />
+        <input type="text" id="location" placeholder="Location" required />
+        <input type="number" step="0.01" id="latitude" placeholder="Latitude" required />
+        <input type="number" step="0.01" id="longitude" placeholder="Longitude" required />
+        <input type="datetime-local" id="start_date" required />
+        <input type="datetime-local" id="end_date" required />
+        <input type="tel" id="contact_phone" placeholder="Phone Number" required />
+        <input type="email" id="contact_email" placeholder="Email" required />
+        <button class= "submitbtn" type ="submit">Submit Public Event</button>
+      </form>
+      <p id="result-msg"></p>
+    </div>
+    
+     
       <div id = "privateEventsContainer" class="rsoEvents-event-card"></div>
+      <div id="privateEventFormWrapper">
+        <h3>Create a University Event</h3>
+        <form id="private-event-form" class="event-form">
+          <input type="text" id="private_event_name" placeholder="Event Name" required />
+          <input type="text" id="private_description" placeholder="Description" required />
+          <input type="text" id="private_location" placeholder="Location" required />
+          <input type="number" step="0.01" id="private_latitude" placeholder="Latitude" required />
+          <input type="number" step="0.01" id="private_longitude" placeholder="Longitude" required />
+          <input type="datetime-local" id="private_start_date" required />
+          <input type="datetime-local" id="private_end_date" required />
+          <input type="tel" id="private_contact_phone" placeholder="Phone Number" required />
+          <input type="email" id="private_contact_email" placeholder="Email" required />
+          <button type="submit">Submit Private Event</button>
+        </form>
+        <p id="private-result-msg"></p>
+      </div>
+      
       <div id = "rsoEventsContainer" class="rsoEvents-event-card"></div>
-    </section>
-    
-    
-  </main>
-  
 
+      <div id="rso-event-form-wrapper" style="display: none;">
+        <h3>Create an RSO Event (Admins Only)</h3>
+        <form id="rso-event-form" class="event-form">
+          <select id="rso_select" required>
+            <option value="">-- Select Your RSO --</option>
+          </select>
+          <input type="text" id="rso_event_name" placeholder="Event Name" required />
+          <input type="text" id="rso_description" placeholder="Description" required />
+          <input type="text" id="rso_location" placeholder="Location" required />
+          <input type="number" step="0.01" id="rso_latitude" placeholder="Latitude" required />
+          <input type="number" step="0.01" id="rso_longitude" placeholder="Longitude" required />
+          <input type="datetime-local" id="rso_start_date" required />
+          <input type="datetime-local" id="rso_end_date" required />
+          <input type="tel" id="rso_contact_phone" placeholder="Phone Number" required />
+          <input type="email" id="rso_contact_email" placeholder="Email" required />
+          <button type="submit">Submit RSO Event</button>
+        </form>
+        <p id="rso-result-msg"></p>
+      </div>
+      
+
+    </section>
+
+
+  </main>
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.body.classList.add(savedTheme);
+      }
+    });
+  </script>
   <script type="module" src="src/rsoEvents.js"></script>
 </body>
 

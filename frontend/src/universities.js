@@ -11,6 +11,7 @@ function storeUniversityId(uniId) {
 }
 
 // Display joined universities list
+// Display joined universities list
 async function displayJoinedUniversities() {
   const token = localStorage.getItem("accessToken");
 
@@ -24,8 +25,8 @@ async function displayJoinedUniversities() {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const result = await res.json();
@@ -44,7 +45,48 @@ async function displayJoinedUniversities() {
 
     universities.forEach((uni) => {
       const li = document.createElement("li");
-      li.textContent = uni.uni_name;
+      li.classList.add("university-item");
+
+      // Create a container for name and "Joined" button
+      const infoContainer = document.createElement("div");
+
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = uni.uni_name
+        .toLowerCase()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      nameSpan.style.fontSize = "25px";
+
+      infoContainer.appendChild(nameSpan);
+
+      // Create image container
+      const imageContainer = document.createElement("div");
+
+      const img = document.createElement("img");
+      img.style.maxWidth = "300px";
+      img.style.maxHeight = "300px";
+      img.style.borderRadius = "1.25rem";
+
+      if (uni.pictures && uni.pictures[0]) {
+        img.src = uni.pictures[0];
+      } else {
+        img.src =
+          "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+      }
+
+      img.alt = "University Image";
+      img.onerror = () => {
+        img.src =
+          "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+      };
+
+      imageContainer.appendChild(img);
+
+      // Append everything in order
+      li.appendChild(infoContainer); // name + joined button
+      li.appendChild(imageContainer); // image below
+
       joinedList.appendChild(li);
     });
   } catch (err) {
@@ -52,7 +94,6 @@ async function displayJoinedUniversities() {
     joinedList.innerHTML = "<li>Failed to load universities.</li>";
   }
 }
-
 
 // Display joinable universities
 async function fetchUniversities() {
@@ -65,12 +106,12 @@ async function fetchUniversities() {
   }
 
   try {
-    const res = await fetch("http://localhost:5500/api/universities", {
+    const res = await fetch("http://localhost:5500/api/universities/joinable", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     const result = await res.json();
@@ -79,7 +120,10 @@ async function fetchUniversities() {
     const universities = result.data;
 
     if (!Array.isArray(universities)) {
-      throw new Error("Expected an array of universities, got: " + JSON.stringify(universities));
+      throw new Error(
+        "Expected an array of universities, got: " +
+          JSON.stringify(universities)
+      );
     }
 
     universityList.innerHTML = ""; // Clear previous list
@@ -87,10 +131,52 @@ async function fetchUniversities() {
     universities.forEach((uni) => {
       const li = document.createElement("li");
       li.classList.add("university-item");
-      li.innerHTML = `
-        <span>${uni.uni_name}</span>
-        <button class="join-btn" data-id="${uni.uni_id}">Join</button>
-      `;
+
+      // Create a container for name and button
+      const infoContainer = document.createElement("div");
+      const nameSpan = document.createElement("span");
+      nameSpan.textContent = uni.uni_name
+        .toLowerCase()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      nameSpan.style.fontSize = "25px";
+      const joinBtn = document.createElement("button");
+      joinBtn.classList.add("join-btn");
+      joinBtn.dataset.id = uni.uni_id;
+      joinBtn.textContent = "Join";
+
+      infoContainer.appendChild(nameSpan);
+      infoContainer.appendChild(joinBtn);
+
+      // Create image container
+      const imageContainer = document.createElement("div");
+      imageContainer.classList.add("university-images");
+
+      const img = document.createElement("img");
+      img.style.maxWidth = "300px";
+      img.style.maxHeight = "300px";
+      img.style.borderRadius = "1.25rem";
+
+      if (uni.pictures && uni.pictures[0]) {
+        img.src = uni.pictures[0];
+      } else {
+        img.src =
+          "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+      }
+
+      img.alt = "University Image";
+      img.onerror = () => {
+        img.src =
+          "https://pngimg.com/uploads/question_mark/small/question_mark_PNG91.png";
+      };
+
+      imageContainer.appendChild(img);
+
+      // Append everything in order
+      li.appendChild(infoContainer); // text + join
+      li.appendChild(imageContainer); // image below
+
       universityList.appendChild(li);
     });
 
@@ -100,13 +186,16 @@ async function fetchUniversities() {
         const uniId = button.dataset.id;
 
         try {
-          const joinRes = await fetch(`http://localhost:5500/api/universities/${uniId}/join`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": `Bearer ${token}`
+          const joinRes = await fetch(
+            `http://localhost:5500/api/universities/${uniId}/join`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+              },
             }
-          });
+          );
 
           const joinData = await joinRes.json();
 
@@ -115,8 +204,10 @@ async function fetchUniversities() {
           }
 
           storeUniversityId(uniId);
-          alert(`Joined "${button.previousElementSibling.textContent}" successfully!`);
-          displayJoinedUniversities(); // update the list
+          alert(
+            `Joined "${button.previousElementSibling.textContent}" successfully!`
+          );
+          displayJoinedUniversities();
         } catch (err) {
           console.error("Join failed:", err);
           alert("Error joining university: " + err.message);

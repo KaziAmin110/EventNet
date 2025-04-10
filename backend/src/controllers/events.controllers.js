@@ -121,6 +121,9 @@ export const createUniversityEvent = async (req, res) => {
       contact_email
     );
 
+    if (event_id.error) {
+      throw event_id;
+    }
     await createUniversityEventDB(event_id, user_id, uni_id);
 
     return res.status(201).json({
@@ -733,6 +736,28 @@ export const deleteEventComment = async (req, res) => {
     return res.status(error.statusCode || 500).json({
       status: false,
       message: error.message,
+    });
+  }
+};
+
+// Logic for Implementing Delete All Expired Events Endpoint
+export const deleteExpiredEvents = async (req, res) => {
+  try {
+    const now = new Date.now();
+    const expiredEvents = await getExpiredEventsFromDB(now);
+
+    expiredEvents.map(async (expiredEvent) => {
+      if (expiredEvent.event_type == "public") {
+      } else if (expiredEvent.event_type == "university") {
+      } else if (expiredEvent.event_type == "rso") {
+      }
+
+      await removeEventFromEventsTable(expiredEvent.event_id);
+    });
+  } catch (error) {
+    return res.status(error.statusCode || 500).json({
+      status: false,
+      message: error.message || "Server Error",
     });
   }
 };

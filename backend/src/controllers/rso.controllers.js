@@ -521,11 +521,14 @@ export const leaveRSO = async (req, res) => {
     }
 
     // Removes User from joins_rso, rso member_count is decremented, Invites_rso Status Updated
-    const [__, newMemberCount, _] = await Promise.all([
-      leaveRsoDB(user_id, rso_id),
-      updateRsoMembers(rso_id, rso.num_members, "decrement"),
-      removeInviteStatus(rso_id, user_id),
-    ]);
+    await leaveRsoDB(user_id, rso_id);
+
+    const newMemberCount = await updateRsoMembers(
+      rso_id,
+      rso.num_members,
+      "decrement"
+    );
+    await Promise.all([removeInviteStatus(rso_id, user_id)]);
 
     // Deletes RSO and RSO Event Fields If New Member Count is Zero
     if (newMemberCount === 0) {
@@ -533,7 +536,6 @@ export const leaveRSO = async (req, res) => {
         deleteRSOFromDB(rso_id),
         deleteRSOEventsFromDB(rso_id),
       ]);
-
       let removed_events = removed_events_result.data;
 
       // Removes Each Removed Event from Rso_Events from Events Table
@@ -554,6 +556,8 @@ export const leaveRSO = async (req, res) => {
         const new_user = await getUserByAttribute("id", new_admin_user_id);
 
         let new_admin = await getAdminByAttribute("user_id", new_user.id);
+
+        // Creates Admin If New Admin is not already an Admin
         if (!new_admin) {
           new_admin = await createAdmin(
             new_user.id,
@@ -564,11 +568,21 @@ export const leaveRSO = async (req, res) => {
         }
 
         // Updates RSO Fields for New Admin
-        await updateRsosAdmin(new_admin.admin_id, rso.admin_id, new_admin.user_id);
-        await updateRsoEventsAdmin(rso.admin_user_id, new_admin.user_id);
+        const [_, old_admin] = await Promise.all([
+          updateRsoEventsAdmin(rso.admin_user_id, new_admin.user_id, rso_id),
+          updateRsosAdmin(
+            new_admin.admin_id,
+            rso.admin_id,
+            new_admin.user_id,
+            rso_id
+          ),
+          getRsoByAttribute("admin_user_id", user_id),
+        ]);
 
-        // Removes Old Admin from Admins Table
-        await deleteAdmin(user_id);
+        // Removes Old Admin from Admins Table If Admin Doesnt Isnt a Part of Any RSOs
+        if (!old_admin) {
+          await deleteAdmin(user_id);
+        }
       }
     }
 

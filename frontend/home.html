@@ -12,15 +12,12 @@
   <header>
     <div class="top-bar">
       <h1>EventNet</h1>
-
-      <input type="text" id="search-bar" placeholder="SEARCH" />
-
       <div class="profile-dropdown">
         <div class="profile-icon" id="profile-button">
           <img src="images/profile-icon.jpg" alt="Profile" />
         </div>
         <div class="dropdown-content" id="profile-menu">
-            <a href="profile.html">Profile</a>
+          <a href="profile.html">Profile</a>
           <a href="#">Notifications</a>
           <a href="#">Messages</a>
           <button class="sign_out_btn">Log Out</button>
@@ -43,14 +40,39 @@
       <img src="images/gators.jpg" alt="Left 2" />
       <img src="images/fsu.jpg" alt="Left 3" />
     </div>
-  
+
     <!-- Main content -->
-    <main>
-      <!-- ✅ Prompt for university selection if not joined yet -->
-      
-  
+    <!-- Main content -->
+    <main class="landing-content">
+      <section class="hero">
+        <h2>Welcome to EventNet</h2>
+        <p>Your all-in-one platform for discovering, managing, and attending campus events across universities.</p>
+        <a href="/rsoEvents.html" class="cta-button">Explore Events</a>
+      </section>
+
+      <section class="features">
+        <div class="feature">
+          <h3>Discover Events</h3>
+          <p>Browse and search for university events, club meetups, and social gatherings all in one place.</p>
+        </div>
+        <div class="feature">
+          <h3>Join RSOs</h3>
+          <p>Connect with Registered Student Organizations (RSOs) that match your interests and passions.</p>
+        </div>
+        <div class="feature">
+          <h3>Create & Manage</h3>
+          <p>Admins can create events, invite members, and manage attendance easily through a powerful dashboard.</p>
+        </div>
+      </section>
+
+      <section class="about">
+        <h3>Why EventNet?</h3>
+        <p>EventNet bridges the gap between students and campus life by centralizing event discovery and RSO
+          collaboration across universities.</p>
+      </section>
     </main>
-  
+
+
     <!-- Right sticky column -->
     <div class="sticky-column right-column">
       <img src="images/usfbull.jpg" alt="Right 1" />
@@ -58,8 +80,16 @@
       <img src="images/bird.jpg" alt="Right 3" />
     </div>
   </div>
-  
-  
+
+
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.body.classList.add(savedTheme);
+      }
+    });
+  </script>
 
   <script type="module" src="home.js"></script>
 </body>

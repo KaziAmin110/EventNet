@@ -12,9 +12,6 @@
   <header>
     <div class="top-bar">
       <h1>EventNet</h1>
-
-      <input type="text" id="search-bar" placeholder="SEARCH" />
-
       <div class="profile-dropdown">
         <div class="profile-icon" id="profile-button">
           <img src="images/profile-icon.jpg" alt="Profile" />
@@ -62,6 +59,14 @@
     </section>
   </main>
   
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme) {
+        document.body.classList.add(savedTheme);
+      }
+    });
+  </script>
   <script type="module" src="src/myRSOs.js"></script>
 </body>
 

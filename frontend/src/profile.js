@@ -46,12 +46,49 @@ async function fetchUserExtras(userId) {
   }
 }
 
+
+      const selector = document.getElementById('theme-selector');
+    
+      function setTheme(theme) {
+        // Remove any existing theme classes
+        document.body.className = '';
+    
+        // Add the selected theme class if it's not default
+        if (theme) {
+          document.body.classList.add(theme);
+        }
+    
+        // Save choice to localStorage
+        localStorage.setItem('theme', theme);
+      }
+    
+      // When the dropdown changes
+      selector.addEventListener('change', (e) => {
+        const selectedTheme = e.target.value;
+        setTheme(selectedTheme);
+      });
+    
+      // On page load, apply saved theme
+      window.addEventListener('DOMContentLoaded', () => {
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme) {
+          document.body.classList.add(savedTheme);
+          selector.value = savedTheme;
+        }
+      });
+    
+
 // Log out
 const logoutBtn = document.getElementById("logout-button");
 logoutBtn.addEventListener("click", () => {
   localStorage.clear();
   window.location.href = "index.html";
 });
+const backBtn = document.getElementById("back-button");
+backBtn.addEventListener("click", () => {
+  window.location.href = "universities.html";
+});
+
 
 // Start loading
 loadUserInfo();

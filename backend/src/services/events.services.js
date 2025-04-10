@@ -16,7 +16,7 @@ export const createEventDB = async (
   contact_email = null
 ) => {
   try {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from("events") // Table name
       .insert([
         {
@@ -36,6 +36,10 @@ export const createEventDB = async (
       .select("event_id")
       .single();
 
+    if (error) {
+      throw error;
+    }
+
     if (!data) {
       const err = new Error("Event Created Unsuccessfully");
       err.status = false;
@@ -43,6 +47,7 @@ export const createEventDB = async (
       throw err;
     }
 
+    console.log(data);
     return data.event_id;
   } catch (error) {
     return {
@@ -669,7 +674,7 @@ export const deleteEventCommentDB = async (comment_id) => {
   }
 };
 
-// Removes All RSO Events From RSO_Events Table
+// Removes All RSO Events With a Specific rso_id From RSO_Events Table
 export const deleteRSOEventsFromDB = async (rso_id) => {
   try {
     const { data, error } = await supabase
@@ -678,9 +683,13 @@ export const deleteRSOEventsFromDB = async (rso_id) => {
       .select("event_id")
       .eq("rso_id", rso_id);
 
+    if (error) {
+      console.log(error);
+    }
+
     return {
       message: "Rso Event Removed from Database Successfully",
-      data: data.length !== 0 ? data.event_id : [],
+      data: data.length !== 0 ? data : [],
       status: 200,
     };
   } catch (error) {

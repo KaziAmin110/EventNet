@@ -37,12 +37,47 @@
     text-align: center;
     transform: scale(1.3);
   }
+
+  section {
+    padding: 2rem;
+  }
   
+  .event-header {
+    margin-top: 5px;
+  }
   .tab-buttons {
     display: flex;
     flex-direction: row;
-    justify-content: space-between;
+    justify-content: center;
+    gap: 3rem;
     margin-bottom: 1rem;
+    margin-top: 10px;
+  }
+
+  .tab-buttons button{
+    padding: 1rem;
+    border-radius: 1rem;
+    background-color: lightblue;
+  }
+
+  #publicEventsContainer {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    gap: 2rem;
+  }
+
+  .invite-button {
+    border: 1px solid green;
+    padding: 0.5rem;
+    border-radius: 1rem;
+  }
+
+  .send-button {
+    padding: 0.5rem;
+    border-radius: 1rem;
+    margin: 5px;
+
   }
   
   .tab {
@@ -108,19 +143,21 @@
   }
   
   /* Top Bar */
-  #home .top-bar {
+  .top-bar {
     display: flex;
     justify-content: space-between;
     align-items: center;
     gap: 1rem;
     flex-wrap: nowrap;
-    background-color: black;
+    background-color: var(--primary-bg);
     padding: 1rem;
+    width: 100%;
   }
+  
   
   #home .top-bar h1 {
     font-size: 1.8rem;
-    color: white;
+    color: var(--primary-text);
   }
   
   #search-bar {
@@ -200,14 +237,14 @@
   
   /* Taskbar Navigation */
   nav.taskbar {
-    background-color: #f3eb12;
+    background-color: var(--accent-color);
     padding: 15px;
     text-align: center;
     width: 100%;
   }
   
   nav.taskbar a {
-    color: black;
+    color: var(--primary-bg);
     text-decoration: none;
     padding: 12px 40px;
     margin: 0 10px;
@@ -218,8 +255,8 @@
   }
   
   nav.taskbar a:hover {
-    background-color: black;
-    color: white;
+    background-color: var(--primary-bg);
+    color: var(--primary-text);
   }
   
   @media screen and (max-width: 500px) {
@@ -278,7 +315,7 @@
   }
   
   header {
-    background-color: black;
+    background-color: var(--primary-bg);
     color: white;
     padding: 1rem 2rem;
     display: flex;
@@ -441,5 +478,98 @@
   .join-btn:hover {
     background-color: #005f87;
   }
+
+  .comment-div {
+    display: flex;
+    flex-direction: row;
+    align-items: left;
+    justify-content: start;
+  }
   
+  .comment-text {
+    flex-grow: 1;
+  }
+  
+  .comment-button-edit {
+    padding: 0.5rem;
+    border-radius: 1rem;
+    cursor: pointer;
+    margin: 5px;
+  }
+  
+  .comment-button-edit {
+    background-color: #ddd;
+  }
+
+  .comment-edit-input {
+    flex-grow: 1;
+    padding: 6px 10px;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    background-color: #f9f9f9;
+    outline: none;
+  }
+
+  .invite-input {
+    flex-grow: 1;
+    padding: 6px 10px;
+    font-size: 14px;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;  
+  }
+  
+  :root {
+    --primary-bg: #000000;
+    --primary-text: #ffffff;
+    --accent-color: #f3eb12;
+  }
+  
+  body.uf-theme {
+    --primary-bg: #Fa4616;
+    --primary-text: #ffffff;
+    --accent-color: #0021a5;
+  }
+  
+  body.usf-theme {
+    --primary-bg: #006747;
+    --primary-text: #ffffff;
+    --accent-color: #CFC493;
+  }
+  
+  body.fsu-theme {
+    --primary-bg: #000000;
+    --primary-text: #CEB888;
+    --accent-color: #782F40;
+  }
+  
+  #publicEventFormWrapper {
+    margin: 2rem 0;
+    padding: 1rem;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  }
+  
+  .event-form input,
+  .event-form button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    margin: 0.5rem 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 1rem;
+  }
+  
+  .event-form button {
+    background-color: #0077cc;
+    color: white;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .event-form button:hover {
+    background-color: #005fa3;
+  }
   
