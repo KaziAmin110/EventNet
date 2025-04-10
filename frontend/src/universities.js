@@ -106,7 +106,7 @@ async function fetchUniversities() {
   }
 
   try {
-    const res = await fetch("http://localhost:5500/api/universities", {
+    const res = await fetch("http://localhost:5500/api/universities/joinable", {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
