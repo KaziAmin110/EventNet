@@ -360,7 +360,7 @@ async function getEventComments(button, li) {
             text.classList.add("comment-text");
             commentDiv.appendChild(text);
 
-            if (curComment.user_id === userInfo) {
+            if (curComment.user_id === userInfo.user_id) {
               const deleteButton = document.createElement("button");
               deleteButton.textContent = "Delete";
               deleteButton.classList.add("comment-button-edit");
@@ -370,6 +370,13 @@ async function getEventComments(button, li) {
                 const confirmed = confirm(
                   "Are you sure you want to delete this comment?"
                 );
+              
+              const editButton = document.createElement("button");
+              editButton.textContent = "Edit";
+              editButton.classList.add("comment-button-edit");
+              commentDiv.appendChild(deleteButton);
+              commentDiv.appendChild(editButton);
+
                 if (!confirmed) return;
 
                 const token = localStorage.getItem("accessToken");
