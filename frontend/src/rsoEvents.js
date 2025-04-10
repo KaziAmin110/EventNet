@@ -69,16 +69,17 @@ async function fetchAllUserRSOEvents(
     universityList.innerHTML = "";
     universities.forEach((e) => {
       const li = document.createElement("li");
+      const commentDiv = document.createElement("div");
+      commentDiv.classList.add("comment-div");
       const inviteButton = document.createElement("button");
       li.classList.add("university-item");
       if (publicEventBool && e.event_type === "public") {
         console.log(e.event_type);
         li.innerHTML = `${e.event_name}`;
         inviteButton.textContent = "Comment";
-        inviteButton.classList.add("invite-button");
+        inviteButton.classList.add("send-button");
 
-        li.appendChild(inviteButton);
-        universityList.appendChild(li);
+        
 
         const inputBox = document.createElement("input");
         inputBox.type = "text";
@@ -90,6 +91,12 @@ async function fetchAllUserRSOEvents(
         sendButton.textContent = "Send";
         sendButton.classList.add("send-button");
         sendButton.style.display = "none";
+        commentDiv.appendChild(inviteButton);
+        commentDiv.appendChild(sendButton);
+        commentDiv.appendChild(inputBox);
+        universityList.appendChild(li);
+        universityList.appendChild(commentDiv);
+
         const viewCommentsButton = document.createElement("button");
         viewCommentsButton.dataset.eventId = e.event_id;
         viewCommentsButton.textContent = "View Event Comments";
@@ -98,8 +105,6 @@ async function fetchAllUserRSOEvents(
         getEventComments(viewCommentsButton, li);
         attachToggleInput(inviteButton, inputBox, sendButton);
         createEventComment(sendButton, viewCommentsButton, inputBox, li);
-        li.appendChild(inputBox);
-        li.appendChild(sendButton);
         li.appendChild(viewCommentsButton);
         e.event_rating = Math.round(e.event_rating * 10) / 10;
         createRatingBar(li, e.event_rating, e.event_id);
@@ -108,21 +113,26 @@ async function fetchAllUserRSOEvents(
         console.log(e.event_type);
         li.innerHTML = `${e.event_name}`;
         inviteButton.textContent = "Comment";
-        inviteButton.classList.add("invite-button");
+        inviteButton.classList.add("send-button");
 
-        li.appendChild(inviteButton);
-        universityList.appendChild(li);
+        
 
         const inputBox = document.createElement("input");
         inputBox.type = "text";
         inputBox.placeholder = "Enter comment";
-        inputBox.style.display = "none"; // start hidden
+        inputBox.style.display = "none";
         inputBox.classList.add("invite-input");
         const sendButton = document.createElement("button");
         sendButton.dataset.eventId = e.event_id;
         sendButton.textContent = "Send";
         sendButton.classList.add("send-button");
         sendButton.style.display = "none";
+        commentDiv.appendChild(inviteButton);
+        commentDiv.appendChild(sendButton);
+        commentDiv.appendChild(inputBox);
+        universityList.appendChild(li);
+        universityList.appendChild(commentDiv);
+
         const viewCommentsButton = document.createElement("button");
         viewCommentsButton.dataset.eventId = e.event_id;
         viewCommentsButton.textContent = "View Event Comments";
@@ -131,8 +141,6 @@ async function fetchAllUserRSOEvents(
         getEventComments(viewCommentsButton, li);
         attachToggleInput(inviteButton, inputBox, sendButton);
         createEventComment(sendButton, viewCommentsButton, inputBox, li);
-        li.appendChild(inputBox);
-        li.appendChild(sendButton);
         li.appendChild(viewCommentsButton);
         e.event_rating = Math.round(e.event_rating * 10) / 10;
         createRatingBar(li, e.event_rating, e.event_id);
@@ -141,21 +149,26 @@ async function fetchAllUserRSOEvents(
         console.log(e.event_type);
         li.innerHTML = `${e.event_name}`;
         inviteButton.textContent = "Comment";
-        inviteButton.classList.add("invite-button");
+        inviteButton.classList.add("send-button");
 
-        li.appendChild(inviteButton);
-        universityList.appendChild(li);
+        
 
         const inputBox = document.createElement("input");
         inputBox.type = "text";
         inputBox.placeholder = "Enter comment";
-        inputBox.style.display = "none"; // start hidden
+        inputBox.style.display = "none";
         inputBox.classList.add("invite-input");
         const sendButton = document.createElement("button");
         sendButton.dataset.eventId = e.event_id;
         sendButton.textContent = "Send";
         sendButton.classList.add("send-button");
         sendButton.style.display = "none";
+        commentDiv.appendChild(inviteButton);
+        commentDiv.appendChild(sendButton);
+        commentDiv.appendChild(inputBox);
+        universityList.appendChild(li);
+        universityList.appendChild(commentDiv);
+
         const viewCommentsButton = document.createElement("button");
         viewCommentsButton.dataset.eventId = e.event_id;
         viewCommentsButton.textContent = "View Event Comments";
@@ -164,8 +177,6 @@ async function fetchAllUserRSOEvents(
         getEventComments(viewCommentsButton, li);
         attachToggleInput(inviteButton, inputBox, sendButton);
         createEventComment(sendButton, viewCommentsButton, inputBox, li);
-        li.appendChild(inputBox);
-        li.appendChild(sendButton);
         li.appendChild(viewCommentsButton);
         e.event_rating = Math.round(e.event_rating * 10) / 10;
         createRatingBar(li, e.event_rating, e.event_id);
@@ -342,7 +353,7 @@ async function getEventComments(button, li) {
           fetchedComments.forEach(async (curComment) => {
             const liComment = document.createElement("li");
             const commentDiv = document.createElement("div");
-            commentDiv.classList.add("comment-div");
+            commentDiv.classList.add("comment-div"); 
 
             const text = document.createElement("span");
             text.innerHTML = curComment.text;
