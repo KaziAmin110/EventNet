@@ -51,7 +51,11 @@ async function displayJoinedUniversities() {
       const infoContainer = document.createElement("div");
 
       const nameSpan = document.createElement("span");
-      nameSpan.textContent = uni.uni_name;
+      nameSpan.textContent = uni.uni_name
+        .toLowerCase()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
       nameSpan.style.fontSize = "25px";
 
       infoContainer.appendChild(nameSpan);
@@ -131,7 +135,11 @@ async function fetchUniversities() {
       // Create a container for name and button
       const infoContainer = document.createElement("div");
       const nameSpan = document.createElement("span");
-      nameSpan.textContent = uni.uni_name;
+      nameSpan.textContent = uni.uni_name
+        .toLowerCase()
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
       nameSpan.style.fontSize = "25px";
       const joinBtn = document.createElement("button");
       joinBtn.classList.add("join-btn");
