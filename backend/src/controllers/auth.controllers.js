@@ -23,6 +23,7 @@ import {
   deleteResetTokenByAttribute,
   isValidEmailFormat,
   isValidPassword,
+  generateCode,
 } from "../services/auth.services.js";
 import redisClient from "../../config/redis.config.js";
 
@@ -193,7 +194,7 @@ export const forgotPassword = async (req, res, next) => {
       throw error;
     }
 
-    const reset_token = user.generateCode();
+    const reset_token = generateCode();
     const resetTokenExpires = new Date(
       Date.now() + 60 * 60 * 1000
     ).toISOString(); // 1 hour
@@ -205,6 +206,7 @@ export const forgotPassword = async (req, res, next) => {
     } else {
       await updatePasswordResetDB(email, reset_token, resetTokenExpires);
     }
+
     // Nodemailer Setup
     var transporter = nodemailer.createTransport({
       service: "gmail",
