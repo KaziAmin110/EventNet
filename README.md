@@ -1,4 +1,4 @@
-# 🎓 Eventify
+# 🎓 EventNet
 
 ## 📌 Project Description  
 
